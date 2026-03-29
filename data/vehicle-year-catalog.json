@@ -1,0 +1,135 @@
+{
+  "yearRangesByBrandModel": {
+    "Renault": { "_default": [1990, 2099], "Clio": [1990, 2099], "Megane": [1995, 2099], "Captur": [2013, 2099], "Kadjar": [2015, 2022], "Scenic": [1996, 2023], "Twingo": [1993, 2024], "Zoe": [2012, 2099], "Arkana": [2019, 2099], "Austral": [2022, 2099], "Espace": [1984, 2099], "Talisman": [2015, 2022], "Kangoo": [1997, 2099], "Master": [1990, 2099], "Trafic": [1980, 2099] },
+    "Peugeot": { "_default": [1990, 2099], "208": [2012, 2099], "308": [2007, 2099], "408": [2022, 2099], "508": [2010, 2099], "2008": [2013, 2099], "3008": [2009, 2099], "5008": [2009, 2099], "Partner": [1996, 2099], "Rifter": [2018, 2099], "Expert": [1995, 2099], "Boxer": [1994, 2099], "e-208": [2019, 2099], "e-308": [2022, 2099], "e-2008": [2019, 2099] },
+    "Citroën": { "_default": [1990, 2099], "C1": [2005, 2022], "C3": [2002, 2099], "C3 Aircross": [2017, 2099], "C4": [2004, 2099], "C4 X": [2022, 2099], "C5 X": [2021, 2099], "C5 Aircross": [2017, 2099], "Berlingo": [1996, 2099], "SpaceTourer": [2016, 2099], "Jumpy": [1995, 2099], "Jumper": [1994, 2099], "Ami": [2020, 2099] },
+    "DS": { "_default": [2010, 2099] },
+    "Alpine": { "_default": [2017, 2099] },
+    "Bugatti": { "_default": [2005, 2099], "Veyron": [2005, 2015], "Chiron": [2016, 2099] },
+    "Volkswagen": { "_default": [1990, 2099], "Golf": [1974, 2099], "Polo": [1975, 2099], "Tiguan": [2007, 2099], "T-Roc": [2017, 2099], "T-Cross": [2018, 2099], "Passat": [1973, 2099], "Arteon": [2017, 2024], "Touareg": [2002, 2099], "ID.3": [2019, 2099], "ID.4": [2020, 2099], "ID.5": [2021, 2099], "ID.7": [2023, 2099], "ID. Buzz": [2022, 2099], "Touran": [2003, 2099], "Caddy": [1980, 2099], "Transporter": [1990, 2099] },
+    "BMW": { "_default": [1990, 2099], "Série 1": [2004, 2099], "Série 2": [2013, 2099], "Série 3": [1990, 2099], "Série 4": [2013, 2099], "Série 5": [1990, 2099], "Série 7": [1990, 2099], "Série 8": [2018, 2099], "X1": [2009, 2099], "X2": [2017, 2099], "X3": [2003, 2099], "X4": [2014, 2099], "X5": [1999, 2099], "X6": [2008, 2099], "X7": [2018, 2099], "iX": [2021, 2099], "iX3": [2020, 2099], "i4": [2021, 2099], "i5": [2023, 2099], "i7": [2022, 2099], "Z4": [2003, 2099] },
+    "Mercedes-Benz": { "_default": [1990, 2099], "Classe A": [1997, 2099], "Classe B": [2005, 2099], "Classe C": [1993, 2099], "Classe E": [1990, 2099], "Classe S": [1990, 2099], "CLA": [2013, 2099], "CLS": [2004, 2023], "GLA": [2013, 2099], "GLB": [2019, 2099], "GLC": [2015, 2099], "GLE": [2015, 2099], "GLS": [2016, 2099], "EQA": [2021, 2099], "EQB": [2021, 2099], "EQC": [2019, 2099], "EQE": [2022, 2099], "EQS": [2021, 2099], "AMG GT": [2014, 2099] },
+    "Audi": { "_default": [1990, 2099], "A1": [2010, 2099], "A3": [1996, 2099], "A4": [1994, 2099], "A5": [2007, 2099], "A6": [1994, 2099], "A7": [2010, 2099], "A8": [1994, 2099], "Q2": [2016, 2099], "Q3": [2011, 2099], "Q4 e-tron": [2021, 2099], "Q5": [2008, 2099], "Q7": [2005, 2099], "Q8": [2018, 2099], "e-tron": [2018, 2099], "e-tron GT": [2021, 2099], "TT": [1998, 2023], "R8": [2007, 2024] },
+    "Porsche": { "_default": [1990, 2099], "Taycan": [2019, 2099] },
+    "Opel": { "_default": [1990, 2099], "Corsa": [1990, 2099], "Astra": [1991, 2099], "Mokka": [2012, 2099], "Crossland": [2017, 2024], "Grandland": [2017, 2099], "Insignia": [2008, 2023], "Combo": [1993, 2099], "Vivaro": [2001, 2099], "Movano": [1998, 2099], "Zafira": [1999, 2024] },
+    "Smart": { "_default": [1998, 2099], "#1": [2022, 2099], "#3": [2023, 2099] },
+    "Mini": { "_default": [2001, 2099], "Mini Electric": [2020, 2099] },
+    "Fiat": { "_default": [1990, 2099], "500e": [2020, 2099] },
+    "Alfa Romeo": { "_default": [1990, 2099], "Tonale": [2022, 2099] },
+    "Ferrari": { "_default": [2000, 2099], "Purosangue": [2022, 2099] },
+    "Lamborghini": { "_default": [2000, 2099], "Revuelto": [2023, 2099], "Urus": [2018, 2099] },
+    "Maserati": { "_default": [1990, 2099], "Grecale": [2022, 2099], "MC20": [2020, 2099] },
+    "Lancia": { "_default": [1990, 2099] },
+    "Toyota": { "_default": [1990, 2099], "Yaris": [1999, 2099], "Yaris Cross": [2020, 2099], "Corolla": [1990, 2099], "C-HR": [2016, 2099], "RAV4": [1994, 2099], "Highlander": [2000, 2099], "Land Cruiser": [1990, 2099], "Prius": [1997, 2099], "Camry": [1990, 2099], "Supra": [1993, 2099], "GR86": [2021, 2099], "Aygo X": [2021, 2099], "bZ4X": [2022, 2099], "Proace": [2013, 2099] },
+    "Honda": { "_default": [1990, 2099], "Honda e": [2020, 2099], "e:Ny1": [2023, 2099] },
+    "Nissan": { "_default": [1990, 2099], "Micra": [1990, 2023], "Juke": [2010, 2099], "Qashqai": [2006, 2099], "X-Trail": [2001, 2099], "Leaf": [2010, 2099], "Ariya": [2021, 2099], "GT-R": [2007, 2025], "370Z": [2009, 2020], "Navara": [1997, 2099], "Townstar": [2021, 2099] },
+    "Mazda": { "_default": [1990, 2099], "MX-30": [2020, 2099], "CX-60": [2022, 2099] },
+    "Suzuki": { "_default": [1990, 2099], "Jimny": [1998, 2099] },
+    "Mitsubishi": { "_default": [1990, 2099], "Eclipse Cross": [2017, 2099] },
+    "Subaru": { "_default": [1990, 2099], "Solterra": [2022, 2099] },
+    "Lexus": { "_default": [1990, 2099], "LBX": [2023, 2099], "RZ": [2023, 2099] },
+    "Infiniti": { "_default": [2008, 2099] },
+    "Hyundai": { "_default": [1990, 2099], "i10": [2007, 2099], "i20": [2008, 2099], "i30": [2007, 2099], "Kona": [2017, 2099], "Tucson": [2004, 2099], "Santa Fe": [2000, 2099], "Ioniq 5": [2021, 2099], "Ioniq 6": [2022, 2099], "Bayon": [2021, 2099], "Nexo": [2018, 2099] },
+    "Kia": { "_default": [1990, 2099], "Picanto": [2004, 2099], "Rio": [2000, 2023], "Ceed": [2006, 2099], "Proceed": [2007, 2099], "XCeed": [2019, 2099], "Stonic": [2017, 2099], "Niro": [2016, 2099], "Sportage": [1993, 2099], "Sorento": [2002, 2099], "EV6": [2021, 2099], "EV9": [2023, 2099] },
+    "Genesis": { "_default": [2015, 2099], "GV60": [2021, 2099] },
+    "SsangYong": { "_default": [1990, 2099] },
+    "Ford": { "_default": [1990, 2099], "Fiesta": [1990, 2023], "Focus": [1998, 2099], "Puma": [2019, 2099], "Kuga": [2008, 2099], "Mustang": [1990, 2099], "Mustang Mach-E": [2020, 2099], "Explorer": [1990, 2099], "Ranger": [1998, 2099], "Transit": [1990, 2099], "Tourneo": [1990, 2099] },
+    "Chevrolet": { "_default": [1990, 2099] },
+    "Dodge": { "_default": [1990, 2099] },
+    "Jeep": { "_default": [1990, 2099], "Avenger": [2023, 2099] },
+    "Cadillac": { "_default": [1990, 2099], "Lyriq": [2022, 2099] },
+    "Tesla": { "_default": [2012, 2099], "Model 3": [2017, 2099], "Model Y": [2020, 2099] },
+    "Chrysler": { "_default": [1990, 2099] },
+    "GMC": { "_default": [1990, 2099], "Hummer EV": [2021, 2099] },
+    "Lincoln": { "_default": [1990, 2099] },
+    "Buick": { "_default": [1990, 2099] },
+    "Land Rover": { "_default": [1990, 2099], "Defender": [2020, 2099], "Discovery": [1990, 2099], "Discovery Sport": [2014, 2099], "Range Rover": [1990, 2099], "Range Rover Sport": [2005, 2099], "Range Rover Velar": [2017, 2099], "Range Rover Evoque": [2011, 2099] },
+    "Jaguar": { "_default": [1990, 2099], "I-Pace": [2018, 2099] },
+    "Bentley": { "_default": [2000, 2099], "Bentayga": [2015, 2099] },
+    "Rolls-Royce": { "_default": [2000, 2099], "Spectre": [2023, 2099] },
+    "Aston Martin": { "_default": [2000, 2099], "DBX": [2020, 2099] },
+    "McLaren": { "_default": [2011, 2099], "Artura": [2021, 2099] },
+    "Lotus": { "_default": [1990, 2099], "Emira": [2021, 2099], "Eletre": [2023, 2099] },
+    "MG": { "_default": [2000, 2099], "MG4": [2022, 2099], "Marvel R": [2021, 2099] },
+    "Volvo": { "_default": [1990, 2099], "XC40": [2017, 2099], "XC60": [2008, 2099], "XC90": [2002, 2099], "S60": [2000, 2099], "S90": [1996, 2099], "V60": [2010, 2099], "V90": [1996, 2099], "C40 Recharge": [2021, 2099], "EX30": [2023, 2099], "EX90": [2024, 2099] },
+    "Saab": { "_default": [1990, 2014] },
+    "Seat": { "_default": [1990, 2099] },
+    "Cupra": { "_default": [2018, 2099], "Born": [2021, 2099], "Tavascan": [2024, 2099] },
+    "Skoda": { "_default": [1990, 2099], "Fabia": [1999, 2099], "Scala": [2019, 2099], "Octavia": [1996, 2099], "Superb": [2001, 2099], "Kamiq": [2019, 2099], "Karoq": [2017, 2099], "Kodiaq": [2016, 2099], "Enyaq": [2020, 2099] },
+    "Dacia": { "_default": [2004, 2099], "Sandero": [2008, 2099], "Duster": [2010, 2099], "Jogger": [2021, 2099], "Spring": [2021, 2099], "Logan": [2004, 2099] },
+    "BYD": { "_default": [2022, 2099] },
+    "Lynk & Co": { "_default": [2017, 2099] },
+    "Polestar": { "_default": [2020, 2099] },
+    "NIO": { "_default": [2018, 2099] },
+    "Xpeng": { "_default": [2018, 2099] },
+    "Aiways": { "_default": [2019, 2099] },
+    "Geely": { "_default": [2010, 2099] }
+  },
+  "yearRulesByBrandModel": {
+    "Renault": {
+      "Clio": [{ "carburant": ["Hybride"], "range": [2020, 2099] }, { "range": [1990, 2099] }],
+      "Captur": [{ "carburant": ["Hybride rechargeable"], "range": [2020, 2099] }, { "carburant": ["Hybride"], "range": [2020, 2099] }, { "range": [2013, 2099] }],
+      "Zoe": [{ "carburant": ["Électrique"], "range": [2012, 2099] }]
+    },
+    "Peugeot": {
+      "e-208": [{ "carburant": ["Électrique"], "range": [2019, 2099] }],
+      "e-308": [{ "carburant": ["Électrique"], "range": [2022, 2099] }],
+      "208": [{ "carburant": ["Électrique"], "range": [2019, 2099] }, { "range": [2012, 2099] }],
+      "3008": [{ "carburant": ["Hybride rechargeable"], "range": [2019, 2099] }, { "range": [2009, 2099] }]
+    },
+    "Volkswagen": {
+      "Golf": [{ "carburant": ["Hybride rechargeable"], "range": [2014, 2099] }, { "transmission": ["Manuelle"], "range": [1974, 2099] }, { "range": [1974, 2099] }],
+      "ID.3": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2019, 2099] }],
+      "ID.4": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2020, 2099] }],
+      "ID.5": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }],
+      "ID.7": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2023, 2099] }]
+    },
+    "BMW": {
+      "Série 3": [{ "transmission": ["Manuelle"], "range": [1990, 2022] }, { "range": [1990, 2099] }],
+      "i4": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }],
+      "i5": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2023, 2099] }],
+      "i7": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2022, 2099] }]
+    },
+    "Mercedes-Benz": {
+      "Classe A": [{ "transmission": ["Manuelle"], "range": [1997, 2022] }, { "range": [1997, 2099] }],
+      "EQA": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }],
+      "EQB": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }]
+    },
+    "Audi": {
+      "A3": [{ "carburant": ["Hybride rechargeable"], "range": [2020, 2099] }, { "range": [1996, 2099] }],
+      "Q4 e-tron": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }]
+    },
+    "Toyota": {
+      "Yaris": [{ "carburant": ["Hybride"], "range": [2012, 2099] }, { "range": [1999, 2099] }],
+      "Corolla": [{ "carburant": ["Hybride"], "range": [2018, 2099] }, { "range": [1990, 2099] }],
+      "bZ4X": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2022, 2099] }]
+    },
+    "Honda": {
+      "Honda e": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2020, 2099] }],
+      "Civic": [{ "transmission": ["Manuelle"], "range": [1990, 2023] }, { "range": [1990, 2099] }]
+    },
+    "Nissan": {
+      "Leaf": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2010, 2099] }],
+      "Ariya": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }]
+    },
+    "Hyundai": {
+      "Ioniq 5": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }],
+      "Ioniq 6": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2022, 2099] }],
+      "Kona": [{ "carburant": ["Électrique"], "range": [2018, 2099] }, { "range": [2017, 2099] }]
+    },
+    "Kia": {
+      "EV6": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }],
+      "EV9": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2023, 2099] }],
+      "Sportage": [{ "carburant": ["Hybride rechargeable"], "range": [2022, 2099] }, { "carburant": ["Hybride"], "range": [2021, 2099] }, { "range": [1993, 2099] }]
+    },
+    "Tesla": {
+      "Model S": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2012, 2099] }],
+      "Model 3": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2017, 2099] }],
+      "Model X": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2015, 2099] }],
+      "Model Y": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2020, 2099] }],
+      "Cybertruck": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2023, 2099] }]
+    },
+    "Cupra": { "Born": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }] },
+    "Dacia": { "Spring": [{ "carburant": ["Électrique"], "transmission": ["Automatique"], "range": [2021, 2099] }] }
+  }
+}

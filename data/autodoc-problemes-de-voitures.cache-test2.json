@@ -1,0 +1,42 @@
+{
+  "processedUrls": [
+    "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xe"
+  ],
+  "articleUrls": [
+    "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-e-pace",
+    "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xe",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-justy",
+    "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xf",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-impreza",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-outback",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-civic",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-forester",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-accord",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-hr-v",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-jimny",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-swift",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-jazz",
+    "https://www.auto-doc.fr/info/problemes-avec-le-land-rover-freelander",
+    "https://www.auto-doc.fr/info/problemes-avec-le-land-rover-discovery",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-swift-sport",
+    "https://www.auto-doc.fr/info/problemes-avec-le-land-rover-discovery-sport",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-alto",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-splash",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-sx4"
+  ],
+  "byModel": {
+    " Jaguar Xe": {
+      "engines": {
+        "_unknown": [
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xe",
+            "title": "",
+            "excerpt": ""
+          }
+        ]
+      }
+    }
+  },
+  "categoryPagesDone": 1,
+  "lastArticleProcessedAt": "2026-03-19T16:14:54.719Z"
+}

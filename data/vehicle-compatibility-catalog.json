@@ -1,0 +1,5318 @@
+{
+  "fuelTypes": {
+    "_default": {
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Tesla": {
+      "_default": [
+        "Électrique"
+      ]
+    },
+    "Polestar": {
+      "_default": [
+        "Électrique",
+        "Hybride rechargeable"
+      ]
+    },
+    "NIO": {
+      "_default": [
+        "Électrique"
+      ]
+    },
+    "Xpeng": {
+      "_default": [
+        "Électrique"
+      ]
+    },
+    "Aiways": {
+      "_default": [
+        "Électrique"
+      ]
+    },
+    "BYD": {
+      "_default": [
+        "Électrique",
+        "Hybride rechargeable"
+      ]
+    },
+    "Renault": {
+      "Zoe": [
+        "Électrique"
+      ],
+      "Clio": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "GPL",
+        "E85"
+      ],
+      "Captur": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Megane": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Scenic": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Arkana": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Austral": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Kangoo": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "Trafic": [
+        "Diesel",
+        "Essence"
+      ],
+      "Master": [
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable",
+        "GPL",
+        "E85"
+      ]
+    },
+    "Peugeot": {
+      "208": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Électrique"
+      ],
+      "308": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "408": [
+        "Essence",
+        "Hybride"
+      ],
+      "508": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "2008": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "3008": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "5008": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "e-208": [
+        "Électrique"
+      ],
+      "e-308": [
+        "Électrique"
+      ],
+      "e-2008": [
+        "Électrique"
+      ],
+      "Partner": [
+        "Essence",
+        "Diesel"
+      ],
+      "Rifter": [
+        "Essence",
+        "Diesel"
+      ],
+      "Expert": [
+        "Diesel"
+      ],
+      "Boxer": [
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Citroën": {
+      "Ami": [
+        "Électrique"
+      ],
+      "C1": [
+        "Essence"
+      ],
+      "C3": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "C3 Aircross": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "C4": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "C4 X": [
+        "Essence",
+        "Hybride"
+      ],
+      "C5 X": [
+        "Essence",
+        "Hybride"
+      ],
+      "C5 Aircross": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "Berlingo": [
+        "Essence",
+        "Diesel"
+      ],
+      "SpaceTourer": [
+        "Diesel"
+      ],
+      "Jumpy": [
+        "Diesel",
+        "Essence"
+      ],
+      "Jumper": [
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "DS": {
+      "_default": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Alpine": {
+      "_default": [
+        "Essence"
+      ]
+    },
+    "Bugatti": {
+      "_default": [
+        "Essence"
+      ]
+    },
+    "Volkswagen": {
+      "ID.3": [
+        "Électrique"
+      ],
+      "ID.4": [
+        "Électrique"
+      ],
+      "ID.5": [
+        "Électrique"
+      ],
+      "ID.7": [
+        "Électrique"
+      ],
+      "ID. Buzz": [
+        "Électrique"
+      ],
+      "Golf": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Polo": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "Tiguan": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "T-Roc": [
+        "Essence",
+        "Diesel"
+      ],
+      "T-Cross": [
+        "Essence",
+        "Diesel"
+      ],
+      "Passat": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Arteon": [
+        "Essence",
+        "Diesel"
+      ],
+      "Touareg": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Touran": [
+        "Essence",
+        "Diesel"
+      ],
+      "Caddy": [
+        "Essence",
+        "Diesel"
+      ],
+      "Transporter": [
+        "Diesel",
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable",
+        "GNV",
+        "E85"
+      ]
+    },
+    "BMW": {
+      "iX": [
+        "Électrique"
+      ],
+      "iX3": [
+        "Électrique"
+      ],
+      "i4": [
+        "Électrique"
+      ],
+      "i5": [
+        "Électrique"
+      ],
+      "i7": [
+        "Électrique"
+      ],
+      "Série 1": [
+        "Essence",
+        "Diesel"
+      ],
+      "Série 2": [
+        "Essence",
+        "Diesel"
+      ],
+      "Série 3": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Série 4": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Série 5": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Série 7": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Série 8": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "X1": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "X2": [
+        "Essence",
+        "Diesel"
+      ],
+      "X3": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "X4": [
+        "Essence",
+        "Diesel"
+      ],
+      "X5": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "X6": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "X7": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Z4": [
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Mercedes-Benz": {
+      "EQA": [
+        "Électrique"
+      ],
+      "EQB": [
+        "Électrique"
+      ],
+      "EQC": [
+        "Électrique"
+      ],
+      "EQE": [
+        "Électrique"
+      ],
+      "EQS": [
+        "Électrique"
+      ],
+      "Classe A": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Classe B": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Classe C": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Classe E": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Classe S": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "CLA": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "CLS": [
+        "Essence",
+        "Diesel"
+      ],
+      "GLA": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "GLB": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "GLC": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "GLE": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "GLS": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "AMG GT": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Audi": {
+      "e-tron": [
+        "Électrique"
+      ],
+      "e-tron GT": [
+        "Électrique"
+      ],
+      "Q4 e-tron": [
+        "Électrique"
+      ],
+      "A1": [
+        "Essence",
+        "Diesel"
+      ],
+      "A3": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "A4": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "A5": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "A6": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "A7": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "A8": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Q2": [
+        "Essence",
+        "Diesel"
+      ],
+      "Q3": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Q5": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Q7": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Q8": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "TT": [
+        "Essence"
+      ],
+      "R8": [
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable",
+        "GNV"
+      ]
+    },
+    "Porsche": {
+      "911": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "Taycan": [
+        "Électrique"
+      ],
+      "718 Cayman": [
+        "Essence"
+      ],
+      "718 Boxster": [
+        "Essence"
+      ],
+      "Cayenne": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Macan": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "Panamera": [
+        "Essence",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Opel": {
+      "Corsa": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "Astra": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Mokka": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "Crossland": [
+        "Essence",
+        "Diesel"
+      ],
+      "Grandland": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Insignia": [
+        "Essence",
+        "Diesel"
+      ],
+      "Combo": [
+        "Essence",
+        "Diesel"
+      ],
+      "Vivaro": [
+        "Diesel",
+        "Électrique"
+      ],
+      "Movano": [
+        "Diesel"
+      ],
+      "Zafira": [
+        "Essence",
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ]
+    },
+    "Smart": {
+      "Fortwo": [
+        "Essence",
+        "Électrique"
+      ],
+      "Forfour": [
+        "Essence",
+        "Électrique"
+      ],
+      "#1": [
+        "Électrique"
+      ],
+      "#3": [
+        "Électrique"
+      ],
+      "_default": [
+        "Essence",
+        "Électrique"
+      ]
+    },
+    "Mini": {
+      "Mini Electric": [
+        "Électrique"
+      ],
+      "Mini 3 portes": [
+        "Essence",
+        "Diesel"
+      ],
+      "Mini 5 portes": [
+        "Essence",
+        "Diesel"
+      ],
+      "Mini Clubman": [
+        "Essence",
+        "Diesel"
+      ],
+      "Mini Countryman": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Mini Cabrio": [
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Fiat": {
+      "500": [
+        "Essence",
+        "Hybride",
+        "Électrique"
+      ],
+      "500e": [
+        "Électrique"
+      ],
+      "500X": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "500L": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "Panda": [
+        "Essence",
+        "Diesel",
+        "GPL",
+        "GNV",
+        "Hybride",
+        "Électrique"
+      ],
+      "Tipo": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "Punto": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "Ducato": [
+        "Diesel"
+      ],
+      "Doblo": [
+        "Essence",
+        "Diesel"
+      ],
+      "Fiorino": [
+        "Essence",
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "GPL",
+        "GNV"
+      ]
+    },
+    "Alfa Romeo": {
+      "Giulia": [
+        "Essence",
+        "Diesel"
+      ],
+      "Stelvio": [
+        "Essence",
+        "Diesel"
+      ],
+      "Tonale": [
+        "Essence",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Giulietta": [
+        "Essence",
+        "Diesel"
+      ],
+      "MiTo": [
+        "Essence",
+        "Diesel"
+      ],
+      "4C": [
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Ferrari": {
+      "SF90 Stradale": [
+        "Hybride rechargeable"
+      ],
+      "296 GTB": [
+        "Hybride rechargeable"
+      ],
+      "Purosangue": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Lamborghini": {
+      "Revuelto": [
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride rechargeable"
+      ]
+    },
+    "Maserati": {
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "Lancia": {
+      "_default": [
+        "Essence",
+        "Hybride",
+        "Électrique"
+      ]
+    },
+    "Toyota": {
+      "bZ4X": [
+        "Électrique"
+      ],
+      "Prius": [
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Yaris": [
+        "Essence",
+        "Hybride"
+      ],
+      "Yaris Cross": [
+        "Essence",
+        "Hybride"
+      ],
+      "Corolla": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "C-HR": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "RAV4": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Highlander": [
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Land Cruiser": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "Camry": [
+        "Essence",
+        "Hybride"
+      ],
+      "Supra": [
+        "Essence"
+      ],
+      "GR86": [
+        "Essence"
+      ],
+      "Aygo X": [
+        "Essence",
+        "Hybride"
+      ],
+      "Proace": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Honda": {
+      "Honda e": [
+        "Électrique"
+      ],
+      "e:Ny1": [
+        "Électrique"
+      ],
+      "Jazz": [
+        "Essence",
+        "Hybride"
+      ],
+      "Civic": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Accord": [
+        "Essence",
+        "Hybride"
+      ],
+      "HR-V": [
+        "Essence",
+        "Hybride"
+      ],
+      "CR-V": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "ZR-V": [
+        "Essence",
+        "Hybride"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride"
+      ]
+    },
+    "Nissan": {
+      "Leaf": [
+        "Électrique"
+      ],
+      "Ariya": [
+        "Électrique"
+      ],
+      "Micra": [
+        "Essence",
+        "Diesel"
+      ],
+      "Juke": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "Qashqai": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "X-Trail": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "GT-R": [
+        "Essence"
+      ],
+      "370Z": [
+        "Essence"
+      ],
+      "Navara": [
+        "Diesel"
+      ],
+      "Townstar": [
+        "Électrique",
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "Mazda": {
+      "MX-30": [
+        "Électrique",
+        "Hybride rechargeable"
+      ],
+      "Mazda2": [
+        "Essence",
+        "Diesel"
+      ],
+      "Mazda3": [
+        "Essence",
+        "Diesel"
+      ],
+      "Mazda6": [
+        "Essence",
+        "Diesel"
+      ],
+      "CX-3": [
+        "Essence",
+        "Diesel"
+      ],
+      "CX-30": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "CX-5": [
+        "Essence",
+        "Diesel"
+      ],
+      "CX-60": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "MX-5": [
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "Suzuki": {
+      "Across": [
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "Mitsubishi": {
+      "Outlander": [
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Eclipse Cross": [
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "Subaru": {
+      "Solterra": [
+        "Électrique"
+      ],
+      "Outback": [
+        "Essence",
+        "Hybride"
+      ],
+      "Forester": [
+        "Essence",
+        "Hybride"
+      ],
+      "XV": [
+        "Essence",
+        "Hybride"
+      ],
+      "Impreza": [
+        "Essence",
+        "Hybride"
+      ],
+      "BRZ": [
+        "Essence"
+      ],
+      "Levorg": [
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride"
+      ]
+    },
+    "Lexus": {
+      "RZ": [
+        "Électrique"
+      ],
+      "UX": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "NX": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "RX": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "ES": [
+        "Essence",
+        "Hybride"
+      ],
+      "IS": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "LC": [
+        "Essence",
+        "Hybride"
+      ],
+      "LS": [
+        "Essence",
+        "Hybride"
+      ],
+      "LBX": [
+        "Essence",
+        "Hybride"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Infiniti": {
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "Daihatsu": {
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Hyundai": {
+      "Ioniq 5": [
+        "Électrique"
+      ],
+      "Ioniq 6": [
+        "Électrique"
+      ],
+      "Nexo": [
+        "Hydrogène"
+      ],
+      "Kona": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Électrique"
+      ],
+      "i10": [
+        "Essence",
+        "GPL"
+      ],
+      "i20": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "i30": [
+        "Essence",
+        "Diesel"
+      ],
+      "Tucson": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Santa Fe": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Bayon": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable",
+        "GPL"
+      ]
+    },
+    "Kia": {
+      "EV6": [
+        "Électrique"
+      ],
+      "EV9": [
+        "Électrique"
+      ],
+      "Niro": [
+        "Hybride",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Picanto": [
+        "Essence",
+        "GPL"
+      ],
+      "Rio": [
+        "Essence",
+        "Diesel"
+      ],
+      "Ceed": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "GPL"
+      ],
+      "Proceed": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "XCeed": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Stonic": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "Sportage": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Sorento": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable",
+        "GPL"
+      ]
+    },
+    "Genesis": {
+      "GV60": [
+        "Électrique"
+      ],
+      "GV70": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "GV80": [
+        "Essence",
+        "Diesel"
+      ],
+      "G70": [
+        "Essence",
+        "Diesel"
+      ],
+      "G80": [
+        "Essence",
+        "Diesel",
+        "Électrique"
+      ],
+      "G90": [
+        "Essence",
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride"
+      ]
+    },
+    "SsangYong": {
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Ford": {
+      "Mustang Mach-E": [
+        "Électrique"
+      ],
+      "Fiesta": [
+        "Essence",
+        "Diesel"
+      ],
+      "Focus": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "Puma": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "Kuga": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Mustang": [
+        "Essence"
+      ],
+      "Explorer": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "Ranger": [
+        "Diesel"
+      ],
+      "Transit": [
+        "Diesel",
+        "Essence",
+        "Électrique"
+      ],
+      "Tourneo": [
+        "Diesel",
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable",
+        "E85"
+      ]
+    },
+    "Chevrolet": {
+      "Volt": [
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Jeep": {
+      "Avenger": [
+        "Électrique",
+        "Essence"
+      ],
+      "Renegade": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ],
+      "Compass": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Cherokee": [
+        "Essence",
+        "Diesel"
+      ],
+      "Grand Cherokee": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Wrangler": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Gladiator": [
+        "Essence",
+        "Diesel"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ]
+    },
+    "Cadillac": {
+      "Lyriq": [
+        "Électrique"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ]
+    },
+    "Chrysler": {
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "GMC": {
+      "Hummer EV": [
+        "Électrique"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Lincoln": {
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ]
+    },
+    "Buick": {
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Land Rover": {
+      "Defender": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Discovery": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Discovery Sport": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Range Rover": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Range Rover Sport": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "Range Rover Velar": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Range Rover Evoque": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ]
+    },
+    "Jaguar": {
+      "I-Pace": [
+        "Électrique"
+      ],
+      "XE": [
+        "Essence",
+        "Diesel"
+      ],
+      "XF": [
+        "Essence",
+        "Diesel"
+      ],
+      "F-Type": [
+        "Essence"
+      ],
+      "E-Pace": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "F-Pace": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    },
+    "Bentley": {
+      "_default": [
+        "Essence",
+        "Hybride rechargeable"
+      ]
+    },
+    "Rolls-Royce": {
+      "Spectre": [
+        "Électrique"
+      ],
+      "_default": [
+        "Essence"
+      ]
+    },
+    "Aston Martin": {
+      "_default": [
+        "Essence",
+        "Hybride"
+      ]
+    },
+    "McLaren": {
+      "Artura": [
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence"
+      ]
+    },
+    "Lotus": {
+      "Eletre": [
+        "Électrique"
+      ],
+      "Emira": [
+        "Essence"
+      ],
+      "_default": [
+        "Essence",
+        "Électrique"
+      ]
+    },
+    "Volvo": {
+      "C40 Recharge": [
+        "Électrique"
+      ],
+      "EX30": [
+        "Électrique"
+      ],
+      "EX90": [
+        "Électrique"
+      ],
+      "XC40": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable",
+        "Électrique"
+      ],
+      "XC60": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "XC90": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "S60": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "S90": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "V60": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "V90": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Saab": {
+      "_default": [
+        "Essence",
+        "Diesel"
+      ]
+    },
+    "Seat": {
+      "Ibiza": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "Leon": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Arona": [
+        "Essence",
+        "Diesel"
+      ],
+      "Ateca": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Tarraco": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Mii": [
+        "Essence",
+        "Électrique"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ]
+    },
+    "Cupra": {
+      "Born": [
+        "Électrique"
+      ],
+      "Tavascan": [
+        "Électrique"
+      ],
+      "Formentor": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "Leon": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "Ateca": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride rechargeable"
+      ]
+    },
+    "Skoda": {
+      "Enyaq": [
+        "Électrique"
+      ],
+      "Fabia": [
+        "Essence",
+        "Diesel"
+      ],
+      "Scala": [
+        "Essence",
+        "Diesel",
+        "GPL"
+      ],
+      "Octavia": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "Hybride rechargeable"
+      ],
+      "Superb": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "Kamiq": [
+        "Essence",
+        "Diesel"
+      ],
+      "Karoq": [
+        "Essence",
+        "Diesel"
+      ],
+      "Kodiaq": [
+        "Essence",
+        "Diesel",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride",
+        "GNV"
+      ]
+    },
+    "Dacia": {
+      "Spring": [
+        "Électrique"
+      ],
+      "Sandero": [
+        "Essence",
+        "GPL"
+      ],
+      "Duster": [
+        "Essence",
+        "Diesel",
+        "GPL",
+        "Hybride"
+      ],
+      "Jogger": [
+        "Essence",
+        "GPL",
+        "Hybride"
+      ],
+      "Logan": [
+        "Essence",
+        "GPL"
+      ],
+      "_default": [
+        "Essence",
+        "GPL",
+        "Hybride"
+      ]
+    },
+    "MG": {
+      "MG4": [
+        "Électrique"
+      ],
+      "MG5": [
+        "Électrique"
+      ],
+      "Marvel R": [
+        "Électrique"
+      ],
+      "Cyberster": [
+        "Électrique"
+      ],
+      "MG3": [
+        "Essence",
+        "Hybride"
+      ],
+      "ZS": [
+        "Essence",
+        "Électrique"
+      ],
+      "HS": [
+        "Essence",
+        "Hybride rechargeable"
+      ],
+      "_default": [
+        "Essence",
+        "Hybride rechargeable",
+        "Électrique"
+      ]
+    },
+    "Lynk & Co": {
+      "_default": [
+        "Essence",
+        "Hybride",
+        "Hybride rechargeable"
+      ]
+    },
+    "Geely": {
+      "_default": [
+        "Essence",
+        "Diesel",
+        "Hybride"
+      ]
+    }
+  },
+  "transmissionTypes": [
+    "Manuelle",
+    "Automatique",
+    "Semi-automatique (robotisée)"
+  ],
+  "transmissionByModel": {
+    "Bugatti": {
+      "_default": [
+        "Automatique",
+        "Semi-automatique (robotisée)"
+      ]
+    },
+    "Lamborghini": {
+      "_default": [
+        "Automatique",
+        "Semi-automatique (robotisée)"
+      ]
+    },
+    "Ferrari": {
+      "_default": [
+        "Automatique",
+        "Semi-automatique (robotisée)"
+      ]
+    },
+    "McLaren": {
+      "_default": [
+        "Automatique",
+        "Semi-automatique (robotisée)"
+      ]
+    },
+    "Tesla": {
+      "_default": [
+        "Automatique"
+      ]
+    },
+    "Polestar": {
+      "_default": [
+        "Automatique"
+      ]
+    },
+    "NIO": {
+      "_default": [
+        "Automatique"
+      ]
+    },
+    "Xpeng": {
+      "_default": [
+        "Automatique"
+      ]
+    },
+    "Aiways": {
+      "_default": [
+        "Automatique"
+      ]
+    },
+    "BYD": {
+      "_default": [
+        "Automatique"
+      ]
+    },
+    "Volkswagen": {
+      "ID.3": [
+        "Automatique"
+      ],
+      "ID.4": [
+        "Automatique"
+      ],
+      "ID.5": [
+        "Automatique"
+      ],
+      "ID.7": [
+        "Automatique"
+      ],
+      "ID. Buzz": [
+        "Automatique"
+      ]
+    },
+    "BMW": {
+      "iX": [
+        "Automatique"
+      ],
+      "iX3": [
+        "Automatique"
+      ],
+      "i4": [
+        "Automatique"
+      ],
+      "i5": [
+        "Automatique"
+      ],
+      "i7": [
+        "Automatique"
+      ]
+    },
+    "Mercedes-Benz": {
+      "EQA": [
+        "Automatique"
+      ],
+      "EQB": [
+        "Automatique"
+      ],
+      "EQC": [
+        "Automatique"
+      ],
+      "EQE": [
+        "Automatique"
+      ],
+      "EQS": [
+        "Automatique"
+      ]
+    },
+    "Audi": {
+      "Q4 e-tron": [
+        "Automatique"
+      ],
+      "e-tron": [
+        "Automatique"
+      ],
+      "e-tron GT": [
+        "Automatique"
+      ]
+    },
+    "Porsche": {
+      "Taycan": [
+        "Automatique"
+      ]
+    },
+    "Renault": {
+      "Zoe": [
+        "Automatique"
+      ]
+    },
+    "Peugeot": {
+      "e-208": [
+        "Automatique"
+      ],
+      "e-308": [
+        "Automatique"
+      ],
+      "e-2008": [
+        "Automatique"
+      ]
+    },
+    "Citroën": {
+      "Ami": [
+        "Automatique"
+      ]
+    },
+    "Fiat": {
+      "500e": [
+        "Automatique"
+      ]
+    },
+    "Toyota": {
+      "bZ4X": [
+        "Automatique"
+      ]
+    },
+    "Honda": {
+      "Honda e": [
+        "Automatique"
+      ],
+      "e:Ny1": [
+        "Automatique"
+      ]
+    },
+    "Nissan": {
+      "Leaf": [
+        "Automatique"
+      ],
+      "Ariya": [
+        "Automatique"
+      ]
+    },
+    "Mazda": {
+      "MX-30": [
+        "Automatique"
+      ]
+    },
+    "Hyundai": {
+      "Ioniq 5": [
+        "Automatique"
+      ],
+      "Ioniq 6": [
+        "Automatique"
+      ],
+      "Nexo": [
+        "Automatique"
+      ]
+    },
+    "Kia": {
+      "EV6": [
+        "Automatique"
+      ],
+      "EV9": [
+        "Automatique"
+      ],
+      "Niro": [
+        "Automatique"
+      ]
+    },
+    "Genesis": {
+      "GV60": [
+        "Automatique"
+      ]
+    },
+    "Cupra": {
+      "Born": [
+        "Automatique"
+      ]
+    },
+    "Skoda": {
+      "Enyaq": [
+        "Automatique"
+      ]
+    },
+    "Dacia": {
+      "Spring": [
+        "Automatique"
+      ]
+    }
+  },
+  "transmissionByModelFuel": {
+    "Renault": {
+      "Zoe": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Clio": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "E85": [
+          "Manuelle"
+        ]
+      },
+      "Captur": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Megane": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Scenic": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Arkana": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Austral": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Kangoo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Trafic": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Master": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Peugeot": {
+      "208": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "308": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "408": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "508": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "2008": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "3008": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "5008": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "e-208": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "e-308": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "e-2008": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Partner": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Rifter": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Expert": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Boxer": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Citroën": {
+      "Ami": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "C1": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "C3": {
+        "Essence": [
+          "Manuelle",
+          "Automatique"
+        ],
+        "Diesel": [
+          "Manuelle"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "C3 Aircross": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "C4": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "C4 X": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "C5 X": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "C5 Aircross": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Berlingo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "SpaceTourer": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Jumpy": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Jumper": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Volkswagen": {
+      "ID.3": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "ID.4": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "ID.5": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "ID.7": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "ID. Buzz": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Golf": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Polo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Tiguan": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "T-Roc": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "T-Cross": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Passat": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Arteon": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Touareg": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Touran": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Caddy": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Transporter": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "BMW": {
+      "iX": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "iX3": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "i4": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "i5": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "i7": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Série 1": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Série 2": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Série 3": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Série 4": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Série 5": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Série 7": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Série 8": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X1": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X2": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X3": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X4": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X5": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X6": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X7": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Z4": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Mercedes-Benz": {
+      "EQA": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "EQB": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "EQC": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "EQE": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "EQS": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Classe A": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Classe B": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Classe C": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Classe E": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Classe S": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "CLA": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "CLS": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "GLA": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "GLB": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "GLC": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "GLE": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "GLS": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "AMG GT": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Audi": {
+      "e-tron": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "e-tron GT": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Q4 e-tron": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "A1": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "A3": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "A4": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "A5": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "A6": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "A7": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "A8": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Q2": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Q3": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Q5": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Q7": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Q8": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "TT": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "R8": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Porsche": {
+      "911": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Taycan": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "718 Cayman": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "718 Boxster": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Cayenne": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Macan": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Panamera": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "Opel": {
+      "Corsa": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Astra": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mokka": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Crossland": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Grandland": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Insignia": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Combo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Vivaro": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Movano": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Zafira": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Smart": {
+      "Fortwo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Forfour": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "#1": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "#3": {
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "Mini": {
+      "Mini Electric": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Mini 3 portes": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mini 5 portes": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mini Clubman": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mini Countryman": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Mini Cabrio": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Fiat": {
+      "500": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "500e": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "500X": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "500L": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Panda": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GNV": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Tipo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Punto": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Ducato": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Doblo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Fiorino": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Alfa Romeo": {
+      "Giulia": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Stelvio": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Tonale": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Giulietta": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "MiTo": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "4C": {
+        "Essence": [
+          "Manuelle"
+        ]
+      }
+    },
+    "Ferrari": {
+      "SF90 Stradale": {
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "296 GTB": {
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Purosangue": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Lamborghini": {
+      "Revuelto": {
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Toyota": {
+      "bZ4X": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Prius": {
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Yaris": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Yaris Cross": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Corolla": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "C-HR": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "RAV4": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Highlander": {
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Land Cruiser": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Camry": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Supra": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "GR86": {
+        "Essence": [
+          "Manuelle"
+        ]
+      },
+      "Aygo X": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Proace": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "Honda": {
+      "Honda e": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "e:Ny1": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Jazz": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Civic": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Accord": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "HR-V": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "CR-V": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "ZR-V": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Nissan": {
+      "Leaf": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Ariya": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Micra": {
+        "Essence": [
+          "Manuelle",
+          "Automatique"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique"
+        ]
+      },
+      "Juke": {
+        "Essence": [
+          "Manuelle",
+          "Automatique"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique"
+        ],
+        "Hybride": [
+          "Automatique"
+        ]
+      },
+      "Qashqai": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "X-Trail": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "GT-R": {
+        "Essence": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "370Z": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Navara": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Townstar": {
+        "Électrique": [
+          "Automatique"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Mazda": {
+      "MX-30": {
+        "Électrique": [
+          "Automatique"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mazda2": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mazda3": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mazda6": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "CX-3": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "CX-30": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "CX-5": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "CX-60": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "MX-5": {
+        "Essence": [
+          "Manuelle"
+        ]
+      }
+    },
+    "Suzuki": {
+      "Across": {
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Mitsubishi": {
+      "Outlander": {
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Eclipse Cross": {
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Subaru": {
+      "Solterra": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Outback": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Forester": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "XV": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Impreza": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "BRZ": {
+        "Essence": [
+          "Manuelle"
+        ]
+      },
+      "Levorg": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Lexus": {
+      "RZ": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "UX": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "NX": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "RX": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "ES": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "IS": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "LC": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "LS": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "LBX": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Hyundai": {
+      "Ioniq 5": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Ioniq 6": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Nexo": {
+        "Hydrogène": [
+          "Automatique"
+        ]
+      },
+      "Kona": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "i10": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "i20": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "i30": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Tucson": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Santa Fe": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Bayon": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Kia": {
+      "EV6": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "EV9": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Niro": {
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Picanto": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Rio": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Ceed": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Proceed": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "XCeed": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Stonic": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Sportage": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Sorento": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Genesis": {
+      "GV60": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "GV70": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "GV80": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "G70": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "G80": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "G90": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Ford": {
+      "Mustang Mach-E": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Fiesta": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Focus": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Puma": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Kuga": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mustang": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Explorer": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Ranger": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Transit": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Tourneo": {
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Chevrolet": {
+      "Volt": {
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Jeep": {
+      "Avenger": {
+        "Électrique": [
+          "Automatique"
+        ],
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Renegade": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Compass": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Cherokee": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Grand Cherokee": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Wrangler": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Gladiator": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Cadillac": {
+      "Lyriq": {
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "GMC": {
+      "Hummer EV": {
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "Land Rover": {
+      "Defender": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Discovery": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Discovery Sport": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Range Rover": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Range Rover Sport": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Range Rover Velar": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Range Rover Evoque": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "Jaguar": {
+      "I-Pace": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "XE": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "XF": {
+        "Essence": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "F-Type": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "E-Pace": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "F-Pace": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Rolls-Royce": {
+      "Spectre": {
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "McLaren": {
+      "Artura": {
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Lotus": {
+      "Eletre": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Emira": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Volvo": {
+      "C40 Recharge": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "EX30": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "EX90": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "XC40": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "XC60": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "XC90": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "S60": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "S90": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "V60": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "V90": {
+        "Essence": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Automatique",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Seat": {
+      "Ibiza": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle"
+        ]
+      },
+      "Leon": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Arona": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Ateca": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Tarraco": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Mii": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      }
+    },
+    "Cupra": {
+      "Born": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Tavascan": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Formentor": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Leon": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Ateca": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Skoda": {
+      "Enyaq": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Fabia": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Scala": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Octavia": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Superb": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Kamiq": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Karoq": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Kodiaq": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "Dacia": {
+      "Spring": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Sandero": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Duster": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Diesel": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Jogger": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "Logan": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "GPL": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    },
+    "MG": {
+      "MG4": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "MG5": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Marvel R": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "Cyberster": {
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "MG3": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride": [
+          "Semi-automatique (robotisée)"
+        ]
+      },
+      "ZS": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Électrique": [
+          "Automatique"
+        ]
+      },
+      "HS": {
+        "Essence": [
+          "Manuelle",
+          "Semi-automatique (robotisée)"
+        ],
+        "Hybride rechargeable": [
+          "Semi-automatique (robotisée)"
+        ]
+      }
+    }
+  }
+}

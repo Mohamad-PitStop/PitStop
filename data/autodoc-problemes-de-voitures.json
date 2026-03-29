@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-03-19T16:09:17.243Z",
+  "source": {
+    "site": "auto-doc.fr",
+    "categoryUrl": "https://www.auto-doc.fr/info/category/problemes-de-voitures"
+  },
+  "byModel": {
+    "www.auto-doc.fr": {
+      "engines": {
+        "_unknown": [
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-e-pace",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xe",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-subaru-justy",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xf",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-subaru-impreza",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-subaru-outback",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          }
+        ]
+      }
+    },
+    "Honda Civic": {
+      "engines": {
+        "1.8 i-VTEC": [
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-honda-civic",
+            "title": "Problèmes avec le Honda Civic",
+            "excerpt": "Table des matières\n\nLa transmission automatique CVT de la Honda Civic présente plusieurs défauts courants, qui se caractérisent par des changements de vitesse saccadés, des bruits inhabituels et une accélération tardive. Ces symptômes apparaissent généralement entre 60 000 et 80 000 kilomètres, les 9e et 10e générations étant particulièrement touchées. La transmission à variation continue ne passe pas correctement les différents rapports de vitesse et peut entraîner des pannes importantes. La fiabilité du système CVT est nettement inférieure à celle des transmissions automatiques classiques, ce qui se traduit par de nombreuses plaintes de la part des conducteurs. La durée de vie du système n'est souvent que de 120 000 à 150 000 km dans des conditions normales d'utilisation.\n\nUn entretien régulier est essentiel à la longévité du système de transmission. Les transmissions automatiques sensibles de la Honda Civic nécessitent une vidange tous les 40 000-60 000 km avec un liquide spécial CVT pour éviter une usure prématurée. Dès les premiers signes, tels que des secousses ou des bruits inhabituels, une inspection immédiate doit être effectuée, car les réparations du système CVT sont coûteuses et nécessitent souvent un remplacement complet."
+          }
+        ],
+        "Hybride": [
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-honda-civic",
+            "title": "Problèmes avec le Honda Civic",
+            "excerpt": "Table des matières\n\nLa transmission automatique CVT de la Honda Civic présente plusieurs défauts courants, qui se caractérisent par des changements de vitesse saccadés, des bruits inhabituels et une accélération tardive. Ces symptômes apparaissent généralement entre 60 000 et 80 000 kilomètres, les 9e et 10e générations étant particulièrement touchées. La transmission à variation continue ne passe pas correctement les différents rapports de vitesse et peut entraîner des pannes importantes. La fiabilité du système CVT est nettement inférieure à celle des transmissions automatiques classiques, ce qui se traduit par de nombreuses plaintes de la part des conducteurs. La durée de vie du système n'est souvent que de 120 000 à 150 000 km dans des conditions normales d'utilisation.\n\nUn entretien régulier est essentiel à la longévité du système de transmission. Les transmissions automatiques sensibles de la Honda Civic nécessitent une vidange tous les 40 000-60 000 km avec un liquide spécial CVT pour éviter une usure prématurée. Dès les premiers signes, tels que des secousses ou des bruits inhabituels, une inspection immédiate doit être effectuée, car les réparations du système CVT sont coûteuses et nécessitent souvent un remplacement complet."
+          }
+        ]
+      }
+    },
+    "Unknown model": {
+      "engines": {
+        "_unknown": [
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-subaru-forester",
+            "title": "",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-honda-accord",
+            "title": "",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-honda-hr-v",
+            "title": "",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-sx4",
+            "title": "",
+            "excerpt": ""
+          }
+        ]
+      }
+    }
+  }
+}

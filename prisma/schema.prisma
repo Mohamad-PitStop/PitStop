@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum ReservationStatus {
+  pending
+  paid
+  confirmed
+  cancelled
+}
+
+model Reservation {
+  id              String            @id @default(cuid())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  type            String
+  name            String
+  phone           String
+  email           String?
+
+  vehicleMarque   String?
+  vehicleModele   String?
+  vehicleAnnee    Int?
+  vehicleKm       Int?
+
+  startAt         DateTime
+  endAt           DateTime
+  timeZone        String            @default("Europe/Brussels")
+
+  status          ReservationStatus @default(pending)
+
+  stripeSessionId String?           @unique
+  stripePaymentIntentId String?
+
+  calendarId      String?
+  calendarEventId String?
+
+  notes           String?
+
+  @@index([status, startAt])
+}
+
+model DiagnosticRequest {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  marque      String
+  modele      String
+  variante    String?
+  carburant   String?
+  transmission String?
+  annee       String
+  kilometrage String
+  probleme    String   // Texte libre saisi par le client
+  followUps   String?  // JSON: tableau des Q/R complémentaires
+  promptText  String   // Prompt complet envoyé à l’IA (pour consultation)
+
+  @@index([createdAt])
+}
+

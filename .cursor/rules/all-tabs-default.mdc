@@ -1,0 +1,11 @@
+---
+description: Par défaut, appliquer les demandes à tous les onglets / parcours
+alwaysApply: true
+---
+
+# Portée des changements (tous les onglets)
+
+- Sauf **précision explicite** de l’utilisateur (ex. « uniquement sur Vente »), toute demande de modification (UI, logique, API client, validation, textes, accessibilité, etc.) doit être **répercutée partout où le même comportement existe** dans l’application.
+- **Onglets / zones concernés** dans PitStop (à vérifier systématiquement) : parcours **Diagnostic** (`/diagnostic`, `vehicle-form`, flux résultat), **Vente** (`/vente`, `sale-estimator`), accueil / liens, et tout autre écran qui duplique un formulaire ou une fonctionnalité équivalente.
+- Si un fichier est partagé, une seule modification peut suffire ; si la logique est **dupliquée** entre composants, **aligner les deux** (ou factoriser dans un module / hook partagé quand c’est pertinent).
+- En cas de doute sur l’étendue, **privilégier la cohérence multi-onglets** plutôt qu’un seul fichier.

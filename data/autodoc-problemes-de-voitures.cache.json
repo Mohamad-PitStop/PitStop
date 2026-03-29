@@ -1,0 +1,77 @@
+{
+  "processedUrls": [
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-accord",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-hr-v",
+    "https://www.auto-doc.fr/info/changer-la-pompe-du-lave-glace-sur-une-clio-3",
+    "https://www.auto-doc.fr/info/changer-le-tuyau-du-lave-glace-sur-une-clio-3",
+    "https://www.auto-doc.fr/info/vidange-liquide-de-refroidissement-sur-clio-3"
+  ],
+  "articleUrls": [
+    "https://www.auto-doc.fr/#main",
+    "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-e-pace",
+    "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xe",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-justy",
+    "https://www.auto-doc.fr/info/problemes-avec-le-jaguar-xf",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-impreza",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-outback",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-civic",
+    "https://www.auto-doc.fr/info/problemes-avec-le-subaru-forester",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-accord",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-hr-v",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-jimny",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-swift",
+    "https://www.auto-doc.fr/info/supprimer-le-voyant-airbag-sur-la-clio-3",
+    "https://www.auto-doc.fr/info/demontage-dun-airbag-sur-la-clio-3",
+    "https://www.auto-doc.fr/info/airbag-a-controler-sur-la-clio-3",
+    "https://www.auto-doc.fr/info/purge-du-liquide-de-frein-sur-une-clio-3",
+    "https://www.auto-doc.fr/info/changer-la-pompe-du-lave-glace-sur-une-clio-3",
+    "https://www.auto-doc.fr/info/changer-le-tuyau-du-lave-glace-sur-une-clio-3",
+    "https://www.auto-doc.fr/info/changer-un-injecteur-sur-une-clio-3",
+    "https://www.auto-doc.fr/info/vidange-liquide-de-refroidissement-sur-clio-3",
+    "https://www.auto-doc.fr/info/enlever-message-vidange-a-prevoir-sur-clio-3",
+    "https://www.auto-doc.fr/info/changer-un-retroviseur-sur-votre-clio-3",
+    "https://www.auto-doc.fr/info/problemes-avec-le-honda-jazz",
+    "https://www.auto-doc.fr/info/problemes-avec-le-land-rover-freelander",
+    "https://www.auto-doc.fr/info/problemes-avec-le-land-rover-discovery",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-swift-sport",
+    "https://www.auto-doc.fr/info/problemes-avec-le-land-rover-discovery-sport",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-alto",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-splash",
+    "https://www.auto-doc.fr/info/problemes-avec-le-suzuki-sx4"
+  ],
+  "byModel": {
+    "www.auto-doc.fr": {
+      "engines": {
+        "_unknown": [
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-honda-accord",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/problemes-avec-le-honda-hr-v",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/changer-la-pompe-du-lave-glace-sur-une-clio-3",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/changer-le-tuyau-du-lave-glace-sur-une-clio-3",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          },
+          {
+            "url": "https://www.auto-doc.fr/info/vidange-liquide-de-refroidissement-sur-clio-3",
+            "title": "www.auto-doc.fr",
+            "excerpt": ""
+          }
+        ]
+      }
+    }
+  },
+  "categoryPagesDone": 1,
+  "lastArticleProcessedAt": "2026-03-19T15:57:16.181Z"
+}

@@ -1,0 +1,3935 @@
+{
+  "fetchedAt": "2026-03-18T13:32:02.814Z",
+  "makes": [
+    "Acura",
+    "Aston martin",
+    "Audi",
+    "Autokraft limited",
+    "Bmw",
+    "Chevrolet",
+    "Geo",
+    "Honda",
+    "Hyundai",
+    "Jaguar",
+    "Jeep",
+    "Kia",
+    "Lamborghini",
+    "Land rover",
+    "Mazda",
+    "Nissan",
+    "Subaru",
+    "Toyota",
+    "Wallace environmental"
+  ],
+  "byMake": {
+    "Acura": {
+      "models": [
+        "ilx",
+        "integra",
+        "legend",
+        "mdx fwd",
+        "nsx",
+        "rdx 2wd",
+        "rdx fwd",
+        "rlx",
+        "rsx",
+        "tl 2wd",
+        "tlx fwd",
+        "tlx fwd a-spec",
+        "tsx"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Aston martin": {
+      "models": [
+        "db-7 vantage coupe",
+        "db11 v8",
+        "db12 v8",
+        "db7 coupe",
+        "db9",
+        "db9 coupe",
+        "dbs coupe",
+        "rapide s",
+        "v12 vanquish",
+        "v12 vantage s",
+        "v8 vantage",
+        "vanquish",
+        "vantage v8",
+        "virage saloon",
+        "virage/volante"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1991,
+        1992,
+        1993,
+        1997,
+        1998,
+        2000,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Audi": {
+      "models": [
+        "100",
+        "100 quattro wagon",
+        "a3",
+        "a4",
+        "a5 cabriolet quattro",
+        "a7 quattro",
+        "a8",
+        "a8 l",
+        "cabriolet",
+        "coupe quattro",
+        "q7",
+        "r8",
+        "r8 awd",
+        "r8 coupe",
+        "rs 3",
+        "s5",
+        "s7",
+        "tt coupe",
+        "tt roadster",
+        "tt roadster quattro"
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Autokraft limited": {
+      "models": [
+        "a.c.mark iv"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Manuelle"
+      ],
+      "years": [
+        1992,
+        1993
+      ]
+    },
+    "Bmw": {
+      "models": [
+        "128ci convertible",
+        "128i",
+        "230i coupe",
+        "318i convertible",
+        "318i/318is",
+        "325ci convertible",
+        "430i convertible",
+        "430i coupe",
+        "525i",
+        "528i",
+        "650ci",
+        "740i",
+        "740i xdrive",
+        "750i xdrive",
+        "m coupe",
+        "m roadster",
+        "m3",
+        "m8 competition coupe",
+        "m850i xdrive coupe",
+        "roadster v8",
+        "x3 xdrive28i",
+        "z3 coupe",
+        "z3 roadster",
+        "z4 roadster",
+        "z4 sdrive28i",
+        "z4 sdrive30i"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "Chevrolet": {
+      "models": [
+        "c1500 pickup 2wd",
+        "camaro",
+        "cobalt",
+        "colorado 2wd",
+        "corvette",
+        "cruze",
+        "equinox fwd",
+        "impala",
+        "impala limited",
+        "k1500 pickup 4wd",
+        "lumina",
+        "malibu",
+        "malibu eassist",
+        "silverado c15 2wd",
+        "trailblazer awd",
+        "trax",
+        "trax fwd",
+        "twin-turbo corvette",
+        "volt"
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "Geo": {
+      "models": [
+        "505 station wagon",
+        "metro",
+        "metro lsi convertible",
+        "tracker convertible 2wd"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997
+      ]
+    },
+    "Honda": {
+      "models": [
+        "accord plug-in hybrid",
+        "accord wagon",
+        "civic",
+        "civic crx",
+        "civic del sol",
+        "del sol",
+        "fit",
+        "hr-v 2wd",
+        "hr-v awd",
+        "insight",
+        "insight touring",
+        "odyssey",
+        "pilot 2wd",
+        "pilot fwd",
+        "ridgeline fwd",
+        "ridgeline truck 4wd"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "Hyundai": {
+      "models": [
+        "accent",
+        "azera",
+        "elantra",
+        "equus",
+        "excel",
+        "genesis coupe",
+        "genesis rwd",
+        "palisade awd",
+        "palisade fwd",
+        "santa fe sport fwd",
+        "scoupe",
+        "sonata",
+        "tiburon",
+        "tiburon (coupe)",
+        "tucson fwd",
+        "veloster"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Jaguar": {
+      "models": [
+        "f-pace",
+        "f-type coupe",
+        "f-type r awd coupe",
+        "f-type s coupe",
+        "f-type v8 s convertible",
+        "xj6",
+        "xjs convertible",
+        "xjs v12 convertible",
+        "xk",
+        "xk convertible",
+        "xk8 convertible"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "Jeep": {
+      "models": [
+        "cherokee 2wd",
+        "cherokee fwd",
+        "comanche pickup 2wd",
+        "comanche pickup 4wd",
+        "commander 2wd",
+        "compass fwd",
+        "gladiator pickup 4wd",
+        "grand cherokee 2wd",
+        "grand cherokee l 2wd",
+        "grand wagoneer 2wd",
+        "patriot fwd",
+        "wrangler 4dr 4wd"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Kia": {
+      "models": [
+        "forte",
+        "k5 awd",
+        "k900",
+        "optima",
+        "rio",
+        "rondo",
+        "sedona",
+        "seltos fwd",
+        "sephia",
+        "sephia/spectra",
+        "sorento 2wd",
+        "sorento fe awd",
+        "sorento fwd",
+        "soul",
+        "spectra",
+        "sportage fwd",
+        "stinger awd"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique"
+      ],
+      "years": [
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "Lamborghini": {
+      "models": [
+        "aventador coupe",
+        "aventador roadster",
+        "aventador s coupe",
+        "countach",
+        "db132/144 - diablo",
+        "db132/144 diablo",
+        "db132/diablo",
+        "gallardo coupe",
+        "huracan",
+        "huracan coupe",
+        "huracan spyder",
+        "l-140/141 gallardo",
+        "l-140/715 gallardo",
+        "l-147 murcielago",
+        "l-147/148 murcielago",
+        "murcielago"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Land rover": {
+      "models": [
+        "defender 110",
+        "defender 90",
+        "discovery",
+        "discovery series ii",
+        "discovery sport",
+        "freelander",
+        "freelander 3 door",
+        "lr2",
+        "lr3",
+        "lr4",
+        "range rover",
+        "range rover evoque",
+        "range rover sport",
+        "range rover velar"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "Mazda": {
+      "models": [
+        "3",
+        "3 4-door",
+        "3 4-door 4wd",
+        "6",
+        "626",
+        "b2300 2wd",
+        "cx-3 2wd",
+        "cx-30 2wd",
+        "cx-5 4wd",
+        "cx-50 4wd",
+        "cx-90 4wd",
+        "millenia",
+        "mx-30",
+        "mx-5",
+        "mx-5 miata",
+        "rx-7",
+        "rx-8",
+        "tribute fwd"
+      ],
+      "fuelTypes": [
+        "Électrique",
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Nissan": {
+      "models": [
+        "240sx",
+        "300zx",
+        "350z",
+        "370z",
+        "370z roadster",
+        "altima",
+        "gt-r",
+        "maxima",
+        "pathfinder 2wd",
+        "quest",
+        "sentra",
+        "sentra/200sx",
+        "titan 2wd",
+        "z"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Subaru": {
+      "models": [
+        "ascent",
+        "brz",
+        "forester awd",
+        "impreza",
+        "impreza awd",
+        "justy",
+        "legacy awd",
+        "legacy awd turbo",
+        "wrx"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "Toyota": {
+      "models": [
+        "avalon",
+        "c-hr",
+        "camry",
+        "camry solara",
+        "celica convertible",
+        "corolla",
+        "gr 86",
+        "gr supra",
+        "land cruiser wagon 4wd",
+        "mr2",
+        "prius v",
+        "yaris"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ]
+    },
+    "Wallace environmental": {
+      "models": [
+        "wetl 500 sl",
+        "wetl testarossa"
+      ],
+      "fuelTypes": [
+        "Essence"
+      ],
+      "transmissions": [
+        "Automatique",
+        "Manuelle"
+      ],
+      "years": [
+        1991,
+        1992
+      ]
+    }
+  },
+  "byMakeModel": {
+    "Acura": {
+      "ilx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2013
+        ]
+      },
+      "integra": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "legend": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "mdx fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "nsx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "rdx 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "rdx fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "rlx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "rsx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2002
+        ]
+      },
+      "tl 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2009
+        ]
+      },
+      "tlx fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "tlx fwd a-spec": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2018
+        ]
+      },
+      "tsx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2004
+        ]
+      }
+    },
+    "Aston martin": {
+      "db-7 vantage coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2000
+        ]
+      },
+      "db11 v8": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2019
+        ]
+      },
+      "db12 v8": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2024
+        ]
+      },
+      "db7 coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1997
+        ]
+      },
+      "db9": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2005
+        ]
+      },
+      "db9 coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2005
+        ]
+      },
+      "dbs coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2009
+        ]
+      },
+      "rapide s": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "v12 vanquish": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2004
+        ]
+      },
+      "v12 vantage s": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "v8 vantage": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "vanquish": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2002
+        ]
+      },
+      "vantage v8": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2019
+        ]
+      },
+      "virage saloon": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1991
+        ]
+      },
+      "virage/volante": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      }
+    },
+    "Audi": {
+      "100": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "100 quattro wagon": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "a3": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "a4": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1996
+        ]
+      },
+      "a5 cabriolet quattro": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "a7 quattro": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2012
+        ]
+      },
+      "a8": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1997
+        ]
+      },
+      "a8 l": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2000
+        ]
+      },
+      "cabriolet": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "coupe quattro": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2000
+        ]
+      },
+      "q7": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2007
+        ]
+      },
+      "r8": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2008
+        ]
+      },
+      "r8 awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2018
+        ]
+      },
+      "r8 coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2022
+        ]
+      },
+      "rs 3": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2018
+        ]
+      },
+      "s5": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2008
+        ]
+      },
+      "s7": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2013
+        ]
+      },
+      "tt coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2000
+        ]
+      },
+      "tt roadster": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2001
+        ]
+      },
+      "tt roadster quattro": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2001
+        ]
+      }
+    },
+    "Autokraft limited": {
+      "a.c.mark iv": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1992
+        ]
+      }
+    },
+    "Bmw": {
+      "128ci convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "128i": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2008
+        ]
+      },
+      "230i coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "318i convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "318i/318is": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "325ci convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2001
+        ]
+      },
+      "430i convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "430i coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "525i": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "528i": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1997
+        ]
+      },
+      "650ci": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "740i": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "740i xdrive": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "750i xdrive": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "m coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1999
+        ]
+      },
+      "m roadster": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1998
+        ]
+      },
+      "m3": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "m8 competition coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2020
+        ]
+      },
+      "m850i xdrive coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2019
+        ]
+      },
+      "roadster v8": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2003
+        ]
+      },
+      "x3 xdrive28i": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2011
+        ]
+      },
+      "z3 coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1999
+        ]
+      },
+      "z3 roadster": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1996
+        ]
+      },
+      "z4 roadster": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2003
+        ]
+      },
+      "z4 sdrive28i": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2012
+        ]
+      },
+      "z4 sdrive30i": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2009
+        ]
+      }
+    },
+    "Chevrolet": {
+      "c1500 pickup 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "camaro": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "cobalt": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2005
+        ]
+      },
+      "colorado 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2004
+        ]
+      },
+      "corvette": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "cruze": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2011
+        ]
+      },
+      "equinox fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2005
+        ]
+      },
+      "impala": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "impala limited": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "k1500 pickup 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "lumina": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "malibu": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1997
+        ]
+      },
+      "malibu eassist": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2013
+        ]
+      },
+      "silverado c15 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2007
+        ]
+      },
+      "trailblazer awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "trax": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "trax fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2020
+        ]
+      },
+      "twin-turbo corvette": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1990
+        ]
+      },
+      "volt": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2011
+        ]
+      }
+    },
+    "Geo": {
+      "505 station wagon": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": []
+      },
+      "metro": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "metro lsi convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1990
+        ]
+      },
+      "tracker convertible 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      }
+    },
+    "Honda": {
+      "accord plug-in hybrid": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "accord wagon": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "civic": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "civic crx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": []
+      },
+      "civic del sol": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "del sol": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "fit": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2007
+        ]
+      },
+      "hr-v 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2016
+        ]
+      },
+      "hr-v awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "insight": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2000
+        ]
+      },
+      "insight touring": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2019
+        ]
+      },
+      "odyssey": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "pilot 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "pilot fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "ridgeline fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "ridgeline truck 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2006
+        ]
+      }
+    },
+    "Hyundai": {
+      "accent": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "azera": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "elantra": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "equus": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2011
+        ]
+      },
+      "excel": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "genesis coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "genesis rwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "palisade awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2020
+        ]
+      },
+      "palisade fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2020
+        ]
+      },
+      "santa fe sport fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "scoupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "sonata": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "tiburon": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1997
+        ]
+      },
+      "tiburon (coupe)": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1997
+        ]
+      },
+      "tucson fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2016
+        ]
+      },
+      "veloster": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2012
+        ]
+      }
+    },
+    "Jaguar": {
+      "f-pace": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2017
+        ]
+      },
+      "f-type coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "f-type r awd coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2016
+        ]
+      },
+      "f-type s coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "f-type v8 s convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "xj6": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "xjs convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "xjs v12 convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "xk": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1998
+        ]
+      },
+      "xk convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2007
+        ]
+      },
+      "xk8 convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1998
+        ]
+      }
+    },
+    "Jeep": {
+      "cherokee 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "cherokee fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "comanche pickup 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "comanche pickup 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "commander 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "compass fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "gladiator pickup 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2020
+        ]
+      },
+      "grand cherokee 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "grand cherokee l 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2021
+        ]
+      },
+      "grand wagoneer 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2022
+        ]
+      },
+      "patriot fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "wrangler 4dr 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2021
+        ]
+      }
+    },
+    "Kia": {
+      "forte": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "k5 awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2021
+        ]
+      },
+      "k900": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "optima": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2001
+        ]
+      },
+      "rio": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2001
+        ]
+      },
+      "rondo": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2007
+        ]
+      },
+      "sedona": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2002
+        ]
+      },
+      "seltos fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2021
+        ]
+      },
+      "sephia": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "sephia/spectra": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2000
+        ]
+      },
+      "sorento 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2003
+        ]
+      },
+      "sorento fe awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2016
+        ]
+      },
+      "sorento fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "soul": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "spectra": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2000
+        ]
+      },
+      "sportage fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "stinger awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2018
+        ]
+      }
+    },
+    "Lamborghini": {
+      "aventador coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2012
+        ]
+      },
+      "aventador roadster": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2013
+        ]
+      },
+      "aventador s coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2018
+        ]
+      },
+      "countach": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": []
+      },
+      "db132/144 - diablo": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1997
+        ]
+      },
+      "db132/144 diablo": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1998
+        ]
+      },
+      "db132/diablo": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "gallardo coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2007
+        ]
+      },
+      "huracan": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "huracan coupe": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2022
+        ]
+      },
+      "huracan spyder": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2016
+        ]
+      },
+      "l-140/141 gallardo": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2004
+        ]
+      },
+      "l-140/715 gallardo": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "l-147 murcielago": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2002
+        ]
+      },
+      "l-147/148 murcielago": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2004
+        ]
+      },
+      "murcielago": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2002
+        ]
+      }
+    },
+    "Land rover": {
+      "defender 110": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "defender 90": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "discovery": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "discovery series ii": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1999
+        ]
+      },
+      "discovery sport": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2015
+        ]
+      },
+      "freelander": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2002
+        ]
+      },
+      "freelander 3 door": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2003
+        ]
+      },
+      "lr2": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2008
+        ]
+      },
+      "lr3": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2005
+        ]
+      },
+      "lr4": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "range rover": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "range rover evoque": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2012
+        ]
+      },
+      "range rover sport": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2006
+        ]
+      },
+      "range rover velar": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2018
+        ]
+      }
+    },
+    "Mazda": {
+      "3": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "6": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "626": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "3 4-door": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2014
+        ]
+      },
+      "3 4-door 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2019
+        ]
+      },
+      "b2300 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2001
+        ]
+      },
+      "cx-3 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2016
+        ]
+      },
+      "cx-30 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2020
+        ]
+      },
+      "cx-5 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2013
+        ]
+      },
+      "cx-50 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2023
+        ]
+      },
+      "cx-90 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2024
+        ]
+      },
+      "millenia": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "mx-30": {
+        "fuelTypes": [
+          "Électrique"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2022
+        ]
+      },
+      "mx-5": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "mx-5 miata": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "rx-7": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "rx-8": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2004
+        ]
+      },
+      "tribute fwd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2008
+        ]
+      }
+    },
+    "Nissan": {
+      "240sx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "300zx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "350z": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2003
+        ]
+      },
+      "370z": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2009
+        ]
+      },
+      "370z roadster": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2010
+        ]
+      },
+      "altima": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "gt-r": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2009
+        ]
+      },
+      "maxima": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "pathfinder 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "quest": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "sentra": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "sentra/200sx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "titan 2wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2004
+        ]
+      },
+      "z": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      }
+    },
+    "Subaru": {
+      "ascent": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2019
+        ]
+      },
+      "brz": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2013
+        ]
+      },
+      "forester awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1998
+        ]
+      },
+      "impreza": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "impreza awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "justy": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "legacy awd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "legacy awd turbo": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "wrx": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          2015
+        ]
+      }
+    },
+    "Toyota": {
+      "avalon": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "c-hr": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2018
+        ]
+      },
+      "camry": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "camry solara": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1999
+        ]
+      },
+      "celica convertible": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1995
+        ]
+      },
+      "corolla": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "gr 86": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2022
+        ]
+      },
+      "gr supra": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2020
+        ]
+      },
+      "land cruiser wagon 4wd": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1993
+        ]
+      },
+      "mr2": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1994
+        ]
+      },
+      "prius v": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2012
+        ]
+      },
+      "yaris": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          2007
+        ]
+      }
+    },
+    "Wallace environmental": {
+      "wetl 500 sl": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Automatique"
+        ],
+        "years": [
+          1991
+        ]
+      },
+      "wetl testarossa": {
+        "fuelTypes": [
+          "Essence"
+        ],
+        "transmissions": [
+          "Manuelle"
+        ],
+        "years": [
+          1992
+        ]
+      }
+    }
+  }
+}
