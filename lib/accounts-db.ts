@@ -44,7 +44,7 @@ async function ensureAccountsTable() {
     CREATE TABLE IF NOT EXISTS "PendingRoleAssignment" (
       "id" TEXT PRIMARY KEY,
       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      "name" TEXT NOT NULL UNIQUE,
+      "email" TEXT NOT NULL UNIQUE,
       "role" TEXT NOT NULL
     )
   `)
@@ -201,38 +201,38 @@ export async function updateAccountPassword(userId: string, passwordHash: string
 export type PendingAssignment = {
   id: string
   createdAt: string
-  name: string
+  email: string
   role: UserRole
 }
 
 export async function getAllPendingAssignments(): Promise<PendingAssignment[]> {
   await ensureAccountsTable()
-  const rows = await prisma.$queryRawUnsafe<Array<{ id: string; createdAt: string; name: string; role: string }>>(
-    `SELECT "id", "createdAt", "name", "role" FROM "PendingRoleAssignment" ORDER BY "createdAt" DESC`
+  const rows = await prisma.$queryRawUnsafe<Array<{ id: string; createdAt: string; email: string; role: string }>>(
+    `SELECT "id", "createdAt", "email", "role" FROM "PendingRoleAssignment" ORDER BY "createdAt" DESC`
   )
   return rows.map((r) => ({ ...r, role: toRole(r.role) }))
 }
 
-export async function findPendingAssignmentByName(name: string): Promise<PendingAssignment | null> {
+export async function findPendingAssignmentByEmail(email: string): Promise<PendingAssignment | null> {
   await ensureAccountsTable()
-  const rows = await prisma.$queryRawUnsafe<Array<{ id: string; createdAt: string; name: string; role: string }>>(
-    `SELECT "id", "createdAt", "name", "role" FROM "PendingRoleAssignment" WHERE "name" = ? LIMIT 1`,
-    name
+  const rows = await prisma.$queryRawUnsafe<Array<{ id: string; createdAt: string; email: string; role: string }>>(
+    `SELECT "id", "createdAt", "email", "role" FROM "PendingRoleAssignment" WHERE "email" = ? LIMIT 1`,
+    email
   )
   const row = rows[0]
   if (!row) return null
   return { ...row, role: toRole(row.role) }
 }
 
-export async function upsertPendingAssignment(name: string, role: UserRole): Promise<void> {
+export async function upsertPendingAssignment(email: string, role: UserRole): Promise<void> {
   await ensureAccountsTable()
-  const existing = await findPendingAssignmentByName(name)
+  const existing = await findPendingAssignmentByEmail(email)
   if (existing) {
-    await prisma.$executeRawUnsafe(`UPDATE "PendingRoleAssignment" SET "role" = ? WHERE "name" = ?`, role, name)
+    await prisma.$executeRawUnsafe(`UPDATE "PendingRoleAssignment" SET "role" = ? WHERE "email" = ?`, role, email)
   } else {
     await prisma.$executeRawUnsafe(
-      `INSERT INTO "PendingRoleAssignment" ("id", "name", "role") VALUES (?, ?, ?)`,
-      randomUUID(), name, role
+      `INSERT INTO "PendingRoleAssignment" ("id", "email", "role") VALUES (?, ?, ?)`,
+      randomUUID(), email, role
     )
   }
 }

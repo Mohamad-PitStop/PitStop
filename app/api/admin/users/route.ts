@@ -45,7 +45,7 @@ export async function PATCH(req: Request) {
 }
 
 const PendingAssignmentSchema = z.object({
-  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(160),
   role: z.enum(["tester", "user_friend", "user"]),
 })
 
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
   }
 
-  await upsertPendingAssignment(parsed.data.name, parsed.data.role as UserRole)
+  await upsertPendingAssignment(parsed.data.email.toLowerCase(), parsed.data.role as UserRole)
   return NextResponse.json({ ok: true })
 }
 

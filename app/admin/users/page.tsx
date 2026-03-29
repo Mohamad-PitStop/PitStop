@@ -21,7 +21,7 @@ type User = {
 
 type Pending = {
   id: string
-  name: string
+  email: string
   role: UserRole
   createdAt: string
 }
@@ -60,7 +60,7 @@ export default function AdminUsersPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // Pending form
-  const [newName, setNewName] = useState("")
+  const [newEmail, setNewEmail] = useState("")
   const [newRole, setNewRole] = useState<UserRole>("tester")
   const [addPending, setAddPending] = useState(false)
 
@@ -99,14 +99,14 @@ export default function AdminUsersPage() {
   }
 
   async function addAssignment() {
-    if (!newName.trim()) return
+    if (!newEmail.trim()) return
     setAddPending(true)
     await fetch("/api/admin/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName.trim(), role: newRole }),
+      body: JSON.stringify({ email: newEmail.trim(), role: newRole }),
     })
-    setNewName("")
+    setNewEmail("")
     await fetchData()
     setAddPending(false)
   }
@@ -239,7 +239,7 @@ export default function AdminUsersPage() {
           <div>
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Rôles préassignés</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Le rôle sera appliqué automatiquement à l&apos;inscription si le nom correspond exactement.
+              Le rôle sera appliqué automatiquement à l&apos;inscription si l&apos;adresse e-mail correspond.
             </p>
           </div>
         </div>
@@ -249,11 +249,12 @@ export default function AdminUsersPage() {
           <CardContent className="pt-4 pb-4">
             <div className="flex gap-2 flex-wrap items-end">
               <div className="flex-1 min-w-[180px] space-y-1">
-                <label className="text-xs text-muted-foreground">Nom complet</label>
+                <label className="text-xs text-muted-foreground">Adresse e-mail</label>
                 <Input
-                  placeholder="Ex : Jean Dupont"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  type="email"
+                  placeholder="Ex : jean.dupont@gmail.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") addAssignment() }}
                   className="h-9 text-sm"
                 />
@@ -273,7 +274,7 @@ export default function AdminUsersPage() {
               <Button
                 size="sm"
                 className="h-9 gap-1.5"
-                disabled={addPending || !newName.trim()}
+                disabled={addPending || !newEmail.trim()}
                 onClick={addAssignment}
               >
                 <Plus className="h-4 w-4" />
@@ -296,7 +297,7 @@ export default function AdminUsersPage() {
                   <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-foreground text-sm">{p.name}</span>
+                      <span className="font-medium text-foreground text-sm">{p.email}</span>
                       <Badge variant="outline" className={`text-xs ${ROLE_BADGE_CLASS[p.role]}`}>
                         {ROLE_LABELS[p.role]}
                       </Badge>

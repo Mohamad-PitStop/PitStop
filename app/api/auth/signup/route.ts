@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { createAccount, findAccountByEmail, findPendingAssignmentByName, deletePendingAssignment, type UserRole } from "@/lib/accounts-db"
+import { createAccount, findAccountByEmail, findPendingAssignmentByEmail, deletePendingAssignment, type UserRole } from "@/lib/accounts-db"
 import { hashPassword } from "@/lib/auth-password"
 import { AUTH_COOKIE_NAME, buildSessionCookieOptions, createAuthSession } from "@/lib/auth-session"
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit"
@@ -27,13 +27,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Un compte existe déjà avec cet e-mail." }, { status: 409 })
     }
 
-    const trimmedName = body.name.trim()
     let role: UserRole = ADMIN_EMAIL && email === ADMIN_EMAIL ? "admin" : "user"
     let pendingId: string | null = null
 
-    // Rôle préassigné par l'admin (priorité sur la détection par email, sauf admin)
+    // Rôle préassigné par l'admin (basé sur l'email)
     if (role !== "admin") {
-      const pending = await findPendingAssignmentByName(trimmedName)
+      const pending = await findPendingAssignmentByEmail(email)
       if (pending) {
         role = pending.role
         pendingId = pending.id
