@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.58",
+    "@ai-sdk/provider-utils": "^4.0.21",
     "@hookform/resolvers": "^3.9.1",
     "@libsql/client": "^0.17.0",
     "@prisma/adapter-better-sqlite3": "^7.5.0",
