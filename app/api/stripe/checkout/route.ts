@@ -13,6 +13,7 @@ const BodySchema = z.object({
   startAt: z.string().datetime({ offset: true }),
   endAt: z.string().datetime({ offset: true }),
   timeZone: z.string().default("Europe/Brussels"),
+  priceMin: z.number().positive().optional(),
   vehicle: z
     .object({
       marque: z.string().optional(),
@@ -43,10 +44,9 @@ async function isSlotFree({
 export async function POST(req: Request) {
   try {
     const stripe = getStripe()
-    const amount = getDepositAmountCents()
     const siteUrl = getSiteUrl()
-
     const body = BodySchema.parse(await req.json())
+    const amount = getDepositAmountCents(body.priceMin)
 
     const calendarId = getCalendarIdIfConfigured()
     if (calendarId) {

@@ -32,15 +32,26 @@ async function readJsonOrThrow(res: Response) {
   }
 }
 
+function computeDepositEuros(priceMin?: number): number {
+  const MIN = 25
+  if (priceMin != null && priceMin > 0) {
+    return Math.max(MIN, Math.round(priceMin * 0.15 * 100) / 100)
+  }
+  return MIN
+}
+
 export function BookingCheckout({
   type,
   vehicle,
+  priceMin,
   noCard = false,
 }: {
   type: string
   vehicle?: { marque?: string; modele?: string; annee?: number; km?: number }
+  priceMin?: number
   noCard?: boolean
 }) {
+  const depositEuros = computeDepositEuros(priceMin)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => new Date())
   const [slots, setSlots] = useState<Slot[]>([])
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
@@ -108,6 +119,7 @@ export function BookingCheckout({
           startAt: selectedSlot.start,
           endAt: selectedSlot.end,
           timeZone: "Europe/Brussels",
+          priceMin,
           vehicle,
         }),
       })
@@ -216,7 +228,7 @@ export function BookingCheckout({
               disabled={!canPay || isSubmitting}
               onClick={startCheckout}
             >
-              {isSubmitting ? "Préparation du paiement…" : "Payer l’acompte et réserver"}
+              {isSubmitting ? "Préparation du paiement…" : `Payer l’acompte (${depositEuros}€) et réserver`}
             </Button>
           </div>
         </div>

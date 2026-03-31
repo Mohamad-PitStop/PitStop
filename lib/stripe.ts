@@ -13,10 +13,15 @@ export function getSiteUrl() {
   return url.replace(/\/+$/, "")
 }
 
-export function getDepositAmountCents() {
-  const raw = process.env.STRIPE_DEPOSIT_AMOUNT_CENTS || "2500"
-  const v = Number(raw)
-  if (!Number.isFinite(v) || v <= 0) throw new Error("STRIPE_DEPOSIT_AMOUNT_CENTS invalide")
-  return Math.round(v)
+const MIN_DEPOSIT_CENTS = 2500 // 25€ minimum
+
+/** Calcule l'acompte : 15% du prix minimum du devis, avec un plancher de 25€.
+ *  @param priceMinEuros  Prix minimum du devis en euros (optionnel). Si absent → 25€ fixe. */
+export function getDepositAmountCents(priceMinEuros?: number): number {
+  if (priceMinEuros != null && Number.isFinite(priceMinEuros) && priceMinEuros > 0) {
+    const computed = Math.round(priceMinEuros * 0.15 * 100)
+    return Math.max(MIN_DEPOSIT_CENTS, computed)
+  }
+  return MIN_DEPOSIT_CENTS
 }
 
