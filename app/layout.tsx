@@ -6,6 +6,7 @@ import { AnalyticsConsentGate } from '@/components/analytics-consent-gate'
 import { CookiePreferencesDialog } from '@/components/cookie-preferences-dialog'
 import { ResponsiveProvider } from '@/components/responsive-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const raleway = Raleway({ 
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
           <CookiePreferencesDialog />
           <AnalyticsConsentGate />
           <Toaster position="bottom-right" richColors />
+          <SpeedInsights />
         </ResponsiveProvider>
       </body>
     </html>

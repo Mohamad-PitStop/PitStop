@@ -54,6 +54,7 @@
     "@stripe/react-stripe-js": "^5.6.1",
     "@stripe/stripe-js": "^8.10.0",
     "@vercel/analytics": "1.6.1",
+    "@vercel/speed-insights": "^2.0.0",
     "ai": "^6.0.116",
     "autoprefixer": "^10.4.20",
     "better-sqlite3": "^12.8.0",
