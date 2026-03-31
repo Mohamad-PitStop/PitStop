@@ -1,12 +1,20 @@
 import { createClient } from "@libsql/client"
 
 const dbUrl = process.env.DATABASE_URL ?? "file:./dev.db"
+const authToken = process.env.TURSO_AUTH_TOKEN
+
+function getDb() {
+  return createClient({
+    url: dbUrl,
+    ...(authToken ? { authToken } : {}),
+  })
+}
 
 let userIdColumnEnsured = false
 
 async function ensureUserIdColumn() {
   if (userIdColumnEnsured) return
-  const db = createClient({ url: dbUrl })
+  const db = getDb()
   try {
     await db.execute(`ALTER TABLE DiagnosticRequest ADD COLUMN userId TEXT`)
   } catch {
@@ -47,7 +55,7 @@ export type DiagnosticInsertInput = {
 
 export async function createDiagnosticRequest(input: DiagnosticInsertInput): Promise<string> {
   await ensureUserIdColumn()
-  const db = createClient({ url: dbUrl })
+  const db = getDb()
   const id = globalThis.crypto?.randomUUID?.() ?? `diag-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 
   await db.execute({
@@ -92,7 +100,7 @@ export async function updateDiagnosticRequestFollowUps(input: {
   userId?: string | null
 }): Promise<void> {
   await ensureUserIdColumn()
-  const db = createClient({ url: dbUrl })
+  const db = getDb()
 
   await db.execute({
     sql: `UPDATE DiagnosticRequest
@@ -103,7 +111,7 @@ export async function updateDiagnosticRequestFollowUps(input: {
 }
 
 export async function getDiagnosticRequests(limit: number): Promise<DiagnosticRow[]> {
-  const db = createClient({ url: dbUrl })
+  const db = getDb()
   const limitNum = Math.min(Math.max(1, limit), 500)
   const result = await db.execute({
     sql: `SELECT id, "createdAt", marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, "followUps", "promptText", userId
@@ -118,7 +126,7 @@ export async function getDiagnosticRequests(limit: number): Promise<DiagnosticRo
 
 export async function getDiagnosticsByUserId(userId: string, limit: number): Promise<DiagnosticRow[]> {
   await ensureUserIdColumn()
-  const db = createClient({ url: dbUrl })
+  const db = getDb()
   const limitNum = Math.min(Math.max(1, limit), 200)
   const result = await db.execute({
     sql: `SELECT id, "createdAt", marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, "followUps", "promptText", userId

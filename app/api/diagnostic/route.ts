@@ -379,7 +379,7 @@ mentionnant les variantes concernées.
     }
 
     const { output: diagnostic1, usage: usage1 } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-sonnet-4-6"),
       headers: ANTHROPIC_PROMPT_CACHE_HEADERS,
       system: [systemMessage],
       prompt,
@@ -398,7 +398,7 @@ mentionnant les variantes concernées.
     const refinementPrompt = `${prompt}\n\nCONTRAINTE ABSOLUE: toutes les fourchettes de prix (priceRange, diy.costRange, garage.costRange) doivent avoir un ecart <= 100 euros. Si tu ne peux pas respecter ca sans inventer, mets needsMoreInfo=true et pose UNE question courte et ciblée (missingInfo.question) pour reduire l'incertitude, puis donne quand meme une fourchette provisoire avec ecart <= 100.\n\nTa reponse precedente avait des fourchettes trop larges. Corrige en respectant strictement ecart <= 100 euros partout.\nReponse precedente (JSON): ${JSON.stringify(diagnostic1)}`
 
     const { output: diagnostic2, usage: usage2 } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-sonnet-4-6"),
       headers: ANTHROPIC_PROMPT_CACHE_HEADERS,
       system: [systemMessage],
       prompt: refinementPrompt,
