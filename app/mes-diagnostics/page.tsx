@@ -91,41 +91,14 @@ export default function MesDiagnosticsPage() {
     setResumingId(d.id)
     setResumeError(null)
     try {
-      const response = await fetch("/api/diagnostic", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          marque: d.marque,
-          modele: d.modele,
-          variante: d.variante ?? "",
-          carburant: d.carburant ?? "",
-          transmission: d.transmission ?? "",
-          annee: d.annee,
-          kilometrage: d.kilometrage,
-          probleme: d.probleme,
-          followUps: d.followUps ? JSON.parse(d.followUps) : [],
-          diagnosticRequestId: d.id,
-        }),
-      })
+      const response = await fetch(`/api/diagnostic/${d.id}`)
       const data = await response.json().catch(() => null)
       if (!response.ok) throw new Error(data?.error ?? "Erreur")
 
-      sessionStorage.setItem("diagnostic", JSON.stringify(data))
-      sessionStorage.setItem(
-        "vehicleInfo",
-        JSON.stringify({
-          marque: d.marque,
-          modele: d.modele,
-          variante: d.variante ?? "",
-          carburant: d.carburant ?? "",
-          transmission: d.transmission ?? "",
-          annee: d.annee,
-          kilometrage: d.kilometrage,
-          probleme: d.probleme,
-        })
-      )
-      if (d.followUps) {
-        sessionStorage.setItem("followUps", d.followUps)
+      sessionStorage.setItem("diagnostic", JSON.stringify(data.diagnostic))
+      sessionStorage.setItem("vehicleInfo", JSON.stringify(data.vehicleInfo))
+      if (data.followUps) {
+        sessionStorage.setItem("followUps", data.followUps)
       } else {
         sessionStorage.removeItem("followUps")
       }

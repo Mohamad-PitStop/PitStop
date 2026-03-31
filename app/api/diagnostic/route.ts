@@ -1,7 +1,7 @@
 import { generateText, Output, type LanguageModelUsage } from "ai"
 import { anthropic } from "@ai-sdk/anthropic"
 import { z } from "zod"
-import { createDiagnosticRequest, updateDiagnosticRequestFollowUps, updateDiagnosticStatus } from "@/lib/diagnostics-db"
+import { createDiagnosticRequest, updateDiagnosticRequestFollowUps, updateDiagnosticResult } from "@/lib/diagnostics-db"
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
 import { GUEST_USED_COOKIE_NAME, extractCookieValue, getUserFromAuthCookie } from "@/lib/auth-session"
@@ -392,8 +392,9 @@ mentionnant les variantes concernées.
     }
 
     if (!diagnosticHasTooWideRanges(diagnostic1)) {
-      if (!diagnostic1.needsMoreInfo && diagId) {
-        await updateDiagnosticStatus(diagId, "completed")
+      if (diagId) {
+        const status = diagnostic1.needsMoreInfo ? "in_progress" : "completed"
+        await updateDiagnosticResult(diagId, JSON.stringify(diagnostic1), status)
       }
       return buildDiagnosticResponse(diagnostic1, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId)
     }
@@ -410,8 +411,9 @@ mentionnant les variantes concernées.
     logAnthropicCacheStats(usage2)
 
     const finalDiagnostic = diagnostic2 ?? diagnostic1
-    if (!finalDiagnostic.needsMoreInfo && diagId) {
-      await updateDiagnosticStatus(diagId, "completed")
+    if (diagId) {
+      const status = finalDiagnostic.needsMoreInfo ? "in_progress" : "completed"
+      await updateDiagnosticResult(diagId, JSON.stringify(finalDiagnostic), status)
     }
     return buildDiagnosticResponse(finalDiagnostic, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId)
   } catch (error) {

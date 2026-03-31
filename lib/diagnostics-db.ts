@@ -12,6 +12,7 @@ function getDb() {
 
 let userIdColumnEnsured = false
 let statusColumnEnsured = false
+let resultJsonColumnEnsured = false
 
 async function ensureUserIdColumn() {
   if (userIdColumnEnsured) return
@@ -37,6 +38,17 @@ async function ensureStatusColumn() {
   statusColumnEnsured = true
 }
 
+async function ensureResultJsonColumn() {
+  if (resultJsonColumnEnsured) return
+  const db = getDb()
+  try {
+    await db.execute(`ALTER TABLE DiagnosticRequest ADD COLUMN resultJson TEXT`)
+  } catch {
+    // colonne déjà présente
+  }
+  resultJsonColumnEnsured = true
+}
+
 export type DiagnosticStatus = "in_progress" | "completed" | "abandoned"
 
 export type DiagnosticRow = {
@@ -54,6 +66,7 @@ export type DiagnosticRow = {
   promptText: string
   userId: string | null
   status: DiagnosticStatus
+  resultJson: string | null
 }
 
 export type DiagnosticInsertInput = {
@@ -121,12 +134,23 @@ export async function updateDiagnosticStatus(id: string, status: DiagnosticStatu
   })
 }
 
+export async function updateDiagnosticResult(id: string, resultJson: string, status: DiagnosticStatus): Promise<void> {
+  await ensureStatusColumn()
+  await ensureResultJsonColumn()
+  const db = getDb()
+  await db.execute({
+    sql: `UPDATE DiagnosticRequest SET resultJson = ?, status = ? WHERE id = ?`,
+    args: [resultJson, status, id],
+  })
+}
+
 export async function getDiagnosticRequestById(id: string): Promise<DiagnosticRow | null> {
   await ensureUserIdColumn()
   await ensureStatusColumn()
+  await ensureResultJsonColumn()
   const db = getDb()
   const result = await db.execute({
-    sql: `SELECT id, "createdAt", marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, "followUps", "promptText", userId, status
+    sql: `SELECT id, "createdAt", marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, "followUps", "promptText", userId, status, resultJson
           FROM DiagnosticRequest WHERE id = ? LIMIT 1`,
     args: [id],
   })
@@ -199,5 +223,6 @@ function mapRow(row: Record<string, unknown>): DiagnosticRow {
     promptText: String(row.promptText),
     userId: row.userId != null ? String(row.userId) : null,
     status: (row.status as DiagnosticStatus) ?? "in_progress",
+    resultJson: row.resultJson != null ? String(row.resultJson) : null,
   }
 }
