@@ -112,7 +112,15 @@ export function Navbar() {
         >
           Mes diagnostics
         </Link>
-        <span className="min-w-0 max-w-[7.5rem] truncate text-xs text-foreground sm:max-w-none sm:text-sm">
+        {/* Mobile : prénom cliquable → Mes diagnostics */}
+        <Link
+          href="/mes-diagnostics"
+          className="min-w-0 max-w-[7.5rem] truncate text-xs text-foreground hover:text-foreground/80 transition-colors sm:hidden"
+        >
+          Bonjour, {firstName}
+        </Link>
+        {/* Desktop : prénom non cliquable (le lien "Mes diagnostics" est déjà visible) */}
+        <span className="hidden min-w-0 sm:inline sm:max-w-none sm:text-sm text-foreground">
           Bonjour, {firstName}
         </span>
         <Button

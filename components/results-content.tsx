@@ -5,18 +5,19 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  AlertCircle, 
-  Wrench, 
-  Building2, 
+import {
+  AlertTriangle,
+  CheckCircle,
+  AlertCircle,
+  Wrench,
+  Building2,
   ArrowLeft,
   Clock,
   Euro,
   Info,
   Star,
   Sparkles,
+  X,
 } from "lucide-react"
 
 type SeverityLevel = "low" | "medium" | "high"
@@ -156,6 +157,7 @@ export function ResultsContent() {
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isFollowUpLoading, setIsFollowUpLoading] = useState(false)
+  const [isAbandoning, setIsAbandoning] = useState(false)
   const [followUps, setFollowUps] = useState<Array<{ question: string; answer: string }>>([])
   const [pendingChoices, setPendingChoices] = useState<string[]>([])
   const [pendingDetails, setPendingDetails] = useState("")
@@ -264,6 +266,27 @@ export function ResultsContent() {
     }
   }
 
+  const handleAbandon = async () => {
+    const diagId = diagnostic?.diagnosticRequestId
+    setIsAbandoning(true)
+    try {
+      if (diagId) {
+        await fetch(`/api/diagnostic/${diagId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "abandoned" }),
+        })
+      }
+    } catch {
+      // on continue même en cas d'erreur réseau
+    } finally {
+      sessionStorage.removeItem("diagnostic")
+      sessionStorage.removeItem("vehicleInfo")
+      sessionStorage.removeItem("followUps")
+      router.push("/mes-diagnostics")
+    }
+  }
+
   const toggleChoice = (value: string) => {
     setPendingChoices((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]))
   }
@@ -291,11 +314,25 @@ export function ResultsContent() {
 
   return (
     <div className="container mx-auto px-4">
-      {/* Back button */}
-      <Link href="/diagnostic" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
-        <ArrowLeft className="h-4 w-4" />
-        Nouvelle analyse
-      </Link>
+      {/* Back button + Abandon */}
+      <div className="flex items-center justify-between mb-6 gap-3">
+        <Link href="/diagnostic" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-4 w-4" />
+          Nouvelle analyse
+        </Link>
+        {diagnostic?.diagnosticRequestId && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-colors"
+            onClick={handleAbandon}
+            disabled={isAbandoning}
+          >
+            <X className="h-3.5 w-3.5" />
+            {isAbandoning ? "Abandon…" : "Abandonner le diagnostic"}
+          </Button>
+        )}
+      </div>
 
       {/* Vehicle summary */}
       <div className="mb-8">

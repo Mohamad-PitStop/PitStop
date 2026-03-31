@@ -1,7 +1,7 @@
 import { generateText, Output, type LanguageModelUsage } from "ai"
 import { anthropic } from "@ai-sdk/anthropic"
 import { z } from "zod"
-import { createDiagnosticRequest, updateDiagnosticRequestFollowUps } from "@/lib/diagnostics-db"
+import { createDiagnosticRequest, updateDiagnosticRequestFollowUps, updateDiagnosticStatus } from "@/lib/diagnostics-db"
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
 import { GUEST_USED_COOKIE_NAME, extractCookieValue, getUserFromAuthCookie } from "@/lib/auth-session"
@@ -392,6 +392,9 @@ mentionnant les variantes concernées.
     }
 
     if (!diagnosticHasTooWideRanges(diagnostic1)) {
+      if (!diagnostic1.needsMoreInfo && diagId) {
+        await updateDiagnosticStatus(diagId, "completed")
+      }
       return buildDiagnosticResponse(diagnostic1, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId)
     }
 
@@ -406,7 +409,11 @@ mentionnant les variantes concernées.
     })
     logAnthropicCacheStats(usage2)
 
-    return buildDiagnosticResponse(diagnostic2 ?? diagnostic1, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId)
+    const finalDiagnostic = diagnostic2 ?? diagnostic1
+    if (!finalDiagnostic.needsMoreInfo && diagId) {
+      await updateDiagnosticStatus(diagId, "completed")
+    }
+    return buildDiagnosticResponse(finalDiagnostic, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json({ error: "Données du formulaire invalides." }, { status: 400 })
