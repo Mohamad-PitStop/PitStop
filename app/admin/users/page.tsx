@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Shield, UserCheck, UserX, Users, Heart, Clock, Plus, Trash2, CalendarDays } from "lucide-react"
+import { Shield, UserCheck, UserX, Users, Heart, Clock, Plus, Trash2, CalendarDays, FlaskConical } from "lucide-react"
 import Link from "next/link"
 
 type UserRole = "admin" | "tester" | "user_friend" | "user"
@@ -150,12 +150,20 @@ export default function AdminUsersPage() {
             <p className="text-sm text-muted-foreground mt-0.5">Gestion des utilisateurs et des rôles</p>
           </div>
         </div>
-        <Link href="/admin/agenda">
-          <Button variant="outline" size="sm" className="gap-2 border-primary/40 text-primary hover:bg-primary/10">
-            <CalendarDays className="h-4 w-4" />
-            Gérer l&apos;agenda
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link href="/admin/agenda">
+            <Button variant="outline" size="sm" className="gap-2 border-primary/40 text-primary hover:bg-primary/10">
+              <CalendarDays className="h-4 w-4" />
+              Gérer l&apos;agenda
+            </Button>
+          </Link>
+          <Link href="/admin/test-booking">
+            <Button variant="outline" size="sm" className="gap-2 border-amber-500/40 text-amber-400 hover:bg-amber-500/10">
+              <FlaskConical className="h-4 w-4" />
+              Test booking
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
