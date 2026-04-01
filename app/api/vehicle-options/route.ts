@@ -56,6 +56,39 @@ function logAnthropicCacheStats(usage: LanguageModelUsage) {
 
 type InferredStep = "modeles" | "variantes" | "annees" | "carburants" | "transmissions"
 
+/**
+ * Post-traitement des transmissions retournées par Claude :
+ * - Sépare les options manuelles des automatiques
+ * - Si un seul type automatique → le remplace par "Automatique" (peu importe son nom spécifique)
+ * - Si plusieurs types automatiques → conserve les noms spécifiques (utile pour le diagnostic)
+ * - Normalise "automatique" (minuscule) → "Automatique"
+ */
+function normalizeTransmissions(options: string[]): string[] {
+  const isManual = (t: string) => /^manuelle/i.test(t.trim())
+
+  const manuals = options.filter(isManual)
+  const autos = options.filter((t) => !isManual(t))
+
+  // Dédupliquer les autos (insensible à la casse) pour compter les types distincts
+  const uniqueAutos = [...new Map(autos.map((t) => [t.trim().toLowerCase(), t.trim()])).values()]
+
+  let normalizedAutos: string[]
+  if (uniqueAutos.length === 0) {
+    normalizedAutos = []
+  } else if (uniqueAutos.length === 1) {
+    // Un seul type automatique → simplifier en "Automatique"
+    normalizedAutos = ["Automatique"]
+  } else {
+    // Plusieurs types → conserver les noms spécifiques, normaliser juste la casse de "automatique"
+    normalizedAutos = uniqueAutos.map((t) => (/^automatique$/i.test(t) ? "Automatique" : t))
+  }
+
+  // Normaliser la casse des manuelles (première lettre en majuscule)
+  const normalizedManuals = manuals.map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+
+  return [...normalizedManuals, ...normalizedAutos]
+}
+
 function inferStep(body: z.infer<typeof BodySchema>): InferredStep {
   const modele = body.modele?.trim()
   if (!modele) return "modeles"
@@ -148,7 +181,8 @@ export async function POST(req: Request) {
     })
     logAnthropicCacheStats(usage)
 
-    const options = output?.options ?? []
+    const rawOptions = output?.options ?? []
+    const options = step === "transmissions" ? normalizeTransmissions(rawOptions) : rawOptions
     cache.set(cacheKey, { options, cachedAt: Date.now() })
     return Response.json({ options })
   } catch (error) {
