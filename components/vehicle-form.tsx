@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X } from "lucide-react"
 import { getAvailableYearsForModel } from "@/lib/vehicle-year-catalog"
 import { carBrands, carModels } from "@/lib/vehicle-model-catalog"
 import {
@@ -76,6 +76,12 @@ export function VehicleForm() {
   const [creditCheckoutLoading, setCreditCheckoutLoading] = useState(false)
 
   const cascadeGen = useRef(0)
+
+  // ── Combobox marque ─────────────────────────────────────────────────────────
+  const [marqueOpen, setMarqueOpen] = useState(false)
+  const [marqueSearch, setMarqueSearch] = useState("")
+  const marqueRef = useRef<HTMLDivElement>(null)
+  const marqueSearchRef = useRef<HTMLInputElement>(null)
 
   /** Saisie libre volontaire (lien « Mon modèle n'apparaît pas ? »), distinct du fallback API */
   const [manualModelEntry, setManualModelEntry] = useState(false)
@@ -391,6 +397,26 @@ export function VehicleForm() {
     setAuthDialogOpen(true)
   }
 
+  // Fermer le combobox marque si clic en dehors
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (marqueRef.current && !marqueRef.current.contains(e.target as Node)) {
+        setMarqueOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  // Focus automatique sur la barre de recherche quand le combobox s'ouvre
+  useEffect(() => {
+    if (marqueOpen) {
+      // Délai minimal pour que le DOM soit rendu
+      const t = setTimeout(() => marqueSearchRef.current?.focus(), 30)
+      return () => clearTimeout(t)
+    }
+  }, [marqueOpen])
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -510,6 +536,36 @@ export function VehicleForm() {
     }
   }
 
+  /** Sélection d'une marque via le combobox (remplace le <select> natif). */
+  const handleMarqueSelect = (value: string) => {
+    cascadeGen.current += 1
+    setFormData((prev) => ({
+      ...prev,
+      marque: value,
+      modele: "",
+      variante: "",
+      carburant: "",
+      transmission: "",
+      annee: "",
+      kilometrage: "",
+      probleme: "",
+    }))
+    setVariantList([])
+    setYearList([])
+    setFuelList([])
+    setTransList([])
+    setFallbackVariant(false)
+    setFallbackYear(false)
+    setFallbackFuel(false)
+    setFallbackTrans(false)
+    setFuelLocked(false)
+    setTransLocked(false)
+    setManualModelEntry(false)
+    setModelDraft("")
+    setMarqueOpen(false)
+    setMarqueSearch("")
+  }
+
   /** Redirige vers Stripe pour acheter des crédits / un diagnostic invité. */
   const redirectToStripeForCredit = async (
     packageId: "1" | "3" | "6" | "10",
@@ -571,33 +627,7 @@ export function VehicleForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
 
-    if (name === "marque") {
-      cascadeGen.current += 1
-      setFormData((prev) => ({
-        ...prev,
-        marque: value,
-        modele: "",
-        variante: "",
-        carburant: "",
-        transmission: "",
-        annee: "",
-        kilometrage: "",
-        probleme: "",
-      }))
-      setVariantList([])
-      setYearList([])
-      setFuelList([])
-      setTransList([])
-      setFallbackVariant(false)
-      setFallbackYear(false)
-      setFallbackFuel(false)
-      setFallbackTrans(false)
-      setFuelLocked(false)
-      setTransLocked(false)
-      setManualModelEntry(false)
-      setModelDraft("")
-      return
-    }
+    // La marque est gérée par handleMarqueSelect (combobox personnalisé)
 
     if (name === "modele") {
       setManualModelEntry(false)
@@ -680,26 +710,105 @@ export function VehicleForm() {
           <p className="text-sm font-medium text-foreground text-left">Informations du véhicule</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="marque" className="text-sm font-medium text-foreground flex items-center gap-2">
+              <label htmlFor="marque-btn" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Car className="h-4 w-4 text-primary" />
                 Marque
               </label>
-              <select
-                id="marque"
+
+              {/* Input caché pour la validation HTML5 du formulaire */}
+              <input
+                type="text"
                 name="marque"
-                value={formData.marque}
-                onChange={handleChange}
-                onInput={clearValidity}
                 required
-                className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 [&>option]:bg-[#0a1628] [&>option]:text-foreground"
-              >
-                <option value="" className="bg-[#0a1628]">{loadingMakes ? "Chargement…" : "Sélectionnez une marque"}</option>
-                {availableMakes.map((brand) => (
-                  <option key={brand} value={brand} className="bg-[#0a1628]">
-                    {brand}
-                  </option>
-                ))}
-              </select>
+                readOnly
+                tabIndex={-1}
+                aria-hidden="true"
+                value={formData.marque}
+                className="sr-only"
+                onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("Veuillez sélectionner une marque.")}
+                onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
+              />
+
+              <div ref={marqueRef} className="relative">
+                {/* Bouton déclencheur */}
+                <button
+                  id="marque-btn"
+                  type="button"
+                  onClick={() => setMarqueOpen((o) => !o)}
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 flex items-center justify-between gap-2"
+                >
+                  <span className={formData.marque ? "text-foreground" : "text-muted-foreground"}>
+                    {formData.marque || (loadingMakes ? "Chargement…" : "Sélectionnez une marque")}
+                  </span>
+                  {formData.marque ? (
+                    <X
+                      className="h-3.5 w-3.5 text-muted-foreground shrink-0 hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleMarqueSelect("")
+                        // Ré-ouvrir pour permettre une nouvelle sélection
+                        setTimeout(() => setMarqueOpen(true), 0)
+                      }}
+                    />
+                  ) : (
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${marqueOpen ? "rotate-180" : ""}`} />
+                  )}
+                </button>
+
+                {/* Panneau déroulant */}
+                {marqueOpen && (
+                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-background shadow-lg">
+                    {/* Barre de recherche */}
+                    <div className="border-b border-border p-2">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                        <input
+                          ref={marqueSearchRef}
+                          type="text"
+                          value={marqueSearch}
+                          onChange={(e) => setMarqueSearch(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") {
+                              setMarqueOpen(false)
+                              setMarqueSearch("")
+                            }
+                          }}
+                          placeholder="Rechercher une marque…"
+                          className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Liste filtrée */}
+                    <div className="max-h-52 overflow-y-auto py-1">
+                      {(() => {
+                        const filtered = availableMakes.filter((b) =>
+                          b.toLowerCase().includes(marqueSearch.toLowerCase())
+                        )
+                        return filtered.length === 0 ? (
+                          <p className="px-3 py-2 text-sm text-muted-foreground">Aucun résultat</p>
+                        ) : (
+                          filtered.map((brand) => (
+                            <button
+                              key={brand}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()} // évite le blur de la recherche
+                              onClick={() => handleMarqueSelect(brand)}
+                              className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-primary/10 ${
+                                formData.marque === brand
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-foreground"
+                              }`}
+                            >
+                              {brand}
+                            </button>
+                          ))
+                        )
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {!isException && (
