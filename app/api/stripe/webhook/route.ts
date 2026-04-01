@@ -3,6 +3,8 @@ import Stripe from "stripe"
 import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
 import { createCalendarEvent, getBusyIntervals } from "@/lib/google-calendar"
+import { addCredits } from "@/lib/accounts-db"
+import { registerPaidGuestSession } from "@/lib/guest-credits-db"
 
 export const runtime = "nodejs"
 
@@ -112,16 +114,31 @@ export async function POST(req: Request) {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session
-      const reservationId = session.metadata?.reservationId
-      if (!reservationId) throw new Error("reservationId manquant dans metadata Stripe.")
+      const intent = session.metadata?.intent
 
-      const paymentIntentId =
-        typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id
+      if (intent === "credit_purchase") {
+        // Achat de crédits par un utilisateur connecté
+        const userId = session.metadata?.userId
+        const credits = parseInt(session.metadata?.credits ?? "0", 10)
+        if (userId && credits > 0) {
+          await addCredits(userId, credits)
+        }
+      } else if (intent === "guest_diagnostic") {
+        // Paiement d'un diagnostic invité — enregistrement préventif en DB
+        await registerPaidGuestSession(session.id)
+      } else {
+        // Flux réservation existant
+        const reservationId = session.metadata?.reservationId
+        if (!reservationId) throw new Error("reservationId manquant dans metadata Stripe.")
 
-      await confirmReservationAfterPayment(reservationId, {
-        stripeSessionId: session.id,
-        stripePaymentIntentId: paymentIntentId ?? undefined,
-      })
+        const paymentIntentId =
+          typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id
+
+        await confirmReservationAfterPayment(reservationId, {
+          stripeSessionId: session.id,
+          stripePaymentIntentId: paymentIntentId ?? undefined,
+        })
+      }
     } else if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
       const reservationId = paymentIntent.metadata?.reservationId

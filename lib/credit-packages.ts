@@ -1,0 +1,48 @@
+export const CREDIT_PACKAGES = [
+  {
+    id: "1" as const,
+    credits: 1,
+    amountCents: 999,
+    label: "1 diagnostic",
+    priceLabel: "9,99 €",
+    originalPrice: null as string | null,
+    saving: null as string | null,
+    badge: null as string | null,
+    highlight: false,
+  },
+  {
+    id: "3" as const,
+    credits: 3,
+    amountCents: 2499,
+    label: "3 diagnostics",
+    priceLabel: "24,99 €",
+    originalPrice: "30,00 €",
+    saving: "5 € d'économie",
+    badge: "–17 %",
+    highlight: false,
+  },
+  {
+    id: "6" as const,
+    credits: 6,
+    amountCents: 4999,
+    label: "6 diagnostics",
+    priceLabel: "49,99 €",
+    originalPrice: "60,00 €",
+    saving: "10 € d'économie",
+    badge: "–17 %",
+    highlight: true,
+  },
+  {
+    id: "10" as const,
+    credits: 10,
+    amountCents: 7999,
+    label: "10 diagnostics",
+    priceLabel: "79,99 €",
+    originalPrice: "100,00 €",
+    saving: "20 € d'économie",
+    badge: "–20 %",
+    highlight: false,
+  },
+] as const
+
+export type CreditPackageId = (typeof CREDIT_PACKAGES)[number]["id"]

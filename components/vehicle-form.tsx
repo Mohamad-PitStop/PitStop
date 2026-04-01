@@ -70,7 +70,10 @@ export function VehicleForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
-  const [authUser, setAuthUser] = useState<{ id: string; email: string; name: string } | null>(null)
+  const [authUser, setAuthUser] = useState<{ id: string; email: string; name: string; role: string; diagnosticCredits: number } | null>(null)
+  const [guestAlreadyUsed, setGuestAlreadyUsed] = useState(false)
+  const [paidSessionVerified, setPaidSessionVerified] = useState(false)
+  const [creditCheckoutLoading, setCreditCheckoutLoading] = useState(false)
 
   const cascadeGen = useRef(0)
 
@@ -368,9 +371,23 @@ export function VehicleForm() {
     }
 
     if (authUser) {
-      void runDiagnostic("account")
+      const isPrivileged = authUser.role === "admin" || authUser.role === "tester"
+      if (isPrivileged || authUser.diagnosticCredits > 0) {
+        void runDiagnostic("account")
+        return
+      }
+      // Utilisateur connecté sans crédit → ouvrir la modale
+      setAuthDialogOpen(true)
       return
     }
+
+    // Invité avec session de paiement vérifiée → lancement direct
+    if (paidSessionVerified) {
+      setPaidSessionVerified(false)
+      void runDiagnostic("guest")
+      return
+    }
+
     setAuthDialogOpen(true)
   }
 
@@ -378,15 +395,78 @@ export function VehicleForm() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch("/api/auth/me")
-        const data = await res.json().catch(() => null)
-        if (!cancelled && data?.user) setAuthUser(data.user)
+        // Récupérer le statut utilisateur et invité en parallèle
+        const [meRes, guestRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/credits/guest-status"),
+        ])
+        const meData = await meRes.json().catch(() => null)
+        const guestData = await guestRes.json().catch(() => null)
+        if (!cancelled) {
+          if (meData?.user) {
+            setAuthUser({
+              ...meData.user,
+              diagnosticCredits: meData.user.diagnosticCredits ?? 0,
+              role: meData.user.role ?? "user",
+            })
+          }
+          if (guestData?.guestUsed) setGuestAlreadyUsed(true)
+        }
       } catch {
         // no-op
       }
     })()
-    return () => {
-      cancelled = true
+    return () => { cancelled = true }
+  }, [])
+
+  // Gestion des retours depuis Stripe (paid_session, credits_added)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const paidSession = params.get("paid_session")
+    const creditsAdded = params.get("credits_added")
+
+    if (paidSession) {
+      window.history.replaceState({}, "", "/diagnostic")
+      ;(async () => {
+        try {
+          const res = await fetch(`/api/credits/verify-guest-payment?session_id=${encodeURIComponent(paidSession)}`)
+          if (res.ok) {
+            // Restaurer les données du formulaire si disponibles
+            const savedDataStr = sessionStorage.getItem("pendingFormData")
+            if (savedDataStr) {
+              const savedData = JSON.parse(savedDataStr)
+              sessionStorage.removeItem("pendingFormData")
+              setFormData(savedData)
+            }
+            // Autoriser le lancement direct au prochain submit
+            setPaidSessionVerified(true)
+          } else {
+            setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
+          }
+        } catch {
+          setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
+        }
+      })()
+    }
+
+    if (creditsAdded) {
+      window.history.replaceState({}, "", "/diagnostic")
+      // Restaurer les données du formulaire si disponibles
+      const savedDataStr = sessionStorage.getItem("pendingFormData")
+      if (savedDataStr) {
+        const savedData = JSON.parse(savedDataStr)
+        sessionStorage.removeItem("pendingFormData")
+        setFormData(savedData)
+      }
+      // Rafraîchir le solde de crédits
+      fetch("/api/credits/balance")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok) {
+            setAuthUser((prev) => prev ? { ...prev, diagnosticCredits: data.credits } : null)
+          }
+        })
+        .catch(() => null)
     }
   }, [])
 
@@ -427,6 +507,32 @@ export function VehicleForm() {
       setAuthError("Une erreur technique est survenue. Veuillez réessayer.")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  /** Redirige vers Stripe pour acheter des crédits / un diagnostic invité. */
+  const redirectToStripeForCredit = async (
+    packageId: "1" | "3" | "6" | "10",
+    intent: "credit_purchase" | "guest_diagnostic"
+  ) => {
+    setCreditCheckoutLoading(true)
+    try {
+      sessionStorage.setItem("pendingFormData", JSON.stringify(formData))
+      const res = await fetch("/api/credits/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId, intent, returnPath: "/diagnostic" }),
+      })
+      const data = await res.json().catch(() => null)
+      if (data?.ok && data?.url) {
+        window.location.href = data.url
+      } else {
+        setAuthError("Erreur lors de la création du paiement. Veuillez réessayer.")
+        setCreditCheckoutLoading(false)
+      }
+    } catch {
+      setAuthError("Erreur technique. Veuillez réessayer.")
+      setCreditCheckoutLoading(false)
     }
   }
 
@@ -1058,60 +1164,156 @@ export function VehicleForm() {
 
         <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Créer un compte ou continuer en tant qu&apos;invité</DialogTitle>
-              <DialogDescription>
-                Créez un compte pour retrouver vos diagnostics et en réaliser autant que vous le souhaitez, ou continuez en invité pour un diagnostic unique.
-              </DialogDescription>
-            </DialogHeader>
+            {/* ── Utilisateur connecté ── */}
+            {authUser ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Lancer votre diagnostic</DialogTitle>
+                  <DialogDescription>
+                    Bonjour {authUser.name} ! Voici votre solde de crédits PitStop.
+                  </DialogDescription>
+                </DialogHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
-              <div className="border border-border/60 rounded-lg p-4 space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">Se connecter / Créer un compte</h3>
-                <p className="text-xs text-muted-foreground">
-                  Créez votre compte PitStop ou connectez-vous pour retrouver vos diagnostics et éviter la limite invité.
-                </p>
-                <div className="space-y-2">
+                <div className="py-2 space-y-4">
+                  {/* Badge crédits */}
+                  <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
+                    <span className="text-sm font-medium text-foreground">Crédits disponibles</span>
+                    <span className={`text-2xl font-bold ${authUser.diagnosticCredits > 0 ? "text-orange-500" : "text-destructive"}`}>
+                      {authUser.diagnosticCredits}
+                    </span>
+                  </div>
+
+                  {authUser.diagnosticCredits > 0 ? (
+                    <Button
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                      onClick={() => runDiagnostic("account")}
+                      disabled={isLoading}
+                    >
+                      Utiliser 1 crédit pour mon diagnostic
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground text-center">
+                        Vous n&apos;avez plus de crédits. Payez un diagnostic unique ou rechargez votre compte.
+                      </p>
+                      <Button
+                        className="w-full"
+                        onClick={() => redirectToStripeForCredit("1", "credit_purchase")}
+                        disabled={creditCheckoutLoading}
+                      >
+                        {creditCheckoutLoading ? "Redirection…" : "Payer 1 diagnostic — 9,99 €"}
+                      </Button>
+                    </div>
+                  )}
+
                   <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={() => {
-                      setAuthDialogOpen(false)
-                      router.push("/inscription")
-                    }}
-                  >
-                    Créer un compte
-                  </Button>
-                  <Button
-                    size="sm"
                     variant="outline"
                     className="w-full"
                     onClick={() => {
                       setAuthDialogOpen(false)
-                      router.push("/connexion")
+                      router.push("/credits")
                     }}
                   >
-                    Se connecter
+                    Recharger mes crédits
                   </Button>
                 </div>
-              </div>
 
-              <div className="border border-primary/50 rounded-lg p-4 space-y-2 bg-primary/5">
-                <h3 className="text-sm font-semibold text-foreground">Continuer en tant qu&apos;invité</h3>
-                <p className="text-xs text-muted-foreground">
-                  Vous pouvez réaliser un seul diagnostic en mode invité depuis ce navigateur. Pour en faire d&apos;autres ensuite, il faudra créer un compte.
-                </p>
-                <Button size="sm" className="w-full" variant="secondary" onClick={() => runDiagnostic("guest")} disabled={isLoading}>
-                  Continuer en tant qu&apos;invité
-                </Button>
-              </div>
-            </div>
+                <DialogFooter>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    1 crédit = 1 diagnostic complet. Les questions de suivi sont incluses.
+                  </p>
+                </DialogFooter>
+              </>
+            ) : (
+              /* ── Invité ── */
+              <>
+                <DialogHeader>
+                  <DialogTitle>
+                    {guestAlreadyUsed
+                      ? "Votre diagnostic gratuit a été utilisé"
+                      : "Créer un compte ou continuer en tant qu\u2019invité"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {guestAlreadyUsed
+                      ? "Connectez-vous, créez un compte ou payez un diagnostic unique pour continuer."
+                      : "Créez un compte pour des diagnostics illimités, ou continuez en invité pour un diagnostic gratuit."}
+                  </DialogDescription>
+                </DialogHeader>
 
-            <DialogFooter>
-              <p className="text-[11px] text-muted-foreground leading-snug">
-                En continuant, vous acceptez que vos informations soient traitées pour générer un diagnostic automobile personnalisé.
-              </p>
-            </DialogFooter>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                  {/* Colonne gauche : connexion / inscription (toujours présente) */}
+                  <div className="border border-border/60 rounded-lg p-4 space-y-2">
+                    <h3 className="text-sm font-semibold text-foreground">Se connecter / Créer un compte</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Retrouvez vos diagnostics et rechargez vos crédits depuis votre espace personnel.
+                    </p>
+                    <div className="space-y-2">
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setAuthDialogOpen(false)
+                          router.push("/inscription")
+                        }}
+                      >
+                        Créer un compte
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          setAuthDialogOpen(false)
+                          router.push("/connexion")
+                        }}
+                      >
+                        Se connecter
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Colonne droite : invité gratuit OU paiement unique */}
+                  {guestAlreadyUsed ? (
+                    <div className="border border-orange-400/60 rounded-lg p-4 space-y-2 bg-orange-50/10">
+                      <h3 className="text-sm font-semibold text-foreground">Diagnostic unique</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Payez un diagnostic unique sans créer de compte. Valable une fois depuis ce navigateur.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                        onClick={() => redirectToStripeForCredit("1", "guest_diagnostic")}
+                        disabled={creditCheckoutLoading}
+                      >
+                        {creditCheckoutLoading ? "Redirection…" : "Payer mon diagnostic — 9,99 €"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="border border-primary/50 rounded-lg p-4 space-y-2 bg-primary/5">
+                      <h3 className="text-sm font-semibold text-foreground">Continuer en tant qu&apos;invité</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Réalisez un diagnostic gratuit en mode invité. Un seul par navigateur.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        variant="secondary"
+                        onClick={() => runDiagnostic("guest")}
+                        disabled={isLoading}
+                      >
+                        Continuer en tant qu&apos;invité
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    En continuant, vous acceptez que vos informations soient traitées pour générer un diagnostic automobile personnalisé.
+                  </p>
+                </DialogFooter>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       </CardContent>

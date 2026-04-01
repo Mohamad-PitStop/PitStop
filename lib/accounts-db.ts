@@ -9,6 +9,7 @@ type AccountRow = {
   email: string
   passwordHash: string
   role: UserRole
+  diagnosticCredits: number
 }
 
 type SessionRow = {
@@ -49,12 +50,21 @@ async function ensureAccountsTable() {
     )
   `)
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "UserSession_userId_idx" ON "UserSession" ("userId")`)
-  // Migration : colonne role — on vérifie d'abord si elle existe pour éviter l'erreur SQLite
+  // Migration : colonne role
   const cols = await prisma.$queryRawUnsafe<{ name: string }[]>(
     `SELECT name FROM pragma_table_info('UserAccount') WHERE name = 'role'`
   )
   if (cols.length === 0) {
     await prisma.$executeRawUnsafe(`ALTER TABLE "UserAccount" ADD COLUMN "role" TEXT NOT NULL DEFAULT 'user'`)
+  }
+  // Migration : colonne diagnosticCredits
+  const creditCols = await prisma.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM pragma_table_info('UserAccount') WHERE name = 'diagnosticCredits'`
+  )
+  if (creditCols.length === 0) {
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "UserAccount" ADD COLUMN "diagnosticCredits" INTEGER NOT NULL DEFAULT 0`
+    )
   }
   ensured = true
 }
@@ -95,15 +105,49 @@ export async function createAccount(input: {
   return { id, name: input.name, email: input.email, role }
 }
 
-export async function findAccountById(id: string): Promise<{ id: string; name: string; email: string; role: UserRole } | null> {
+export async function findAccountById(id: string): Promise<{ id: string; name: string; email: string; role: UserRole; diagnosticCredits: number } | null> {
   await ensureAccountsTable()
-  const rows = await prisma.$queryRawUnsafe<Array<{ id: string; name: string; email: string; role: string }>>(
-    `SELECT "id", "name", "email", "role" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
+  const rows = await prisma.$queryRawUnsafe<Array<{ id: string; name: string; email: string; role: string; diagnosticCredits: number }>>(
+    `SELECT "id", "name", "email", "role", "diagnosticCredits" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
     id
   )
   const row = rows[0]
   if (!row) return null
-  return { ...row, role: toRole(row.role) }
+  return { ...row, role: toRole(row.role), diagnosticCredits: Number(row.diagnosticCredits ?? 0) }
+}
+
+// ── Crédits diagnostic ───────────────────────────────────────────────────────
+
+export async function getUserCredits(userId: string): Promise<number> {
+  await ensureAccountsTable()
+  const rows = await prisma.$queryRawUnsafe<Array<{ diagnosticCredits: number }>>(
+    `SELECT "diagnosticCredits" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
+    userId
+  )
+  return Number(rows[0]?.diagnosticCredits ?? 0)
+}
+
+export async function addCredits(userId: string, amount: number): Promise<void> {
+  await ensureAccountsTable()
+  await prisma.$executeRawUnsafe(
+    `UPDATE "UserAccount" SET "diagnosticCredits" = "diagnosticCredits" + ? WHERE "id" = ?`,
+    amount,
+    userId
+  )
+}
+
+/**
+ * Déduit 1 crédit si l'utilisateur en a au moins un.
+ * @returns true si le crédit a été déduit, false si le solde était 0.
+ */
+export async function deductCredit(userId: string): Promise<boolean> {
+  await ensureAccountsTable()
+  const result = await prisma.$executeRawUnsafe(
+    `UPDATE "UserAccount" SET "diagnosticCredits" = "diagnosticCredits" - 1
+     WHERE "id" = ? AND "diagnosticCredits" > 0`,
+    userId
+  )
+  return (result as unknown as number) > 0
 }
 
 export async function getAllAccounts(): Promise<Array<{ id: string; name: string; email: string; role: UserRole; createdAt: string }>> {

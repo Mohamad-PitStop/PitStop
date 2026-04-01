@@ -4,7 +4,9 @@ import { z } from "zod"
 import { createDiagnosticRequest, updateDiagnosticRequestFollowUps, updateDiagnosticResult } from "@/lib/diagnostics-db"
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
-import { GUEST_USED_COOKIE_NAME, extractCookieValue, getUserFromAuthCookie } from "@/lib/auth-session"
+import { GUEST_USED_COOKIE_NAME, GUEST_PAID_SESSION_COOKIE_NAME, extractCookieValue, getUserFromAuthCookie } from "@/lib/auth-session"
+import { deductCredit } from "@/lib/accounts-db"
+import { isPaidGuestSessionValid, markPaidGuestSessionUsed } from "@/lib/guest-credits-db"
 import { NextResponse } from "next/server"
 
 const ANTHROPIC_PROMPT_CACHE_HEADERS = {
@@ -203,14 +205,43 @@ export async function POST(req: Request) {
     const isFriend = user?.role === "user_friend"
     const guestAlreadyUsed = extractCookieValue(cookieHeader, GUEST_USED_COOKIE_NAME) === "1"
 
+    // ── Gestion des crédits pour les utilisateurs connectés ─────────────────
+    if (isAuthenticated && !isPrivileged && !diagnosticRequestId) {
+      // Premier appel (pas un follow-up) : déduire 1 crédit
+      const deducted = await deductCredit(user!.id)
+      if (!deducted) {
+        return NextResponse.json(
+          { error: "NO_CREDITS", message: "Vous n'avez plus de crédits. Rechargez votre compte pour continuer." },
+          { status: 402 }
+        )
+      }
+    }
+
+    // ── Gestion invité : diag gratuit utilisé ───────────────────────────────
     if (!isAuthenticated && !hasFollowUps && guestAlreadyUsed) {
-      return NextResponse.json(
-        {
-          error:
-            "Mode invité déjà utilisé sur ce navigateur. Connectez-vous ou créez un compte pour relancer un diagnostic.",
-        },
-        { status: 403 }
-      )
+      // Vérifier si l'invité a une session de paiement valide
+      const paidSession = extractCookieValue(cookieHeader, GUEST_PAID_SESSION_COOKIE_NAME)
+      if (!paidSession) {
+        return NextResponse.json(
+          {
+            error:
+              "Mode invité déjà utilisé sur ce navigateur. Connectez-vous, créez un compte, ou payez un diagnostic unique.",
+          },
+          { status: 403 }
+        )
+      }
+      const valid = await isPaidGuestSessionValid(paidSession)
+      if (!valid) {
+        return NextResponse.json(
+          {
+            error:
+              "Mode invité déjà utilisé sur ce navigateur. Connectez-vous, créez un compte, ou payez un diagnostic unique.",
+          },
+          { status: 403 }
+        )
+      }
+      // Session valide → la consommer avant d'appeler l'IA
+      await markPaidGuestSessionUsed(paidSession)
     }
 
     const systemText = `Tu es PitStop, un expert mecanicien automobile virtuel avec 25 ans d'experience. Tu as ete forme par des mecaniciens professionnels belges. Si la marque ou le modele est approximatif, identifie automatiquement le vehicule sans demander confirmation.
