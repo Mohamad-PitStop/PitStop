@@ -49,17 +49,10 @@ export async function GET(req: Request) {
     }
     allSlots.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
 
-    // Filtrer les créneaux passés si c'est aujourd'hui (heure Bruxelles)
-    const nowUtc      = new Date()
-    const nowBrussels = toZonedTime(nowUtc, timeZone)
-    const todayStr    = [
-      nowBrussels.getFullYear(),
-      String(nowBrussels.getMonth() + 1).padStart(2, "0"),
-      String(nowBrussels.getDate()).padStart(2, "0"),
-    ].join("-")
-    if (parsed.date === todayStr) {
-      allSlots = allSlots.filter(s => new Date(s.start) > nowUtc)
-    }
+    // Filtrer les créneaux à moins de 18 h de maintenant
+    const nowUtc = new Date()
+    const minBookingTime = new Date(nowUtc.getTime() + 18 * 60 * 60 * 1000)
+    allSlots = allSlots.filter(s => new Date(s.start) >= minBookingTime)
 
     if (allSlots.length === 0) {
       return Response.json({ ok: true, timeZone, slots: [] })
