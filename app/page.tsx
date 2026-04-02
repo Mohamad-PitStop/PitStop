@@ -218,11 +218,11 @@ export default function LandingPage() {
           <div className="container mx-auto max-w-4xl px-4">
             <div className="text-center mb-10">
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
-                Vous avez un garage ? Devenez partenaire PitStop
+                Vous êtes propriétaire d'un garage ? Devenez partenaire PitStop
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Rejoignez notre reseau de garages partenaires en Belgique. Remplissez ce formulaire pro et notre
-                equipe vous recontacte rapidement.
+                Rejoignez notre réseau de garages partenaires en Belgique. Remplissez ce formulaire pro et notre
+                équipe vous recontacte rapidement.
               </p>
             </div>
 

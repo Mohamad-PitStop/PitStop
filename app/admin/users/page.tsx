@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Shield, UserCheck, UserX, Users, Heart, Clock, Plus, Trash2, CalendarDays, FlaskConical } from "lucide-react"
+import { Shield, UserCheck, Users, Heart, Clock, Plus, Trash2, CalendarDays, FlaskConical, Coins } from "lucide-react"
 import Link from "next/link"
 
 type UserRole = "admin" | "tester" | "user_friend" | "user"
@@ -66,6 +66,11 @@ export default function AdminUsersPage() {
 
   // Pending actions
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
+  const [creditEmail, setCreditEmail] = useState("")
+  const [creditAmount, setCreditAmount] = useState("1")
+  const [crediting, setCrediting] = useState(false)
+  const [creditMessage, setCreditMessage] = useState<string | null>(null)
+  const [creditError, setCreditError] = useState<string | null>(null)
 
   async function fetchData() {
     const res = await fetch("/api/admin/users")
@@ -120,6 +125,38 @@ export default function AdminUsersPage() {
     })
     await fetchData()
     setPendingActionId(null)
+  }
+
+  async function grantCredits() {
+    const email = creditEmail.trim().toLowerCase()
+    const amount = Number(creditAmount)
+    if (!email || !Number.isInteger(amount) || amount <= 0) return
+
+    setCrediting(true)
+    setCreditMessage(null)
+    setCreditError(null)
+    try {
+      const res = await fetch("/api/admin/users/credits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, credits: amount }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error ?? "Impossible d'ajouter les crédits.")
+      }
+
+      setCreditMessage(
+        `${amount} crédit${amount > 1 ? "s" : ""} ajouté${amount > 1 ? "s" : ""} à ${data.user.email} (nouveau solde : ${data.user.newBalance}).`
+      )
+      setCreditEmail("")
+      setCreditAmount("1")
+      await fetchData()
+    } catch (err) {
+      setCreditError(err instanceof Error ? err.message : "Impossible d'ajouter les crédits.")
+    } finally {
+      setCrediting(false)
+    }
   }
 
   if (loading) {
@@ -185,6 +222,59 @@ export default function AdminUsersPage() {
           </Card>
         ))}
       </div>
+
+      {/* Crédits offerts */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Crédits offerts (admin)</h2>
+        <Card className="border-border/50">
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Coins className="h-4 w-4 text-amber-400" />
+              Ajouter des crédits gratuitement à un compte existant via son e-mail.
+            </div>
+            <div className="flex gap-2 flex-wrap items-end">
+              <div className="flex-1 min-w-[220px] space-y-1">
+                <label className="text-xs text-muted-foreground">Adresse e-mail du compte</label>
+                <Input
+                  type="email"
+                  placeholder="Ex : client@email.com"
+                  value={creditEmail}
+                  onChange={(e) => setCreditEmail(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") grantCredits() }}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="w-[120px] space-y-1">
+                <label className="text-xs text-muted-foreground">Crédits à offrir</label>
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={creditAmount}
+                  onChange={(e) => setCreditAmount(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") grantCredits() }}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <Button
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={grantCredits}
+                disabled={crediting || !creditEmail.trim() || Number(creditAmount) <= 0}
+              >
+                <Plus className="h-4 w-4" />
+                {crediting ? "Ajout..." : "Ajouter les crédits"}
+              </Button>
+            </div>
+            {creditMessage && (
+              <p className="text-xs text-green-400">{creditMessage}</p>
+            )}
+            {creditError && (
+              <p className="text-xs text-destructive">{creditError}</p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       {/* ── Section : utilisateurs inscrits ── */}
       <section className="space-y-3">

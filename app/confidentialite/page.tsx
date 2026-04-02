@@ -18,7 +18,7 @@ export default function ConfidentialitePage() {
             <p className="text-muted-foreground">
               PitStop — Service de diagnostic automobile assisté par IA
               <br />
-              Dernière mise à jour : 26 mars 2026
+              Dernière mise à jour : 2 avril 2026
             </p>
           </header>
 
@@ -188,7 +188,6 @@ export default function ConfidentialitePage() {
                 amoudialiahmad@gmail.com
               </a>
             </p>
-            <p className="text-sm text-muted-foreground">Document rédigé en date du 26 mars 2026.</p>
           </section>
 
           <div className="pt-2">
