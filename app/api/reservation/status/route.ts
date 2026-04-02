@@ -23,16 +23,39 @@ export async function GET(req: Request) {
 
     const stripe = getStripe()
     let reservationId: string | null = null
-    let paymentInfo: { sessionId?: string; status?: string; paymentStatus?: string; paymentIntentId?: string } = {}
+    let paymentInfo: {
+      sessionId?: string
+      status?: string
+      paymentStatus?: string
+      paymentIntentId?: string
+      depositAmountCents?: number
+      priceMinEuros?: number
+      priceMaxEuros?: number
+    } = {}
 
     if (session_id) {
       const session = await stripe.checkout.sessions.retrieve(session_id)
       reservationId = session.metadata?.reservationId ?? null
-      paymentInfo = { sessionId: session.id, status: session.status ?? undefined, paymentStatus: session.payment_status ?? undefined }
+      const meta = session.metadata ?? {}
+      paymentInfo = {
+        sessionId: session.id,
+        status: session.status ?? undefined,
+        paymentStatus: session.payment_status ?? undefined,
+        depositAmountCents: meta.depositAmountCents ? Number(meta.depositAmountCents) : undefined,
+        priceMinEuros: meta.priceMinEuros ? Number(meta.priceMinEuros) : undefined,
+        priceMaxEuros: meta.priceMaxEuros ? Number(meta.priceMaxEuros) : undefined,
+      }
     } else if (payment_intent) {
       const pi = await stripe.paymentIntents.retrieve(payment_intent)
       reservationId = pi.metadata?.reservationId ?? null
-      paymentInfo = { paymentIntentId: pi.id, paymentStatus: pi.status }
+      const meta = pi.metadata ?? {}
+      paymentInfo = {
+        paymentIntentId: pi.id,
+        paymentStatus: pi.status,
+        depositAmountCents: meta.depositAmountCents ? Number(meta.depositAmountCents) : undefined,
+        priceMinEuros: meta.priceMinEuros ? Number(meta.priceMinEuros) : undefined,
+        priceMaxEuros: meta.priceMaxEuros ? Number(meta.priceMaxEuros) : undefined,
+      }
     }
 
     if (!reservationId) {

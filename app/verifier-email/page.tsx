@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 
 type State = "loading" | "success" | "error"
 
-export default function VerifierEmailPage() {
+function VerifierEmailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [state, setState] = useState<State>("loading")
@@ -113,5 +113,40 @@ export default function VerifierEmailPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+function VerifyEmailFallback() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="py-14">
+        <div className="container mx-auto max-w-md px-4">
+          <Card className="border-border/60 bg-card">
+            <CardHeader>
+              <CardTitle>Vérification de l'adresse email</CardTitle>
+              <CardDescription>Activation de votre compte PitStop</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center gap-4 py-8">
+                <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <p className="text-sm text-muted-foreground">Chargement…</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export default function VerifierEmailPage() {
+  return (
+    <Suspense fallback={<VerifyEmailFallback />}>
+      <VerifierEmailContent />
+    </Suspense>
   )
 }

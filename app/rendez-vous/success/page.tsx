@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/navbar"
 import { getSiteUrl } from "@/lib/stripe"
+import { CheckCircle, Euro, Calendar, Info } from "lucide-react"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 
 async function getStatus(params: { session_id?: string; payment_intent?: string }) {
   const base = getSiteUrl()
@@ -14,9 +17,26 @@ async function getStatus(params: { session_id?: string; payment_intent?: string 
   if (!q) return null
   const res = await fetch(`${base}/api/reservation/status?${q}`, { cache: "no-store" })
   return res.json() as Promise<
-    | { ok: true; reservation: { status: string; startAt: string; timeZone: string } }
+    | {
+        ok: true
+        reservation: { status: string; startAt: string; endAt: string; timeZone: string; name: string; type: string }
+        payment: {
+          depositAmountCents?: number
+          priceMinEuros?: number
+          priceMaxEuros?: number
+          paymentStatus?: string
+        }
+      }
     | { ok: false; error: string }
   >
+}
+
+function formatDateTime(iso: string) {
+  try {
+    return format(new Date(iso), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })
+  } catch {
+    return iso
+  }
 }
 
 export default async function RendezVousSuccessPage({
@@ -28,7 +48,17 @@ export default async function RendezVousSuccessPage({
   const sessionId = params?.session_id
   const paymentIntent = params?.payment_intent
 
-  const data = sessionId || paymentIntent ? await getStatus({ session_id: sessionId, payment_intent: paymentIntent }) : null
+  const data = sessionId || paymentIntent
+    ? await getStatus({ session_id: sessionId, payment_intent: paymentIntent })
+    : null
+
+  const depositEuros = data?.ok ? (data.payment.depositAmountCents ?? 0) / 100 : null
+  const priceMin = data?.ok ? data.payment.priceMinEuros ?? null : null
+  const priceMax = data?.ok ? data.payment.priceMaxEuros ?? null : null
+
+  const remainingMin = depositEuros != null && priceMin != null ? Math.max(0, priceMin - depositEuros) : null
+  const remainingMax = depositEuros != null && priceMax != null ? Math.max(0, priceMax - depositEuros) : null
+  const hasRemainingInfo = remainingMin != null && remainingMax != null
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,34 +77,87 @@ export default async function RendezVousSuccessPage({
 
             <Card className="border-primary/30 bg-card">
               <CardHeader>
-                <CardTitle className="text-foreground">Paiement confirmé</CardTitle>
-                <CardDescription>
-                  {data?.ok
-                    ? "Votre réservation est en cours de confirmation dans le calendrier du garage."
-                    : "Nous finalisons votre réservation."}
-                </CardDescription>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-foreground">Paiement confirmé ✓</CardTitle>
+                    <CardDescription>
+                      {data?.ok
+                        ? "Votre réservation est enregistrée. Le créneau a été bloqué dans le calendrier du garage."
+                        : "Nous finalisons votre réservation."}
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
+
               <CardContent className="space-y-4">
                 {data?.ok ? (
-                  <div className="rounded-lg border border-border/50 bg-secondary/20 p-4">
-                    <p className="text-sm text-foreground">
-                      Statut: <span className="font-medium">{data.reservation.status}</span>
-                    </p>
-                  </div>
+                  <>
+                    {/* Créneau réservé */}
+                    <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 flex items-start gap-3">
+                      <Calendar className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Votre rendez-vous</p>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {formatDateTime(data.reservation.startAt)}
+                        </p>
+                        {data.reservation.name && (
+                          <p className="text-sm text-muted-foreground">Au nom de : {data.reservation.name}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Acompte payé */}
+                    {depositEuros != null && depositEuros > 0 && (
+                      <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4 flex items-start gap-3">
+                        <Euro className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">
+                            Acompte encaissé : <span className="text-green-400 font-bold">{depositEuros}€</span>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Ce montant sera déduit du total de la prestation lors de votre passage au garage.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reste à payer */}
+                    {hasRemainingInfo && (
+                      <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 flex items-start gap-3">
+                        <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">Reste à régler au garage</p>
+                          <p className="text-sm text-muted-foreground">
+                            À la fin de la prestation, il vous restera à payer directement au garage entre{" "}
+                            <span className="font-semibold text-foreground">{remainingMin}€</span>
+                            {" "}et{" "}
+                            <span className="font-semibold text-foreground">{remainingMax}€</span>
+                            {" "}(acompte de {depositEuros}€ déjà déduit).
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">
+                            Ces montants sont des estimations basées sur le diagnostic. Le garagiste établira le devis définitif après examen du véhicule.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : data && !data.ok ? (
                   <p className="text-sm text-muted-foreground">{data.error}</p>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Merci. Vous pouvez revenir à la page rendez-vous.
+                    Merci. Votre paiement a bien été reçu.
                   </p>
                 )}
 
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <Button asChild size="lg" className="w-full sm:w-auto">
-                    <Link href="/rendez-vous">Retour aux rendez-vous</Link>
+                    <Link href="/resultat">Retour au diagnostic</Link>
                   </Button>
                   <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
-                    <Link href="/resultat">Retour au diagnostic</Link>
+                    <Link href="/">Accueil</Link>
                   </Button>
                 </div>
               </CardContent>
@@ -85,4 +168,3 @@ export default async function RendezVousSuccessPage({
     </div>
   )
 }
-

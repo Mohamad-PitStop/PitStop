@@ -14,6 +14,7 @@ const BodySchema = z.object({
   endAt: z.string().datetime({ offset: true }),
   timeZone: z.string().default("Europe/Brussels"),
   priceMin: z.number().positive().optional(),
+  priceMax: z.number().positive().optional(),
   vehicle: z
     .object({
       marque: z.string().optional(),
@@ -86,6 +87,9 @@ export async function POST(req: Request) {
         startAt: body.startAt,
         endAt: body.endAt,
         timeZone: body.timeZone,
+        depositAmountCents: String(amount),
+        ...(body.priceMin != null ? { priceMinEuros: String(body.priceMin) } : {}),
+        ...(body.priceMax != null ? { priceMaxEuros: String(body.priceMax) } : {}),
       },
     })
 

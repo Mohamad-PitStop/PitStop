@@ -726,7 +726,7 @@ export function ResultsContent() {
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <Button asChild className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}` : ""}`}>Prendre rendez-vous</Link>
+                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>Prendre rendez-vous</Link>
               </Button>
               <Button asChild variant="outline" className="flex-1 border-primary/40">
                 <Link href="/garages">Trouver un garage proche</Link>
@@ -757,7 +757,7 @@ export function ResultsContent() {
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row gap-3">
               <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}` : ""}`}>Prendre rendez-vous</Link>
+                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>Prendre rendez-vous</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="flex-1 border-primary/40">
                 <Link href="/garages">Trouver un garage proche</Link>

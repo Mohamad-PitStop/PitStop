@@ -9,13 +9,14 @@ import { BookingCheckout } from "@/components/booking-checkout"
 export default async function RendezVousPage({
   searchParams
 }: {
-  searchParams?: Promise<{ type?: string; priceMin?: string }>
+  searchParams?: Promise<{ type?: string; priceMin?: string; priceMax?: string }>
 }) {
   const params = await searchParams
   const isObd = params?.type === "obd-scan"
   const isCarWash = params?.type === "lavage-auto"
   const bookingType = isObd ? "obd-scan" : isCarWash ? "lavage-auto" : "rendez-vous"
   const priceMin = params?.priceMin ? Number(params.priceMin) : undefined
+  const priceMax = params?.priceMax ? Number(params.priceMax) : undefined
   const garageName = "ADI\u2011Cars | Garage PitStop Officiel."
   const garageAddress = "Route de Trazegnies 738, 6031 Charleroi"
   const garagePhoneDisplay = "+32 483 00 00 30"
@@ -97,7 +98,7 @@ export default async function RendezVousPage({
                 </div>
 
                 <div className="border-t border-border/40 pt-4">
-                  <BookingCheckout type={bookingType} priceMin={priceMin} noCard />
+                  <BookingCheckout type={bookingType} priceMin={priceMin} priceMax={priceMax} noCard />
                 </div>
               </CardContent>
             </Card>
