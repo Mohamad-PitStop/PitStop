@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
+import { Input } from "@/components/ui/input"
 import {
   Car,
   Calendar,
@@ -18,6 +19,9 @@ import {
   Check,
   ArrowLeft,
   Trash2,
+  Pencil,
+  Download,
+  X,
 } from "lucide-react"
 
 type AuthUser = {
@@ -95,6 +99,15 @@ export default function ProfilPage() {
   const [selectedPkg, setSelectedPkg] = useState<(typeof CREDIT_PACKAGES)[number] | null>(null)
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  // Édition profil
+  const [editMode, setEditMode] = useState(false)
+  const [editName, setEditName] = useState("")
+  const [editEmail, setEditEmail] = useState("")
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+  const [editSuccess, setEditSuccess] = useState(false)
+  // Export données
+  const [downloadingData, setDownloadingData] = useState(false)
 
   const refreshUser = () => {
     fetch("/api/auth/me")
@@ -177,6 +190,57 @@ export default function ProfilPage() {
   const returnUrl =
     typeof window !== "undefined" ? `${window.location.origin}/profil` : ""
 
+  const openEditMode = () => {
+    setEditName(user?.name ?? "")
+    setEditEmail(user?.email ?? "")
+    setEditError(null)
+    setEditSuccess(false)
+    setEditMode(true)
+  }
+
+  const handleEditProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEditError(null)
+    setEditSubmitting(true)
+    try {
+      const res = await fetch("/api/auth/update-profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName.trim(), email: editEmail.trim() }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "Erreur lors de la mise à jour.")
+      setEditSuccess(true)
+      setEditMode(false)
+      setUser((prev) => prev ? { ...prev, name: editName.trim(), email: editEmail.trim() } : prev)
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Erreur inconnue.")
+    } finally {
+      setEditSubmitting(false)
+    }
+  }
+
+  const handleDownloadData = async () => {
+    setDownloadingData(true)
+    try {
+      const res = await fetch("/api/auth/data-export")
+      if (!res.ok) throw new Error("Export impossible")
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      const cd = res.headers.get("Content-Disposition") ?? ""
+      const match = cd.match(/filename="([^"]+)"/)
+      a.download = match?.[1] ?? "pitstop-mes-donnees.json"
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // Erreur silencieuse — l'utilisateur peut réessayer
+    } finally {
+      setDownloadingData(false)
+    }
+  }
+
   const handleDeleteAccount = async () => {
     setDeleteError(null)
     const confirmed = window.confirm(
@@ -244,6 +308,80 @@ export default function ProfilPage() {
                   Paiement confirmé ! Vos crédits ont bien été ajoutés à votre compte.
                 </p>
               </div>
+            )}
+
+            {/* Mes informations — Art. 16 RGPD */}
+            {user && (
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-semibold">Mes informations</h2>
+                  {!editMode && (
+                    <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={openEditMode}>
+                      <Pencil className="h-3.5 w-3.5" />
+                      Modifier
+                    </Button>
+                  )}
+                </div>
+
+                {editSuccess && (
+                  <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                    <Check className="h-4 w-4" /> Profil mis à jour.
+                  </p>
+                )}
+
+                {!editMode ? (
+                  <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Nom</span>
+                      <span className="font-medium">{user.name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">E-mail</span>
+                      <span className="font-medium">{user.email}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleEditProfile} className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Nom complet</label>
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        required
+                        minLength={2}
+                        maxLength={120}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">E-mail</label>
+                      <Input
+                        type="email"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        required
+                        maxLength={160}
+                      />
+                    </div>
+                    {editError && <p className="text-xs text-destructive">{editError}</p>}
+                    <div className="flex gap-2 pt-1">
+                      <Button type="submit" size="sm" disabled={editSubmitting} className="h-7 text-xs">
+                        {editSubmitting ? "Enregistrement…" : "Enregistrer"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs gap-1"
+                        onClick={() => setEditMode(false)}
+                        disabled={editSubmitting}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Annuler
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </section>
             )}
 
             {/* Solde crédits */}
@@ -412,6 +550,36 @@ export default function ProfilPage() {
                   ))}
                 </div>
               )}
+            </section>
+
+            {/* Mes données — Art. 20 RGPD (portabilité) */}
+            <section className="space-y-3">
+              <h2 className="text-base font-semibold">Mes données</h2>
+              <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Télécharger mes données</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Exportez l'ensemble de vos données personnelles (compte + historique des diagnostics) au format JSON,
+                    conformément à l'article 20 du RGPD.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2 h-8 text-xs"
+                  onClick={handleDownloadData}
+                  disabled={downloadingData}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {downloadingData ? "Préparation…" : "Télécharger (JSON)"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground">
+                  Pour toute autre demande relative à vos droits RGPD :{" "}
+                  <a href="mailto:amoudialiahmad@gmail.com" className="text-primary hover:underline">
+                    amoudialiahmad@gmail.com
+                  </a>
+                </p>
+              </div>
             </section>
 
             {/* Suppression de compte */}

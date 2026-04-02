@@ -257,6 +257,27 @@ export async function updateAccountPassword(userId: string, passwordHash: string
   await prisma.$executeRawUnsafe(`UPDATE "UserAccount" SET "passwordHash" = ? WHERE "id" = ?`, passwordHash, userId)
 }
 
+export async function updateAccountProfile(
+  userId: string,
+  input: { name?: string; email?: string }
+): Promise<void> {
+  await ensureAccountsTable()
+  if (input.name) {
+    await prisma.$executeRawUnsafe(
+      `UPDATE "UserAccount" SET "name" = ? WHERE "id" = ?`,
+      input.name,
+      userId
+    )
+  }
+  if (input.email) {
+    await prisma.$executeRawUnsafe(
+      `UPDATE "UserAccount" SET "email" = ? WHERE "id" = ?`,
+      input.email,
+      userId
+    )
+  }
+}
+
 // ── Pending role assignments ─────────────────────────────────────────────────
 
 export type PendingAssignment = {

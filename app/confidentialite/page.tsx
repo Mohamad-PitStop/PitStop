@@ -101,7 +101,12 @@ export default function ConfidentialitePage() {
                   https://stripe.com/privacy
                 </a>
               </li>
-              <li>Vercel, Inc. (hébergement et analytics)</li>
+              <li>
+                Vercel, Inc. (hébergement et analytics) —{" "}
+                <a className="text-primary hover:underline" href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noreferrer">
+                  https://vercel.com/legal/privacy-policy
+                </a>
+              </li>
             </ul>
             <p className="text-muted-foreground">
               Ces prestataires peuvent être établis hors EEE. Les transferts sont encadrés par des mécanismes de
