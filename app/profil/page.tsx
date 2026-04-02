@@ -17,6 +17,7 @@ import {
   Zap,
   Check,
   ArrowLeft,
+  Trash2,
 } from "lucide-react"
 
 type AuthUser = {
@@ -92,6 +93,8 @@ export default function ProfilPage() {
   const [loadingPkg, setLoadingPkg] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [selectedPkg, setSelectedPkg] = useState<(typeof CREDIT_PACKAGES)[number] | null>(null)
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const refreshUser = () => {
     fetch("/api/auth/me")
@@ -173,6 +176,28 @@ export default function ProfilPage() {
 
   const returnUrl =
     typeof window !== "undefined" ? `${window.location.origin}/profil` : ""
+
+  const handleDeleteAccount = async () => {
+    setDeleteError(null)
+    const confirmed = window.confirm(
+      "Voulez-vous vraiment supprimer définitivement votre compte ? Cette action est irréversible. Les crédits restants ne sont pas remboursables."
+    )
+    if (!confirmed) return
+
+    setDeletingAccount(true)
+    try {
+      const res = await fetch("/api/auth/delete-account", { method: "POST" })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error ?? "Suppression impossible pour le moment.")
+      }
+      router.push("/")
+      router.refresh()
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Suppression impossible pour le moment.")
+      setDeletingAccount(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -288,6 +313,9 @@ export default function ProfilPage() {
                 <p className="text-[11px] text-muted-foreground">
                   Paiement sécurisé par Stripe. Les crédits sont crédités instantanément.
                 </p>
+                <p className="text-[11px] font-medium text-amber-300/90">
+                  Important : les crédits achetés et non utilisés ne sont pas remboursables.
+                </p>
               </section>
             )}
 
@@ -385,6 +413,32 @@ export default function ProfilPage() {
                 </div>
               )}
             </section>
+
+            {/* Suppression de compte */}
+            <section className="pt-2">
+              <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 sm:p-5">
+                <h3 className="text-sm font-semibold text-foreground">Supprimer mon compte</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Cette action est définitive : vos données de profil et votre historique seront supprimés.
+                </p>
+                <p className="mt-2 text-xs font-medium text-amber-300/90">
+                  Les crédits restants ne peuvent pas être remboursés.
+                </p>
+                {deleteError && (
+                  <p className="mt-2 text-xs text-destructive">{deleteError}</p>
+                )}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="mt-4 w-full sm:w-auto"
+                  onClick={handleDeleteAccount}
+                  disabled={deletingAccount}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {deletingAccount ? "Suppression..." : "Supprimer mon compte"}
+                </Button>
+              </div>
+            </section>
           </>
         )}
       </main>
@@ -421,6 +475,9 @@ export default function ProfilPage() {
               returnUrl={returnUrl}
               buttonLabel={`Payer ${selectedPkg.priceLabel}`}
             />
+            <p className="mt-3 text-xs font-medium" style={{ color: "#7a2e2e" }}>
+              Les crédits achetés et non utilisés ne peuvent pas être remboursés.
+            </p>
           </div>
         </div>
       )}

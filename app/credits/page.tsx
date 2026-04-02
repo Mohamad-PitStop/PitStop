@@ -114,6 +114,9 @@ export default function CreditsPage() {
           returnUrl={returnUrl}
           buttonLabel={`Payer ${selectedPkg.priceLabel}`}
         />
+        <p className="mt-3 text-xs font-medium" style={{ color: "#7a2e2e" }}>
+          Les crédits achetés et non utilisés ne peuvent pas être remboursés.
+        </p>
       </div>
     </div>
   )
@@ -235,6 +238,9 @@ export default function CreditsPage() {
         <p className="text-[11px] text-muted-foreground text-center">
           Paiement sécurisé par Stripe. Les crédits sont crédités instantanément après paiement.
           Pas d&apos;abonnement — achetez uniquement ce dont vous avez besoin.
+        </p>
+        <p className="text-[11px] font-medium text-amber-300/90 text-center">
+          Important : les crédits achetés et non utilisés ne sont pas remboursables.
         </p>
       </main>
 

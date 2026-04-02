@@ -207,6 +207,15 @@ export async function getDiagnosticsByUserId(userId: string, limit: number): Pro
   return result.rows.map(mapRow)
 }
 
+export async function deleteDiagnosticsByUserId(userId: string): Promise<void> {
+  await ensureUserIdColumn()
+  const db = getDb()
+  await db.execute({
+    sql: `DELETE FROM DiagnosticRequest WHERE userId = ?`,
+    args: [userId],
+  })
+}
+
 function mapRow(row: Record<string, unknown>): DiagnosticRow {
   return {
     id: String(row.id),

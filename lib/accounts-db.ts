@@ -188,6 +188,23 @@ export async function deleteSessionByTokenHash(tokenHash: string): Promise<void>
   await prisma.$executeRawUnsafe(`DELETE FROM "UserSession" WHERE "tokenHash" = ?`, tokenHash)
 }
 
+export async function deleteAccountById(userId: string): Promise<void> {
+  await ensureAccountsTable()
+  await prisma.$executeRawUnsafe(`DELETE FROM "UserSession" WHERE "userId" = ?`, userId)
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "PasswordResetToken" (
+      "id" TEXT PRIMARY KEY,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "userId" TEXT NOT NULL,
+      "tokenHash" TEXT NOT NULL UNIQUE,
+      "expiresAt" DATETIME NOT NULL,
+      "used" INTEGER NOT NULL DEFAULT 0
+    )
+  `)
+  await prisma.$executeRawUnsafe(`DELETE FROM "PasswordResetToken" WHERE "userId" = ?`, userId)
+  await prisma.$executeRawUnsafe(`DELETE FROM "UserAccount" WHERE "id" = ?`, userId)
+}
+
 // ── Password reset tokens ────────────────────────────────────────────────────
 
 export async function createPasswordResetToken(input: { userId: string; tokenHash: string; expiresAt: Date }): Promise<void> {
