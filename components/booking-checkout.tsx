@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { format, isBefore, startOfDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Calendar } from "@/components/ui/calendar"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
+import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
 
 type Slot = { start: string; end: string }
 
@@ -66,8 +68,24 @@ export function BookingCheckout({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [cgvAccepted, setCgvAccepted] = useState(true)
+  const [cgvChecked, setCgvChecked] = useState(false)
 
   const dateParam = useMemo(() => (selectedDate ? toDateParam(selectedDate) : null), [selectedDate])
+
+  useEffect(() => {
+    setCgvAccepted(hasAcceptedCgv())
+  }, [])
+
+  useEffect(() => {
+    const syncCgv = () => setCgvAccepted(hasAcceptedCgv())
+    window.addEventListener("storage", syncCgv)
+    window.addEventListener("pitstop-cgv-consent-changed", syncCgv)
+    return () => {
+      window.removeEventListener("storage", syncCgv)
+      window.removeEventListener("pitstop-cgv-consent-changed", syncCgv)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -131,6 +149,7 @@ export function BookingCheckout({
         throw new Error(data?.error || "Erreur")
       }
       setClientSecret(data.clientSecret)
+      setCgvChecked(cgvAccepted)
     } catch (e) {
       setError(
         e instanceof Error && e.message
@@ -274,7 +293,37 @@ export function BookingCheckout({
         <div className="mb-4 rounded-lg px-3 py-2.5 text-xs leading-relaxed" style={{ backgroundColor: "#d4e2f4", color: "#1a2d5a" }}>
           Conformément à la législation belge, cet acompte sera intégralement imputé sur le montant final de votre facture. Vous ne paierez que le solde restant directement au garage le jour de l'intervention.
         </div>
-        <StripePaymentForm clientSecret={clientSecret} returnUrl={returnUrl} />
+        {!cgvAccepted && (
+          <label className="mb-3 flex items-start gap-2 text-xs leading-relaxed" style={{ color: "#1a2d5a" }}>
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 accent-green-600"
+              checked={cgvChecked}
+              onChange={(e) => {
+                const checked = e.target.checked
+                setCgvChecked(checked)
+                if (checked) {
+                  saveCgvConsent("accepted")
+                  setCgvAccepted(true)
+                }
+              }}
+            />
+            <span>
+              En cochant cette case, vous acceptez nos{" "}
+              <Link href="/conditions-generales-vente" className="text-primary underline" target="_blank">
+                conditions générales de vente
+              </Link>
+              .
+            </span>
+          </label>
+        )}
+        {cgvAccepted ? (
+          <StripePaymentForm clientSecret={clientSecret} returnUrl={returnUrl} />
+        ) : (
+          <div className="rounded-lg border border-[#c8d8f0] bg-white/60 p-3 text-xs" style={{ color: "#1a2d5a" }}>
+            Veuillez accepter les CGV pour confirmer le paiement de l&apos;acompte.
+          </div>
+        )}
       </div>
     </div>
   )

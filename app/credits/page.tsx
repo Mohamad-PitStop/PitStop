@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
+import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
 import { Zap, Check, ArrowLeft } from "lucide-react"
 
 type AuthUser = { id: string; name: string; email: string; role: string; diagnosticCredits: number }
@@ -19,6 +20,8 @@ export default function CreditsPage() {
   const [success, setSuccess] = useState(false)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [selectedPkg, setSelectedPkg] = useState<(typeof CREDIT_PACKAGES)[number] | null>(null)
+  const [cgvAccepted, setCgvAccepted] = useState(true)
+  const [cgvChecked, setCgvChecked] = useState(false)
 
   const refreshUser = () => {
     fetch("/api/auth/me")
@@ -41,6 +44,17 @@ export default function CreditsPage() {
     }
 
     refreshUser()
+    setCgvAccepted(hasAcceptedCgv())
+  }, [])
+
+  useEffect(() => {
+    const syncCgv = () => setCgvAccepted(hasAcceptedCgv())
+    window.addEventListener("storage", syncCgv)
+    window.addEventListener("pitstop-cgv-consent-changed", syncCgv)
+    return () => {
+      window.removeEventListener("storage", syncCgv)
+      window.removeEventListener("pitstop-cgv-consent-changed", syncCgv)
+    }
   }, [])
 
   // Rafraîchir le solde après affichage du succès
@@ -70,6 +84,7 @@ export default function CreditsPage() {
       if (data?.ok && data?.clientSecret) {
         setSelectedPkg(CREDIT_PACKAGES.find((p) => p.id === packageId) ?? null)
         setClientSecret(data.clientSecret)
+        setCgvChecked(cgvAccepted)
       } else {
         setLoadingPkg(null)
       }
@@ -109,11 +124,41 @@ export default function CreditsPage() {
             </svg>
           </button>
         </div>
-        <StripePaymentForm
-          clientSecret={clientSecret}
-          returnUrl={returnUrl}
-          buttonLabel={`Payer ${selectedPkg.priceLabel}`}
-        />
+        {cgvAccepted ? (
+          <StripePaymentForm
+            clientSecret={clientSecret}
+            returnUrl={returnUrl}
+            buttonLabel={`Payer ${selectedPkg.priceLabel}`}
+          />
+        ) : (
+          <div className="rounded-lg border border-[#c8d8f0] bg-white/60 p-3 text-xs" style={{ color: "#1a2d5a" }}>
+            Veuillez accepter les CGV pour continuer le paiement.
+          </div>
+        )}
+        {!cgvAccepted && (
+          <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed" style={{ color: "#1a2d5a" }}>
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 accent-green-600"
+              checked={cgvChecked}
+              onChange={(e) => {
+                const checked = e.target.checked
+                setCgvChecked(checked)
+                if (checked) {
+                  saveCgvConsent("accepted")
+                  setCgvAccepted(true)
+                }
+              }}
+            />
+            <span>
+              En cochant cette case, vous acceptez nos{" "}
+              <Link href="/conditions-generales-vente" className="text-primary underline" target="_blank">
+                conditions générales de vente
+              </Link>
+              .
+            </span>
+          </label>
+        )}
         <p className="mt-3 text-xs font-medium" style={{ color: "#7a2e2e" }}>
           Les crédits achetés et non utilisés ne peuvent pas être remboursés.
         </p>

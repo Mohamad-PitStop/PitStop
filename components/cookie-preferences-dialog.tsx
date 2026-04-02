@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -12,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { readCgvConsent, saveCgvConsent, type CgvConsentValue } from "@/lib/cgv-consent"
 
 const CONSENT_KEY = "pitstop-cookie-consent-v1"
 type ConsentValue = "accepted" | "rejected" | null
@@ -25,11 +27,28 @@ function readConsent(): ConsentValue {
 export function CookiePreferencesDialog() {
   const pathname = usePathname()
   const [consent, setConsent] = useState<ConsentValue>(null)
+  const [cgvConsent, setCgvConsent] = useState<CgvConsentValue>(null)
   const [open, setOpen] = useState(false)
   const [showTrigger, setShowTrigger] = useState(true)
 
   useEffect(() => {
     setConsent(readConsent())
+    setCgvConsent(readCgvConsent())
+  }, [])
+
+  useEffect(() => {
+    const sync = () => {
+      setConsent(readConsent())
+      setCgvConsent(readCgvConsent())
+    }
+    window.addEventListener("storage", sync)
+    window.addEventListener("pitstop-consent-changed", sync)
+    window.addEventListener("pitstop-cgv-consent-changed", sync)
+    return () => {
+      window.removeEventListener("storage", sync)
+      window.removeEventListener("pitstop-consent-changed", sync)
+      window.removeEventListener("pitstop-cgv-consent-changed", sync)
+    }
   }, [])
 
   useEffect(() => {
@@ -56,6 +75,11 @@ export function CookiePreferencesDialog() {
     setOpen(false)
   }
 
+  const saveCgv = (value: Exclude<CgvConsentValue, null>) => {
+    saveCgvConsent(value)
+    setCgvConsent(value)
+  }
+
   return (
     <div
       className={`fixed bottom-4 right-4 z-40 transition-all duration-400 ease-out ${
@@ -70,9 +94,9 @@ export function CookiePreferencesDialog() {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Préférences cookies</DialogTitle>
+            <DialogTitle>Préférences cookies et CGV</DialogTitle>
             <DialogDescription>
-              Choisissez si vous autorisez les cookies de mesure d&apos;audience (analytics).
+              Gérez vos cookies analytics et votre accord aux conditions générales de vente.
             </DialogDescription>
           </DialogHeader>
 
@@ -81,6 +105,30 @@ export function CookiePreferencesDialog() {
             <span className="font-medium text-foreground">
               {consent === "accepted" ? "Accepté" : consent === "rejected" ? "Refusé" : "Non défini"}
             </span>
+          </div>
+
+          <div className="rounded-md border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground space-y-2">
+            <p>
+              Accord CGV actuel:{" "}
+              <span className="font-medium text-foreground">
+                {cgvConsent === "accepted" ? "Accepté" : cgvConsent === "rejected" ? "Refusé" : "Non défini"}
+              </span>
+            </p>
+            <p>
+              Consulter les{" "}
+              <Link href="/conditions-generales-vente" className="text-primary hover:underline">
+                conditions générales de vente
+              </Link>
+              .
+            </p>
+            <div className="flex gap-2">
+              <Button type="button" size="sm" variant="outline" onClick={() => saveCgv("rejected")}>
+                Je retire mon accord
+              </Button>
+              <Button type="button" size="sm" onClick={() => saveCgv("accepted")}>
+                J&apos;accepte les CGV
+              </Button>
+            </div>
           </div>
 
           <DialogFooter>

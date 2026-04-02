@@ -246,6 +246,21 @@ export default function LandingPage() {
                 <Link href="/confidentialite" className="hover:text-foreground transition-colors">
                   Confidentialité
                 </Link>
+                <Link href="/conditions-generales-vente" className="hover:text-foreground transition-colors">
+                  Conditions générales de vente
+                </Link>
+                <Link href="/politique-ia" className="hover:text-foreground transition-colors">
+                  Politique IA
+                </Link>
+                <Link href="/litige-retard-noshow" className="hover:text-foreground transition-colors">
+                  Litige, retard & no-show
+                </Link>
+                <Link href="/cgp-garages" className="hover:text-foreground transition-colors">
+                  CGP garages
+                </Link>
+                <Link href="/sla" className="hover:text-foreground transition-colors">
+                  SLA
+                </Link>
                 <a href="mailto:amoudialiahmad@gmail.com" className="hover:text-foreground transition-colors">
                   Contact
                 </a>
