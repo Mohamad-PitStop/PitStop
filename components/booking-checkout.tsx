@@ -44,11 +44,13 @@ export function BookingCheckout({
   type,
   vehicle,
   priceMin,
+  priceMax,
   noCard = false,
 }: {
   type: string
   vehicle?: { marque?: string; modele?: string; annee?: number; km?: number }
   priceMin?: number
+  priceMax?: number
   noCard?: boolean
 }) {
   const depositEuros = computeDepositEuros(priceMin)
@@ -120,6 +122,7 @@ export function BookingCheckout({
           endAt: selectedSlot.end,
           timeZone: "Europe/Brussels",
           priceMin,
+          priceMax,
           vehicle,
         }),
       })
@@ -230,6 +233,10 @@ export function BookingCheckout({
             >
               {isSubmitting ? "Préparation du paiement…" : `Payer l’acompte (${depositEuros}€) et réserver`}
             </Button>
+
+            <p className="text-xs text-muted-foreground text-center leading-snug">
+              Cet acompte sera intégralement déduit du montant total de votre facture — vous ne réglez que le solde directement au garage le jour de l’intervention.
+            </p>
           </div>
         </div>
       </div>
@@ -263,6 +270,9 @@ export function BookingCheckout({
               <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
             </svg>
           </button>
+        </div>
+        <div className="mb-4 rounded-lg px-3 py-2.5 text-xs leading-relaxed" style={{ backgroundColor: "#d4e2f4", color: "#1a2d5a" }}>
+          Conformément à la législation belge, cet acompte sera intégralement imputé sur le montant final de votre facture. Vous ne paierez que le solde restant directement au garage le jour de l'intervention.
         </div>
         <StripePaymentForm clientSecret={clientSecret} returnUrl={returnUrl} />
       </div>
