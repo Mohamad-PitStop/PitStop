@@ -14,8 +14,8 @@ Date d'entrée en vigueur : 2 avril 2026
 
 Article 1 — Identification de l'éditeur
 Les présentes Conditions Générales de Vente (ci-après « CGV ») sont éditées par :
-• Nom : Ahmad
-• Prénom : Mohamad Ali
+• Nom : Ali Ahmad
+• Prénom : Mohamad
 • Statut : activité exercée en nom propre
 • Contact : amoudialiahmad@gmail.com
 Ci-après dénommé « PitStop ».
