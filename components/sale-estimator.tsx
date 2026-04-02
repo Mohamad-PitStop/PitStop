@@ -1030,16 +1030,21 @@ export function SaleEstimator() {
               )}
               {photoFiles.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {photoPreviewUrls.map((url, i) => (
+                  {photoPreviewUrls.map((url, i) => {
+                    // Safe URL created by URL.createObjectURL - always blob: format
+                    const safeUrl = url.startsWith("blob:") ? url : ""
+                    return (
                     <div
                       key={i}
                       className="relative w-20 h-20 rounded-lg border border-input bg-muted/30 overflow-hidden"
                     >
-                      <img
-                        src={url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
+                      {safeUrl && (
+                        <img
+                          src={safeUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                       <button
                         type="button"
                         onClick={() => removePhoto(i)}
@@ -1049,7 +1054,8 @@ export function SaleEstimator() {
                         <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
