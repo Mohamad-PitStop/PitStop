@@ -77,12 +77,15 @@ function toRole(r: unknown): UserRole {
 export async function findAccountByEmail(email: string): Promise<AccountRow | null> {
   await ensureAccountsTable()
   const rows = await prisma.$queryRawUnsafe<AccountRow[]>(
-    `SELECT "id", "name", "email", "passwordHash", "role" FROM "UserAccount" WHERE "email" = ? LIMIT 1`,
+    `SELECT "id", "name", "email", "passwordHash", "role", "diagnosticCredits"
+     FROM "UserAccount"
+     WHERE lower("email") = lower(?)
+     LIMIT 1`,
     email
   )
   const row = rows[0]
   if (!row) return null
-  return { ...row, role: toRole(row.role) }
+  return { ...row, role: toRole(row.role), diagnosticCredits: Number(row.diagnosticCredits ?? 0) }
 }
 
 export async function createAccount(input: {
@@ -161,6 +164,60 @@ export async function getAllAccounts(): Promise<Array<{ id: string; name: string
 export async function setUserRole(userId: string, role: UserRole): Promise<void> {
   await ensureAccountsTable()
   await prisma.$executeRawUnsafe(`UPDATE "UserAccount" SET "role" = ? WHERE "id" = ?`, role, userId)
+}
+
+export async function logAdminCreditGrant(input: {
+  adminUserId: string
+  targetUserId: string
+  targetEmail: string
+  credits: number
+  reason: string | null
+}): Promise<void> {
+  await ensureAccountsTable()
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "AdminCreditGrant" (
+      "id" TEXT PRIMARY KEY,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "adminUserId" TEXT NOT NULL,
+      "targetUserId" TEXT NOT NULL,
+      "targetEmail" TEXT NOT NULL,
+      "credits" INTEGER NOT NULL,
+      "reason" TEXT
+    )
+  `)
+  await prisma.$executeRawUnsafe(
+    `INSERT INTO "AdminCreditGrant" ("id", "adminUserId", "targetUserId", "targetEmail", "credits", "reason")
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    randomUUID(),
+    input.adminUserId,
+    input.targetUserId,
+    input.targetEmail,
+    input.credits,
+    input.reason
+  )
+}
+
+export async function getAdminCreditGrantedLast24h(adminUserId: string): Promise<number> {
+  await ensureAccountsTable()
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "AdminCreditGrant" (
+      "id" TEXT PRIMARY KEY,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "adminUserId" TEXT NOT NULL,
+      "targetUserId" TEXT NOT NULL,
+      "targetEmail" TEXT NOT NULL,
+      "credits" INTEGER NOT NULL,
+      "reason" TEXT
+    )
+  `)
+  const rows = await prisma.$queryRawUnsafe<Array<{ total: number | null }>>(
+    `SELECT COALESCE(SUM("credits"), 0) AS total
+     FROM "AdminCreditGrant"
+     WHERE "adminUserId" = ?
+       AND "createdAt" >= datetime('now', '-1 day')`,
+    adminUserId
+  )
+  return Number(rows[0]?.total ?? 0)
 }
 
 export async function createSession(input: { userId: string; tokenHash: string; expiresAt: Date }): Promise<void> {

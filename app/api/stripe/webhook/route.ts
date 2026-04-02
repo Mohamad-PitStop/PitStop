@@ -8,6 +8,31 @@ import { registerPaidGuestSession } from "@/lib/guest-credits-db"
 
 export const runtime = "nodejs"
 
+async function ensureWebhookEventTable() {
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "StripeWebhookEvent" (
+      "id" TEXT PRIMARY KEY,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "type" TEXT NOT NULL
+    )
+  `)
+}
+
+async function markWebhookEventAsNew(eventId: string, eventType: string): Promise<boolean> {
+  await ensureWebhookEventTable()
+  try {
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO "StripeWebhookEvent" ("id", "type") VALUES (?, ?)`,
+      eventId,
+      eventType
+    )
+    return true
+  } catch {
+    // id déjà vu => retry/replay, ignorer
+    return false
+  }
+}
+
 function getWebhookSecret() {
   const secret = process.env.STRIPE_WEBHOOK_SECRET
   if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET manquant")
@@ -112,6 +137,11 @@ export async function POST(req: Request) {
   }
 
   try {
+    const isNewEvent = await markWebhookEventAsNew(event.id, event.type)
+    if (!isNewEvent) {
+      return Response.json({ ok: true, duplicate: true })
+    }
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session
       const intent = session.metadata?.intent

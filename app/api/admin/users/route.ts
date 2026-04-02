@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { getUserFromAuthCookie } from "@/lib/auth-session"
 import {
   getAllAccounts,
   setUserRole,
@@ -9,17 +8,13 @@ import {
   deletePendingAssignment,
   type UserRole,
 } from "@/lib/accounts-db"
+import { isSameOrigin } from "@/lib/request-security"
+import { requireOwnerAdmin } from "@/lib/admin-security"
 
-const VALID_ROLES: UserRole[] = ["admin", "tester", "user_friend", "user"]
-
-async function requireAdmin(req: Request) {
-  const user = await getUserFromAuthCookie(req.headers.get("cookie"))
-  if (!user || user.role !== "admin") return null
-  return user
-}
+const VALID_ROLES: UserRole[] = ["tester", "user_friend", "user"]
 
 export async function GET(req: Request) {
-  const admin = await requireAdmin(req)
+  const admin = await requireOwnerAdmin(req)
   if (!admin) return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
 
   const [users, pending] = await Promise.all([getAllAccounts(), getAllPendingAssignments()])
@@ -27,17 +22,18 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const admin = await requireAdmin(req)
+  if (!isSameOrigin(req)) return NextResponse.json({ error: "Origine non autorisée" }, { status: 403 })
+  const admin = await requireOwnerAdmin(req)
   if (!admin) return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
 
   const body = await req.json().catch(() => null)
   const { userId, role } = body ?? {}
 
   if (!userId || !VALID_ROLES.includes(role)) {
-    return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 })
+    return NextResponse.json({ error: "Paramètres invalides (rôle admin non modifiable via API)." }, { status: 400 })
   }
-  if (userId === admin.id && role !== "admin") {
-    return NextResponse.json({ error: "Impossible de modifier son propre rôle." }, { status: 400 })
+  if (userId === admin.id) {
+    return NextResponse.json({ error: "Impossible de modifier le rôle du compte admin propriétaire." }, { status: 400 })
   }
 
   await setUserRole(userId, role as UserRole)
@@ -50,7 +46,8 @@ const PendingAssignmentSchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const admin = await requireAdmin(req)
+  if (!isSameOrigin(req)) return NextResponse.json({ error: "Origine non autorisée" }, { status: 403 })
+  const admin = await requireOwnerAdmin(req)
   if (!admin) return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
 
   const body = await req.json().catch(() => null)
@@ -64,7 +61,8 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const admin = await requireAdmin(req)
+  if (!isSameOrigin(req)) return NextResponse.json({ error: "Origine non autorisée" }, { status: 403 })
+  const admin = await requireOwnerAdmin(req)
   if (!admin) return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
 
   const body = await req.json().catch(() => null)

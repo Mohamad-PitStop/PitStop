@@ -71,6 +71,7 @@ export default function AdminUsersPage() {
   const [crediting, setCrediting] = useState(false)
   const [creditMessage, setCreditMessage] = useState<string | null>(null)
   const [creditError, setCreditError] = useState<string | null>(null)
+  const [creditReason, setCreditReason] = useState("")
 
   async function fetchData() {
     const res = await fetch("/api/admin/users")
@@ -139,7 +140,7 @@ export default function AdminUsersPage() {
       const res = await fetch("/api/admin/users/credits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, credits: amount }),
+        body: JSON.stringify({ email, credits: amount, reason: creditReason.trim() || undefined }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) {
@@ -147,10 +148,11 @@ export default function AdminUsersPage() {
       }
 
       setCreditMessage(
-        `${amount} crédit${amount > 1 ? "s" : ""} ajouté${amount > 1 ? "s" : ""} à ${data.user.email} (nouveau solde : ${data.user.newBalance}).`
+        `${amount} crédit${amount > 1 ? "s" : ""} ajouté${amount > 1 ? "s" : ""} à ${data.user.email} (nouveau solde : ${data.user.newBalance}). Utilisé: ${data.dailyUsedAfterGrant}/${data.dailyLimit} crédits sur 24h.`
       )
       setCreditEmail("")
       setCreditAmount("1")
+      setCreditReason("")
       await fetchData()
     } catch (err) {
       setCreditError(err instanceof Error ? err.message : "Impossible d'ajouter les crédits.")
@@ -256,6 +258,17 @@ export default function AdminUsersPage() {
                   className="h-9 text-sm"
                 />
               </div>
+              <div className="flex-1 min-w-[220px] space-y-1">
+                <label className="text-xs text-muted-foreground">Motif (audit interne, optionnel)</label>
+                <Input
+                  type="text"
+                  placeholder="Ex : geste commercial / test interne"
+                  value={creditReason}
+                  onChange={(e) => setCreditReason(e.target.value)}
+                  className="h-9 text-sm"
+                  maxLength={240}
+                />
+              </div>
               <Button
                 size="sm"
                 className="h-9 gap-1.5"
@@ -272,6 +285,9 @@ export default function AdminUsersPage() {
             {creditError && (
               <p className="text-xs text-destructive">{creditError}</p>
             )}
+            <p className="text-[11px] text-muted-foreground">
+              Sécurité : plafond par admin = 1000 crédits / 24h (configurable via `ADMIN_FREE_CREDITS_DAILY_CAP`).
+            </p>
           </CardContent>
         </Card>
       </section>
