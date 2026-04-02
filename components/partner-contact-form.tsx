@@ -147,7 +147,7 @@ export function PartnerContactForm() {
             id="services"
             value={form.services}
             onChange={onChange("services")}
-            placeholder="Ex : mecanique, carrosserie, pneus"
+            placeholder="Ex : mécanique, carrosserie, pneus"
             required
           />
         </div>
@@ -161,7 +161,7 @@ export function PartnerContactForm() {
           id="message"
           value={form.message}
           onChange={onChange("message")}
-          placeholder="Parlez-nous de votre garage, vos disponibilites et pourquoi vous souhaitez rejoindre le reseau PitStop."
+          placeholder="Parlez-nous de votre garage, vos disponibilités et pourquoi vous souhaitez rejoindre le réseau PitStop."
           className="min-h-28"
           required
         />

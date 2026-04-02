@@ -128,7 +128,7 @@ export default function LandingPage() {
                 Deux parcours, une même exigence
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Choisissez l’espace qui correspond à votre besoin — vous pourrez toujours explorer l’autre plus tard.
+                Choisissez l’espace qui correspond à votre besoin. Vous pourrez toujours explorer l’autre plus tard.
               </p>
             </div>
 
@@ -218,11 +218,12 @@ export default function LandingPage() {
           <div className="container mx-auto max-w-4xl px-4">
             <div className="text-center mb-10">
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
-                Vous êtes propriétaire d'un garage ? Devenez partenaire PitStop
+                Vous êtes propriétaire d'un garage ?<br />
+                Devenez partenaire PitStop
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Rejoignez notre réseau de garages partenaires en Belgique. Remplissez ce formulaire pro et notre
-                équipe vous recontacte rapidement.
+                Rejoignez notre réseau de garages partenaires en Belgique. Remplissez ce formulaire et notre
+                équipe vous recontactera rapidement.
               </p>
             </div>
 
