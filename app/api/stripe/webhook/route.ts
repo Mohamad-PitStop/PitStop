@@ -141,12 +141,25 @@ export async function POST(req: Request) {
       }
     } else if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
-      const reservationId = paymentIntent.metadata?.reservationId
-      if (!reservationId) throw new Error("reservationId manquant dans metadata PaymentIntent.")
+      const intent = paymentIntent.metadata?.intent
 
-      await confirmReservationAfterPayment(reservationId, {
-        stripePaymentIntentId: paymentIntent.id,
-      })
+      if (intent === "credit_purchase") {
+        const userId = paymentIntent.metadata?.userId
+        const credits = parseInt(paymentIntent.metadata?.credits ?? "0", 10)
+        if (userId && credits > 0) {
+          await addCredits(userId, credits)
+        }
+      } else if (intent === "guest_diagnostic") {
+        await registerPaidGuestSession(paymentIntent.id)
+      } else {
+        // Flux réservation existant
+        const reservationId = paymentIntent.metadata?.reservationId
+        if (!reservationId) throw new Error("reservationId manquant dans metadata PaymentIntent.")
+
+        await confirmReservationAfterPayment(reservationId, {
+          stripePaymentIntentId: paymentIntent.id,
+        })
+      }
     }
 
     return Response.json({ ok: true })

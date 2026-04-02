@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
-import { Wrench } from "lucide-react"
+import { Wrench, Zap } from "lucide-react"
 import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 
 const tabBase =
@@ -72,7 +72,13 @@ export function Navbar() {
   const isDiagnostic = pathname.startsWith("/diagnostic")
   const isVente = pathname.startsWith("/vente")
 
-  const [user, setUser] = useState<{ id: string; name: string; email: string; role: string } | null>(null)
+  const [user, setUser] = useState<{
+    id: string
+    name: string
+    email: string
+    role: string
+    diagnosticCredits?: number
+  } | null>(null)
   const [authReady, setAuthReady] = useState(false)
 
   useEffect(() => {
@@ -107,19 +113,19 @@ export function Navbar() {
           </Link>
         )}
         <Link
-          href="/mes-diagnostics"
+          href="/profil"
           className="hidden text-xs text-muted-foreground hover:text-foreground transition-colors sm:inline"
         >
-          Mes diagnostics
+          Mon profil
         </Link>
-        {/* Mobile : prénom cliquable → Mes diagnostics */}
+        {/* Mobile : prénom cliquable → Mon profil */}
         <Link
-          href="/mes-diagnostics"
+          href="/profil"
           className="min-w-0 max-w-[7.5rem] truncate text-xs text-foreground hover:text-foreground/80 transition-colors sm:hidden"
         >
           Bonjour, {firstName}
         </Link>
-        {/* Desktop : prénom non cliquable (le lien "Mes diagnostics" est déjà visible) */}
+        {/* Desktop : prénom non cliquable */}
         <span className="hidden min-w-0 sm:inline sm:max-w-none sm:text-sm text-foreground">
           Bonjour, {firstName}
         </span>
@@ -139,6 +145,22 @@ export function Navbar() {
         </Button>
       </Link>
     ))
+
+  // Indicateur crédits pour la page d'accueil desktop uniquement
+  const creditsIndicator =
+    user && isHome ? (
+      <div className="hidden sm:flex items-center gap-2">
+        <div className="flex items-center gap-1.5 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400">
+          <Zap className="h-3.5 w-3.5" />
+          {user.diagnosticCredits ?? 0} crédit{(user.diagnosticCredits ?? 0) !== 1 ? "s" : ""}
+        </div>
+        <Link href="/credits">
+          <Button size="sm" className="h-7 px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white">
+            Acheter
+          </Button>
+        </Link>
+      </div>
+    ) : null
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -185,6 +207,7 @@ export function Navbar() {
               isHome ? "justify-end" : "justify-end"
             )}
           >
+            {creditsIndicator}
             {authBlock}
             <TabNav isDiagnostic={isDiagnostic} isVente={isVente} />
           </div>

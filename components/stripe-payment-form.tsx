@@ -9,7 +9,7 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null
 
-function PaymentFormInner({ returnUrl }: { returnUrl: string }) {
+function PaymentFormInner({ returnUrl, buttonLabel }: { returnUrl: string; buttonLabel: string }) {
   const stripe = useStripe()
   const elements = useElements()
   const [isConfirming, setIsConfirming] = useState(false)
@@ -37,7 +37,7 @@ function PaymentFormInner({ returnUrl }: { returnUrl: string }) {
       <PaymentElement options={{ layout: "tabs" }} />
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
       <Button type="submit" size="lg" className="w-full" disabled={!stripe || isConfirming}>
-        {isConfirming ? "Traitement en cours…" : "Payer l'acompte"}
+        {isConfirming ? "Traitement en cours…" : buttonLabel}
       </Button>
     </form>
   )
@@ -46,9 +46,11 @@ function PaymentFormInner({ returnUrl }: { returnUrl: string }) {
 export function StripePaymentForm({
   clientSecret,
   returnUrl,
+  buttonLabel = "Payer l'acompte",
 }: {
   clientSecret: string
   returnUrl: string
+  buttonLabel?: string
 }) {
   if (!stripePromise) {
     return (
@@ -76,7 +78,7 @@ export function StripePaymentForm({
 
   return (
     <Elements stripe={stripePromise} options={options}>
-      <PaymentFormInner returnUrl={returnUrl} />
+      <PaymentFormInner returnUrl={returnUrl} buttonLabel={buttonLabel} />
     </Elements>
   )
 }

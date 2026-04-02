@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { Zap, Check, ArrowLeft } from "lucide-react"
 
 type AuthUser = { id: string; name: string; email: string; role: string; diagnosticCredits: number }
@@ -16,14 +17,10 @@ export default function CreditsPage() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loadingPkg, setLoadingPkg] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [selectedPkg, setSelectedPkg] = useState<(typeof CREDIT_PACKAGES)[number] | null>(null)
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get("success") === "1") {
-      setSuccess(true)
-      window.history.replaceState({}, "", "/credits")
-    }
-
+  const refreshUser = () => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
@@ -32,7 +29,27 @@ export default function CreditsPage() {
         }
       })
       .catch(() => null)
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+
+    // Nouveau flux (PaymentIntent redirect) ou ancien flux (success=1)
+    if (params.get("redirect_status") === "succeeded" || params.get("success") === "1") {
+      setSuccess(true)
+      window.history.replaceState({}, "", "/credits")
+    }
+
+    refreshUser()
   }, [])
+
+  // Rafraîchir le solde après affichage du succès
+  useEffect(() => {
+    if (!success) return
+    // Petit délai pour laisser le webhook traiter le paiement
+    const timer = setTimeout(refreshUser, 2000)
+    return () => clearTimeout(timer)
+  }, [success])
 
   const handleBuy = async (packageId: string) => {
     if (!user) {
@@ -41,18 +58,18 @@ export default function CreditsPage() {
     }
     setLoadingPkg(packageId)
     try {
-      const res = await fetch("/api/credits/checkout", {
+      const res = await fetch("/api/credits/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           packageId,
           intent: "credit_purchase",
-          returnPath: "/credits",
         }),
       })
       const data = await res.json().catch(() => null)
-      if (data?.ok && data?.url) {
-        window.location.href = data.url
+      if (data?.ok && data?.clientSecret) {
+        setSelectedPkg(CREDIT_PACKAGES.find((p) => p.id === packageId) ?? null)
+        setClientSecret(data.clientSecret)
       } else {
         setLoadingPkg(null)
       }
@@ -60,6 +77,46 @@ export default function CreditsPage() {
       setLoadingPkg(null)
     }
   }
+
+  const returnUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/credits`
+      : ""
+
+  const paymentModal = clientSecret && selectedPkg && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={() => { setClientSecret(null); setLoadingPkg(null); setSelectedPkg(null) }}
+      />
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Achat de crédits</p>
+            <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
+              {selectedPkg.label} — {selectedPkg.priceLabel}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setClientSecret(null); setLoadingPkg(null); setSelectedPkg(null) }}
+            className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
+            style={{ color: "#1a2d5a" }}
+            aria-label="Fermer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+            </svg>
+          </button>
+        </div>
+        <StripePaymentForm
+          clientSecret={clientSecret}
+          returnUrl={returnUrl}
+          buttonLabel={`Payer ${selectedPkg.priceLabel}`}
+        />
+      </div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -113,25 +170,26 @@ export default function CreditsPage() {
         )}
 
         {/* Grille des offres */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
           {CREDIT_PACKAGES.map((pkg) => (
             <Card
               key={pkg.id}
-              className={`relative flex flex-col ${
+              className={`flex flex-col ${
                 pkg.highlight
                   ? "border-orange-400 ring-2 ring-orange-400/30 shadow-md"
                   : "border-border/60"
               }`}
             >
-              {pkg.highlight && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                  <span className="bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+              {/* Espace badge — même hauteur sur toutes les cartes pour aligner le contenu */}
+              <div className="flex h-6 items-center justify-center">
+                {pkg.highlight && (
+                  <span className="-mt-3 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
                     Meilleure offre
                   </span>
-                </div>
-              )}
+                )}
+              </div>
 
-              <CardHeader className="pb-2 pt-6">
+              <CardHeader className="pb-2 pt-2">
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 text-orange-500 shrink-0" />
                   <CardTitle className="text-base font-semibold">{pkg.label}</CardTitle>
@@ -167,7 +225,7 @@ export default function CreditsPage() {
                   onClick={() => handleBuy(pkg.id)}
                   disabled={loadingPkg !== null || !user}
                 >
-                  {loadingPkg === pkg.id ? "Redirection…" : "Acheter"}
+                  {loadingPkg === pkg.id ? "Préparation…" : "Acheter"}
                 </Button>
               </CardContent>
             </Card>
@@ -179,6 +237,8 @@ export default function CreditsPage() {
           Pas d&apos;abonnement — achetez uniquement ce dont vous avez besoin.
         </p>
       </main>
+
+      {paymentModal}
     </div>
   )
 }

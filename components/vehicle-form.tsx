@@ -16,6 +16,7 @@ import {
 } from "@/lib/vehicle-compatibility-catalog"
 import { useCarsApi } from "@/hooks/use-cars-api"
 import { isExceptionBrand, MESSAGE_MARQUE_EXCEPTION } from "@/lib/exception-brands"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
@@ -74,6 +75,8 @@ export function VehicleForm() {
   const [guestAlreadyUsed, setGuestAlreadyUsed] = useState(false)
   const [paidSessionVerified, setPaidSessionVerified] = useState(false)
   const [creditCheckoutLoading, setCreditCheckoutLoading] = useState(false)
+  const [creditClientSecret, setCreditClientSecret] = useState<string | null>(null)
+  const [creditPaymentType, setCreditPaymentType] = useState<"credit_purchase" | "guest_diagnostic" | null>(null)
 
   const cascadeGen = useRef(0)
 
@@ -445,26 +448,64 @@ export function VehicleForm() {
     return () => { cancelled = true }
   }, [])
 
-  // Gestion des retours depuis Stripe (paid_session, credits_added)
+  // Gestion des retours depuis Stripe (payment_intent, paid_session, credits_added)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const paymentIntentId = params.get("payment_intent")
+    const intentType = params.get("intent")
     const paidSession = params.get("paid_session")
     const creditsAdded = params.get("credits_added")
 
+    // Nouveau flux : retour PaymentIntent + Elements
+    if (paymentIntentId && params.get("redirect_status") === "succeeded") {
+      window.history.replaceState({}, "", "/diagnostic")
+      const savedDataStr = sessionStorage.getItem("pendingFormData")
+      if (savedDataStr) {
+        const savedData = JSON.parse(savedDataStr)
+        sessionStorage.removeItem("pendingFormData")
+        setFormData(savedData)
+      }
+
+      if (intentType === "guest_diagnostic") {
+        ;(async () => {
+          try {
+            const res = await fetch(`/api/credits/verify-guest-payment?payment_intent=${encodeURIComponent(paymentIntentId)}`)
+            if (res.ok) {
+              setPaidSessionVerified(true)
+            } else {
+              setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
+            }
+          } catch {
+            setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
+          }
+        })()
+      } else {
+        // credit_purchase : rafraîchir le solde
+        fetch("/api/credits/balance")
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.ok) {
+              setAuthUser((prev) => prev ? { ...prev, diagnosticCredits: data.credits } : null)
+            }
+          })
+          .catch(() => null)
+      }
+      return
+    }
+
+    // Ancien flux rétro-compatible : paid_session (Checkout Session)
     if (paidSession) {
       window.history.replaceState({}, "", "/diagnostic")
       ;(async () => {
         try {
           const res = await fetch(`/api/credits/verify-guest-payment?session_id=${encodeURIComponent(paidSession)}`)
           if (res.ok) {
-            // Restaurer les données du formulaire si disponibles
             const savedDataStr = sessionStorage.getItem("pendingFormData")
             if (savedDataStr) {
               const savedData = JSON.parse(savedDataStr)
               sessionStorage.removeItem("pendingFormData")
               setFormData(savedData)
             }
-            // Autoriser le lancement direct au prochain submit
             setPaidSessionVerified(true)
           } else {
             setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
@@ -477,14 +518,12 @@ export function VehicleForm() {
 
     if (creditsAdded) {
       window.history.replaceState({}, "", "/diagnostic")
-      // Restaurer les données du formulaire si disponibles
       const savedDataStr = sessionStorage.getItem("pendingFormData")
       if (savedDataStr) {
         const savedData = JSON.parse(savedDataStr)
         sessionStorage.removeItem("pendingFormData")
         setFormData(savedData)
       }
-      // Rafraîchir le solde de crédits
       fetch("/api/credits/balance")
         .then((r) => r.json())
         .then((data) => {
@@ -566,28 +605,30 @@ export function VehicleForm() {
     setMarqueSearch("")
   }
 
-  /** Redirige vers Stripe pour acheter des crédits / un diagnostic invité. */
-  const redirectToStripeForCredit = async (
+  /** Prépare un PaymentIntent et ouvre le modal Stripe Elements pour payer. */
+  const startCreditPayment = async (
     packageId: "1" | "3" | "6" | "10",
     intent: "credit_purchase" | "guest_diagnostic"
   ) => {
     setCreditCheckoutLoading(true)
     try {
       sessionStorage.setItem("pendingFormData", JSON.stringify(formData))
-      const res = await fetch("/api/credits/checkout", {
+      const res = await fetch("/api/credits/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId, intent, returnPath: "/diagnostic" }),
+        body: JSON.stringify({ packageId, intent }),
       })
       const data = await res.json().catch(() => null)
-      if (data?.ok && data?.url) {
-        window.location.href = data.url
+      if (data?.ok && data?.clientSecret) {
+        setCreditPaymentType(intent)
+        setCreditClientSecret(data.clientSecret)
+        setAuthDialogOpen(false)
       } else {
         setAuthError("Erreur lors de la création du paiement. Veuillez réessayer.")
-        setCreditCheckoutLoading(false)
       }
     } catch {
       setAuthError("Erreur technique. Veuillez réessayer.")
+    } finally {
       setCreditCheckoutLoading(false)
     }
   }
@@ -1307,10 +1348,10 @@ export function VehicleForm() {
                       </p>
                       <Button
                         className="w-full"
-                        onClick={() => redirectToStripeForCredit("1", "credit_purchase")}
+                        onClick={() => startCreditPayment("1", "credit_purchase")}
                         disabled={creditCheckoutLoading}
                       >
-                        {creditCheckoutLoading ? "Redirection…" : "Payer 1 diagnostic — 9,99 €"}
+                        {creditCheckoutLoading ? "Préparation…" : "Payer 1 diagnostic — 9,99 €"}
                       </Button>
                     </div>
                   )}
@@ -1391,10 +1432,10 @@ export function VehicleForm() {
                       <Button
                         size="sm"
                         className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                        onClick={() => redirectToStripeForCredit("1", "guest_diagnostic")}
+                        onClick={() => startCreditPayment("1", "guest_diagnostic")}
                         disabled={creditCheckoutLoading}
                       >
-                        {creditCheckoutLoading ? "Redirection…" : "Payer mon diagnostic — 9,99 €"}
+                        {creditCheckoutLoading ? "Préparation…" : "Payer mon diagnostic — 9,99 €"}
                       </Button>
                     </div>
                   ) : (
@@ -1425,6 +1466,48 @@ export function VehicleForm() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Modal Stripe Elements pour paiement de crédits */}
+        {creditClientSecret && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => { setCreditClientSecret(null); setCreditPaymentType(null) }}
+            />
+            <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>
+                    {creditPaymentType === "guest_diagnostic" ? "Paiement du diagnostic" : "Achat de crédit"}
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
+                    1 diagnostic — 9,99 €
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setCreditClientSecret(null); setCreditPaymentType(null) }}
+                  className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
+                  style={{ color: "#1a2d5a" }}
+                  aria-label="Fermer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                  </svg>
+                </button>
+              </div>
+              <StripePaymentForm
+                clientSecret={creditClientSecret}
+                returnUrl={
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}/diagnostic?intent=${creditPaymentType}`
+                    : ""
+                }
+                buttonLabel="Payer 9,99 €"
+              />
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
