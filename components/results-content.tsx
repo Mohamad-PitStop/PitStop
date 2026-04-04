@@ -222,6 +222,7 @@ export function ResultsContent() {
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isFollowUpLoading, setIsFollowUpLoading] = useState(false)
+  const [isTransitioningToFinal, setIsTransitioningToFinal] = useState(false)
   const [isAbandoning, setIsAbandoning] = useState(false)
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
   const [followUps, setFollowUps] = useState<Array<{ question: string; answer: string }>>([])
@@ -273,6 +274,12 @@ export function ResultsContent() {
       }
 
       const nextDiagnostic = await response.json()
+
+      if (!nextDiagnostic.needsMoreInfo) {
+        setIsTransitioningToFinal(true)
+        await new Promise<void>((resolve) => setTimeout(resolve, 1800))
+      }
+
       setDiagnostic(nextDiagnostic)
       setFollowUps(nextFollowUps)
       sessionStorage.setItem("diagnostic", JSON.stringify(nextDiagnostic))
@@ -282,6 +289,7 @@ export function ResultsContent() {
       alert("Une erreur est survenue. Veuillez réessayer.")
     } finally {
       setIsFollowUpLoading(false)
+      setIsTransitioningToFinal(false)
     }
   }
 
@@ -325,6 +333,12 @@ export function ResultsContent() {
       }
 
       const nextDiagnostic = await response.json()
+
+      if (!nextDiagnostic.needsMoreInfo) {
+        setIsTransitioningToFinal(true)
+        await new Promise<void>((resolve) => setTimeout(resolve, 1800))
+      }
+
       setDiagnostic(nextDiagnostic)
       setFollowUps(nextFollowUps)
       sessionStorage.setItem("diagnostic", JSON.stringify(nextDiagnostic))
@@ -337,6 +351,7 @@ export function ResultsContent() {
       alert("Une erreur est survenue. Veuillez réessayer.")
     } finally {
       setIsFollowUpLoading(false)
+      setIsTransitioningToFinal(false)
     }
   }
 
@@ -388,7 +403,7 @@ export function ResultsContent() {
 
   return (
     <div className="container mx-auto px-4">
-      {isFollowUpLoading && (
+      {isTransitioningToFinal && (
         <DiagnosticLoader
           mode="followup"
           vehicle={`${vehicleInfo.marque} ${vehicleInfo.modele}`}
