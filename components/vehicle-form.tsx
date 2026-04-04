@@ -143,6 +143,17 @@ export function VehicleForm() {
       return
     }
 
+    // Vérifie l'état actuel de la permission avant de demander
+    try {
+      const perm = await navigator.permissions.query({ name: "microphone" as PermissionName })
+      if (perm.state === "denied") {
+        setVoiceError("BLOCKED")
+        return
+      }
+    } catch {
+      // Permissions API non disponible — on continue
+    }
+
     // Demande explicite de permission micro — force le popup natif du navigateur
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -150,7 +161,7 @@ export function VehicleForm() {
     } catch (err: any) {
       const name = err?.name ?? ""
       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
-        setVoiceError("Accès au microphone refusé. Veuillez autoriser l'accès dans les paramètres du navigateur.")
+        setVoiceError("BLOCKED")
       } else if (name === "NotFoundError") {
         setVoiceError("Aucun microphone détecté sur cet appareil.")
       } else {
@@ -1436,28 +1447,42 @@ export function VehicleForm() {
                 </label>
 
                 {isVoiceActive ? (
-                  <div className="rounded-lg border border-primary/40 bg-secondary/50 p-3 space-y-3 min-h-[108px] shadow-sm">
-                    {/* Indicateur */}
-                    <div className="flex items-center gap-2">
-                      {voiceError ? (
-                        <span className="text-xs text-destructive">{voiceError}</span>
-                      ) : isListening ? (
-                        <span className="flex items-center gap-2 text-xs text-primary font-medium">
-                          <span className="relative flex h-2.5 w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-70" />
-                            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+                  <div className={`rounded-lg border bg-secondary/50 p-3 space-y-3 min-h-[108px] shadow-sm ${voiceError ? "border-destructive/40" : "border-primary/40"}`}>
+                    {/* Indicateur / Erreur */}
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        {voiceError === "BLOCKED" ? (
+                          <div className="space-y-1.5">
+                            <p className="text-xs font-medium text-destructive">
+                              Microphone bloqué par le navigateur.
+                            </p>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              Pour l'autoriser :<br />
+                              • Cliquez sur l'icône 🔒 ou 🦁 dans la barre d'adresse<br />
+                              • → <strong>Autorisations du site</strong> → <strong>Microphone</strong> → <strong>Autoriser</strong><br />
+                              • Rechargez la page puis réessayez
+                            </p>
+                          </div>
+                        ) : voiceError ? (
+                          <span className="text-xs text-destructive">{voiceError}</span>
+                        ) : isListening ? (
+                          <span className="flex items-center gap-2 text-xs text-primary font-medium">
+                            <span className="relative flex h-2.5 w-2.5 shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-70" />
+                              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+                            </span>
+                            Écoute en cours…
                           </span>
-                          Écoute en cours…
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <Mic className="h-3 w-3" /> En attente…
-                        </span>
-                      )}
+                        ) : (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <Mic className="h-3 w-3" /> En attente…
+                          </span>
+                        )}
+                      </div>
                       <button
                         type="button"
                         onClick={cancelVoiceRecording}
-                        className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+                        className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
                         aria-label="Annuler"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -1465,13 +1490,13 @@ export function VehicleForm() {
                     </div>
 
                     {/* Transcription en direct */}
-                    <p className="text-sm text-foreground min-h-[2.5rem] leading-relaxed">
-                      {voiceTranscript
-                        ? voiceTranscript
-                        : !voiceError && (
-                            <span className="text-muted-foreground italic">Parlez maintenant…</span>
-                          )}
-                    </p>
+                    {!voiceError && (
+                      <p className="text-sm text-foreground min-h-[2.5rem] leading-relaxed">
+                        {voiceTranscript
+                          ? voiceTranscript
+                          : <span className="text-muted-foreground italic">Parlez maintenant…</span>}
+                      </p>
+                    )}
 
                     {/* Boutons */}
                     <div className="flex items-center gap-2 pt-0.5">
