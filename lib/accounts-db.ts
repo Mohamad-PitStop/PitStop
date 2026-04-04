@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto"
+import { randomUUID, createHash } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 
 export type UserRole = "admin" | "tester" | "user" | "user_friend"
@@ -66,7 +66,47 @@ async function ensureAccountsTable() {
       `ALTER TABLE "UserAccount" ADD COLUMN "diagnosticCredits" INTEGER NOT NULL DEFAULT 0`
     )
   }
+  // Table anti-abus : crédit de bienvenue par IP (hash SHA-256)
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "WelcomeCreditGrant" (
+      "id" TEXT PRIMARY KEY,
+      "ipHash" TEXT NOT NULL,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "WelcomeCreditGrant_ipHash_idx" ON "WelcomeCreditGrant" ("ipHash")`
+  )
   ensured = true
+}
+
+// ── Anti-abus crédit de bienvenue ────────────────────────────────────────────
+
+const WELCOME_CREDIT_WINDOW_DAYS = 60
+
+function hashIp(ip: string): string {
+  return createHash("sha256").update(`pitstop-welcome:${ip}`).digest("hex")
+}
+
+export async function canGrantWelcomeCredit(ip: string): Promise<boolean> {
+  await ensureAccountsTable()
+  const ipHash = hashIp(ip)
+  const since = new Date(Date.now() - WELCOME_CREDIT_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString()
+  const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(
+    `SELECT "id" FROM "WelcomeCreditGrant" WHERE "ipHash" = ? AND "createdAt" >= ? LIMIT 1`,
+    ipHash,
+    since
+  )
+  return rows.length === 0
+}
+
+export async function recordWelcomeCreditGrant(ip: string): Promise<void> {
+  await ensureAccountsTable()
+  await prisma.$executeRawUnsafe(
+    `INSERT INTO "WelcomeCreditGrant" ("id", "ipHash") VALUES (?, ?)`,
+    randomUUID(),
+    hashIp(ip)
+  )
 }
 
 function toRole(r: unknown): UserRole {

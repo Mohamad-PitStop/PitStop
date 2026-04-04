@@ -10,6 +10,9 @@ import {
   createAccount,
   findPendingAssignmentByEmail,
   deletePendingAssignment,
+  addCredits,
+  canGrantWelcomeCredit,
+  recordWelcomeCreditGrant,
   type UserRole,
 } from "@/lib/accounts-db"
 import { AUTH_COOKIE_NAME, buildSessionCookieOptions, createAuthSession } from "@/lib/auth-session"
@@ -89,10 +92,19 @@ export async function POST(req: Request) {
     // Nettoyer la vérification en attente
     await deletePendingVerification(pending.email)
 
+    // Crédit de bienvenue (1 diagnostic gratuit) — accordé sauf si la même IP
+    // a déjà bénéficié d'un crédit de bienvenue dans les 60 derniers jours.
+    const grantWelcome = await canGrantWelcomeCredit(ip)
+    if (grantWelcome) {
+      await addCredits(account.id, 1)
+      await recordWelcomeCreditGrant(ip)
+    }
+
     // Créer la session et retourner le cookie
     const sessionToken = await createAuthSession(account.id)
     const res = NextResponse.json({
       ok: true,
+      welcomed: grantWelcome,
       user: { id: account.id, name: account.name, email: account.email, role: account.role },
     })
     res.cookies.set(AUTH_COOKIE_NAME, sessionToken, buildSessionCookieOptions())
