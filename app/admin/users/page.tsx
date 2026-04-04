@@ -16,7 +16,8 @@ type User = {
   name: string
   email: string
   role: UserRole
-  createdAt: string
+  diagnosticCredits?: number
+  createdAt: string | null
 }
 
 type Pending = {
@@ -54,10 +55,16 @@ function formatDate(iso: string) {
 
 export default function AdminUsersPage() {
   const router = useRouter()
-  const [users, setUsers] = useState<User[]>([])
+  const [counts, setCounts] = useState({ admin: 0, tester: 0, user_friend: 0, user: 0 })
   const [pending, setPending] = useState<Pending[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+  // User search
+  const [searchEmail, setSearchEmail] = useState("")
+  const [searching, setSearching] = useState(false)
+  const [searchResult, setSearchResult] = useState<User | null | "not_found">(null)
+  const [roleChanging, setRoleChanging] = useState(false)
 
   // Pending form
   const [newEmail, setNewEmail] = useState("")
@@ -77,7 +84,7 @@ export default function AdminUsersPage() {
     const res = await fetch("/api/admin/users")
     if (res.status === 403) { router.replace("/"); return }
     const data = await res.json().catch(() => null)
-    if (data?.users) setUsers(data.users)
+    if (data?.counts) setCounts(data.counts)
     if (data?.pending) setPending(data.pending)
   }
 
@@ -93,15 +100,32 @@ export default function AdminUsersPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  async function searchUser() {
+    const email = searchEmail.trim().toLowerCase()
+    if (!email) return
+    setSearching(true)
+    setSearchResult(null)
+    try {
+      const res = await fetch(`/api/admin/users?email=${encodeURIComponent(email)}`)
+      const data = await res.json().catch(() => null)
+      setSearchResult(data?.user ?? "not_found")
+    } catch {
+      setSearchResult("not_found")
+    } finally {
+      setSearching(false)
+    }
+  }
+
   async function setRole(userId: string, role: UserRole) {
-    setPendingActionId(userId)
+    setRoleChanging(true)
     await fetch("/api/admin/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, role }),
     })
-    await fetchData()
-    setPendingActionId(null)
+    // Refresh search result and counts
+    await Promise.all([fetchData(), searchUser()])
+    setRoleChanging(false)
   }
 
   async function addAssignment() {
@@ -172,11 +196,6 @@ export default function AdminUsersPage() {
     )
   }
 
-  const admins = users.filter((u) => u.role === "admin")
-  const testers = users.filter((u) => u.role === "tester")
-  const friends = users.filter((u) => u.role === "user_friend")
-  const regularUsers = users.filter((u) => u.role === "user")
-
   return (
     <main className="container mx-auto max-w-4xl px-4 py-10 space-y-10">
 
@@ -208,10 +227,10 @@ export default function AdminUsersPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Admins", count: admins.length, icon: Shield, cls: "text-amber-400" },
-          { label: "Testeurs", count: testers.length, icon: UserCheck, cls: "text-primary" },
-          { label: "Amis", count: friends.length, icon: Heart, cls: "text-violet-400" },
-          { label: "Utilisateurs", count: regularUsers.length, icon: Users, cls: "text-muted-foreground" },
+          { label: "Admins", count: counts.admin, icon: Shield, cls: "text-amber-400" },
+          { label: "Testeurs", count: counts.tester, icon: UserCheck, cls: "text-primary" },
+          { label: "Amis", count: counts.user_friend, icon: Heart, cls: "text-violet-400" },
+          { label: "Utilisateurs", count: counts.user, icon: Users, cls: "text-muted-foreground" },
         ].map(({ label, count, icon: Icon, cls }) => (
           <Card key={label} className="border-border/50">
             <CardContent className="pt-4 pb-4 flex items-center gap-3">
@@ -292,59 +311,91 @@ export default function AdminUsersPage() {
         </Card>
       </section>
 
-      {/* ── Section : utilisateurs inscrits ── */}
+      {/* ── Section : recherche utilisateur ── */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Utilisateurs inscrits</h2>
+        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Rechercher un utilisateur</h2>
 
-        {users.length === 0 && (
-          <p className="text-sm text-muted-foreground py-4 text-center">Aucun utilisateur enregistré.</p>
-        )}
-
-        {users.map((u) => {
-          const isMe = u.id === currentUserId
-          const isPending = pendingActionId === u.id
-          return (
-            <Card key={u.id} className="border-border/50">
-              <CardContent className="pt-3 pb-3 flex items-center gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-foreground truncate">{u.name}</span>
-                    {isMe && <span className="text-xs text-amber-400">(vous)</span>}
-                    <Badge variant="outline" className={`text-xs ${ROLE_BADGE_CLASS[u.role]}`}>
-                      {ROLE_LABELS[u.role]}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    <span className="text-xs text-muted-foreground truncate">{u.email}</span>
-                    <span className="text-xs text-muted-foreground shrink-0">· {formatDate(u.createdAt)}</span>
-                  </div>
-                </div>
-
-                {!isMe && u.role !== "admin" && (
-                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                    <select
-                      disabled={isPending}
-                      defaultValue={u.role}
-                      key={u.role}
-                      onChange={(e) => setRole(u.id, e.target.value as UserRole)}
-                      className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50 [&>option]:bg-[#0a1628]"
-                    >
-                      {ASSIGNABLE_ROLES.map((r) => (
-                        <option key={r.value} value={r.value}>{r.label}</option>
-                      ))}
-                    </select>
-                    {isPending && (
-                      <svg className="animate-spin h-4 w-4 text-muted-foreground" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                    )}
-                  </div>
+        <Card className="border-border/50">
+          <CardContent className="pt-4 pb-4 space-y-4">
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="Adresse e-mail du compte"
+                value={searchEmail}
+                onChange={(e) => { setSearchEmail(e.target.value); setSearchResult(null) }}
+                onKeyDown={(e) => { if (e.key === "Enter") searchUser() }}
+                className="h-9 text-sm flex-1"
+              />
+              <Button
+                size="sm"
+                className="h-9 gap-1.5 shrink-0"
+                onClick={searchUser}
+                disabled={searching || !searchEmail.trim()}
+              >
+                {searching ? (
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                  </svg>
                 )}
-              </CardContent>
-            </Card>
-          )
-        })}
+                Rechercher
+              </Button>
+            </div>
+
+            {searchResult === "not_found" && (
+              <p className="text-sm text-muted-foreground">Aucun compte trouvé pour cette adresse e-mail.</p>
+            )}
+
+            {searchResult && searchResult !== "not_found" && (() => {
+              const u = searchResult
+              const isMe = u.id === currentUserId
+              return (
+                <div className="rounded-lg border border-border/60 bg-secondary/10 p-4 flex items-center gap-4 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-foreground">{u.name}</span>
+                      {isMe && <span className="text-xs text-amber-400">(vous)</span>}
+                      <Badge variant="outline" className={`text-xs ${ROLE_BADGE_CLASS[u.role]}`}>
+                        {ROLE_LABELS[u.role]}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                      <span className="text-xs text-muted-foreground">{u.email}</span>
+                      {u.createdAt && (
+                        <span className="text-xs text-muted-foreground shrink-0">· Inscrit le {formatDate(u.createdAt)}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {!isMe && u.role !== "admin" && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <select
+                        disabled={roleChanging}
+                        value={u.role}
+                        onChange={(e) => setRole(u.id, e.target.value as UserRole)}
+                        className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50 [&>option]:bg-[#0a1628]"
+                      >
+                        {ASSIGNABLE_ROLES.map((r) => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))}
+                      </select>
+                      {roleChanging && (
+                        <svg className="animate-spin h-4 w-4 text-muted-foreground" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+          </CardContent>
+        </Card>
       </section>
 
       {/* ── Section : préassignation ── */}

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import {
   getAllAccounts,
+  findAccountByEmail,
   setUserRole,
   getAllPendingAssignments,
   upsertPendingAssignment,
@@ -17,8 +18,34 @@ export async function GET(req: Request) {
   const admin = await requireOwnerAdmin(req)
   if (!admin) return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
 
+  const url = new URL(req.url)
+  const email = url.searchParams.get("email")?.trim().toLowerCase()
+
+  // Search mode: return single user by email
+  if (email) {
+    const user = await findAccountByEmail(email)
+    if (!user) return NextResponse.json({ user: null })
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        diagnosticCredits: user.diagnosticCredits,
+        createdAt: (user as any).createdAt ?? null,
+      },
+    })
+  }
+
+  // Default: return stats counts + pending (no full user list)
   const [users, pending] = await Promise.all([getAllAccounts(), getAllPendingAssignments()])
-  return NextResponse.json({ users, pending })
+  const counts = {
+    admin: users.filter((u) => u.role === "admin").length,
+    tester: users.filter((u) => u.role === "tester").length,
+    user_friend: users.filter((u) => u.role === "user_friend").length,
+    user: users.filter((u) => u.role === "user").length,
+  }
+  return NextResponse.json({ counts, pending })
 }
 
 export async function PATCH(req: Request) {
