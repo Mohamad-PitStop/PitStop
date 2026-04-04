@@ -787,12 +787,12 @@ export function ResultsContent() {
       {!isConcessionOnly && !isObdScanFirst && !noInterventionNeeded && (diagnostic.diy || diagnostic.garage) && (
         <div
           className={`grid grid-cols-1 gap-6 mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500 ${
-            diagnostic.diy && diagnostic.garage ? "lg:grid-cols-2" : ""
+            diagnostic.diy && diagnostic.diy.difficulty.trim().toLowerCase() === "facile" && diagnostic.garage ? "lg:grid-cols-2" : ""
           }`}
           style={{ animationDelay: "360ms", animationFillMode: "both" }}
         >
-        {/* DIY Card */}
-        {diagnostic.diy && (
+        {/* DIY Card — affiche uniquement si difficulte Facile */}
+        {diagnostic.diy && diagnostic.diy.difficulty.trim().toLowerCase() === "facile" && (
         <Card className={`border-border/50 bg-card ${!diagnostic.diy.possible ? 'opacity-75' : ''}`}>
           <CardHeader>
             <div className="flex items-start justify-between">
@@ -868,11 +868,11 @@ export function ResultsContent() {
 
         {/* Garage Card */}
         {diagnostic.garage && (
-        <Card className="border-border/50 bg-card border-primary/30">
+        <Card className="border-primary/50 bg-gradient-to-br from-primary/8 via-card to-card shadow-md shadow-primary/10 ring-1 ring-primary/20">
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="h-11 w-11 rounded-xl bg-primary/20 flex items-center justify-center shadow-sm shadow-primary/20">
                   <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -880,7 +880,7 @@ export function ResultsContent() {
                   <CardDescription>Réparation professionnelle avec garantie</CardDescription>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary border border-primary/30">
+              <div className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30">
                 <CheckCircle className="h-3 w-3" />
                 Recommandé
               </div>
@@ -917,7 +917,7 @@ export function ResultsContent() {
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
-              <Button asChild className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 font-semibold">
                 <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>Prendre rendez-vous</Link>
               </Button>
               <Button asChild variant="outline" className="flex-1 border-primary/40">
