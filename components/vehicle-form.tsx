@@ -143,17 +143,6 @@ export function VehicleForm() {
       return
     }
 
-    // Vérifie l'état actuel de la permission avant de demander
-    try {
-      const perm = await navigator.permissions.query({ name: "microphone" as PermissionName })
-      if (perm.state === "denied") {
-        setVoiceError("BLOCKED")
-        return
-      }
-    } catch {
-      // Permissions API non disponible — on continue
-    }
-
     // Demande explicite de permission micro — force le popup natif du navigateur
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
