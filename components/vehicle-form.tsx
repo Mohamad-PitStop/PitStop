@@ -89,14 +89,10 @@ export function VehicleForm() {
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const recognitionRef = useRef<any>(null)
 
-  function startVoiceRecording() {
+  function launchRecognition() {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SpeechRecognition) {
-      setVoiceError("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.")
-      setIsVoiceActive(true)
-      return
-    }
+    if (!SpeechRecognition) return
     if (recognitionRef.current) {
       recognitionRef.current.stop()
       recognitionRef.current = null
@@ -105,10 +101,9 @@ export function VehicleForm() {
     recognition.lang = "fr-FR"
     recognition.continuous = true
     recognition.interimResults = true
-    let finalText = ""
     recognition.onresult = (event: any) => {
+      let finalText = ""
       let interim = ""
-      finalText = ""
       for (let i = 0; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           finalText += event.results[i][0].transcript + " "
@@ -131,10 +126,40 @@ export function VehicleForm() {
     recognition.onend = () => setIsListening(false)
     recognitionRef.current = recognition
     recognition.start()
-    setIsVoiceActive(true)
     setIsListening(true)
+  }
+
+  async function startVoiceRecording() {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+
+    setIsVoiceActive(true)
     setVoiceTranscript("")
     setVoiceError(null)
+    setIsListening(false)
+
+    if (!SpeechRecognition) {
+      setVoiceError("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.")
+      return
+    }
+
+    // Demande explicite de permission micro — force le popup natif du navigateur
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      stream.getTracks().forEach((t) => t.stop()) // libère le flux, la reconnaissance gérera le sien
+    } catch (err: any) {
+      const name = err?.name ?? ""
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        setVoiceError("Accès au microphone refusé. Veuillez autoriser l'accès dans les paramètres du navigateur.")
+      } else if (name === "NotFoundError") {
+        setVoiceError("Aucun microphone détecté sur cet appareil.")
+      } else {
+        setVoiceError("Impossible d'accéder au microphone.")
+      }
+      return
+    }
+
+    launchRecognition()
   }
 
   function retryVoiceRecording() {
@@ -144,7 +169,8 @@ export function VehicleForm() {
     }
     setVoiceTranscript("")
     setVoiceError(null)
-    startVoiceRecording()
+    setIsListening(false)
+    launchRecognition()
   }
 
   function sendVoiceTranscript() {
