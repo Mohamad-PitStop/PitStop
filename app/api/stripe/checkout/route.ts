@@ -2,6 +2,15 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getStripe, getDepositAmountCents, getSiteUrl } from "@/lib/stripe"
 import { getBusyIntervals, getCalendarIdIfConfigured } from "@/lib/google-calendar"
+import {
+  findPromoCodeByCode,
+  hasIpUsedPromo,
+  hasUserUsedPromo,
+  recordPromoUsage,
+  applyPromoDiscount,
+} from "@/lib/promo-db"
+import { getUserFromAuthCookie } from "@/lib/auth-session"
+import { getClientIp } from "@/lib/rate-limit"
 
 export const runtime = "nodejs"
 
@@ -15,6 +24,7 @@ const BodySchema = z.object({
   timeZone: z.string().default("Europe/Brussels"),
   priceMin: z.number().positive().optional(),
   priceMax: z.number().positive().optional(),
+  promoCode: z.string().trim().optional().nullable(),
   vehicle: z
     .object({
       marque: z.string().optional(),
@@ -34,11 +44,7 @@ async function isSlotFree({
   startAt: string
   endAt: string
 }) {
-  const busy = await getBusyIntervals({
-    calendarId,
-    timeMin: startAt,
-    timeMax: endAt,
-  })
+  const busy = await getBusyIntervals({ calendarId, timeMin: startAt, timeMax: endAt })
   return busy.length === 0
 }
 
@@ -47,17 +53,36 @@ export async function POST(req: Request) {
     const stripe = getStripe()
     const siteUrl = getSiteUrl()
     const body = BodySchema.parse(await req.json())
-    const amount = getDepositAmountCents(body.priceMin)
+    let amount = getDepositAmountCents(body.priceMin)
 
     const calendarId = getCalendarIdIfConfigured()
     if (calendarId) {
       const ok = await isSlotFree({ calendarId, startAt: body.startAt, endAt: body.endAt })
       if (!ok) {
         return Response.json(
-          { ok: false, error: "Ce créneau n’est plus disponible. Merci d’en choisir un autre." },
+          { ok: false, error: "Ce créneau n'est plus disponible. Merci d'en choisir un autre." },
           { status: 409 }
         )
       }
+    }
+
+    const ip = getClientIp(req)
+    const user = await getUserFromAuthCookie(req.headers.get("cookie"))
+    let promoId: string | null = null
+
+    if (body.promoCode) {
+      const promo = await findPromoCodeByCode(body.promoCode)
+      if (!promo || !promo.active || (promo.maxUses != null && promo.usedCount >= promo.maxUses)) {
+        return Response.json({ ok: false, error: "Code promo invalide ou expiré." }, { status: 400 })
+      }
+      if (await hasIpUsedPromo(promo.id, ip)) {
+        return Response.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." }, { status: 400 })
+      }
+      if (user && (await hasUserUsedPromo(promo.id, user.id))) {
+        return Response.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." }, { status: 400 })
+      }
+      amount = applyPromoDiscount(amount, promo)
+      promoId = promo.id
     }
 
     const reservation = await prisma.reservation.create({
@@ -91,7 +116,7 @@ export async function POST(req: Request) {
             unit_amount: amount,
             product_data: {
               name: "Acompte de réservation",
-              description: "Réservation d’un créneau au garage partenaire.",
+              description: "Réservation d'un créneau au garage partenaire.",
             },
           },
         },
@@ -105,6 +130,7 @@ export async function POST(req: Request) {
         depositAmountCents: String(amount),
         ...(body.priceMin != null ? { priceMinEuros: String(body.priceMin) } : {}),
         ...(body.priceMax != null ? { priceMaxEuros: String(body.priceMax) } : {}),
+        ...(promoId ? { promoId } : {}),
       },
     })
 
@@ -113,10 +139,19 @@ export async function POST(req: Request) {
       data: { stripeSessionId: session.id },
     })
 
+    // Record promo usage at checkout creation time
+    if (promoId) {
+      await recordPromoUsage({
+        promoCodeId: promoId,
+        ip,
+        userId: user?.id ?? null,
+        context: "booking",
+      })
+    }
+
     return Response.json({ ok: true, url: session.url })
   } catch (error) {
     console.error("Erreur stripe checkout:", error)
     return Response.json({ ok: false, error: "Erreur lors de la création du paiement" }, { status: 400 })
   }
 }
-

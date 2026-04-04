@@ -2,6 +2,15 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getStripe, getDepositAmountCents } from "@/lib/stripe"
 import { getBusyIntervals, getCalendarIdIfConfigured } from "@/lib/google-calendar"
+import {
+  findPromoCodeByCode,
+  hasIpUsedPromo,
+  hasUserUsedPromo,
+  recordPromoUsage,
+  applyPromoDiscount,
+} from "@/lib/promo-db"
+import { getUserFromAuthCookie } from "@/lib/auth-session"
+import { getClientIp } from "@/lib/rate-limit"
 
 export const runtime = "nodejs"
 
@@ -15,6 +24,7 @@ const BodySchema = z.object({
   timeZone: z.string().default("Europe/Brussels"),
   priceMin: z.number().positive().optional(),
   priceMax: z.number().positive().optional(),
+  promoCode: z.string().trim().optional().nullable(),
   vehicle: z
     .object({
       marque: z.string().optional(),
@@ -46,7 +56,7 @@ export async function POST(req: Request) {
   try {
     const stripe = getStripe()
     const body = BodySchema.parse(await req.json())
-    const amount = getDepositAmountCents(body.priceMin)
+    let amount = getDepositAmountCents(body.priceMin)
 
     const calendarId = getCalendarIdIfConfigured()
     if (calendarId) {
@@ -57,6 +67,25 @@ export async function POST(req: Request) {
           { status: 409 }
         )
       }
+    }
+
+    const ip = getClientIp(req)
+    const user = await getUserFromAuthCookie(req.headers.get("cookie"))
+    let promoId: string | null = null
+
+    if (body.promoCode) {
+      const promo = await findPromoCodeByCode(body.promoCode)
+      if (!promo || !promo.active || (promo.maxUses != null && promo.usedCount >= promo.maxUses)) {
+        return Response.json({ ok: false, error: "Code promo invalide ou expiré." }, { status: 400 })
+      }
+      if (await hasIpUsedPromo(promo.id, ip)) {
+        return Response.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." }, { status: 400 })
+      }
+      if (user && (await hasUserUsedPromo(promo.id, user.id))) {
+        return Response.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." }, { status: 400 })
+      }
+      amount = applyPromoDiscount(amount, promo)
+      promoId = promo.id
     }
 
     const reservation = await prisma.reservation.create({
@@ -90,6 +119,7 @@ export async function POST(req: Request) {
         depositAmountCents: String(amount),
         ...(body.priceMin != null ? { priceMinEuros: String(body.priceMin) } : {}),
         ...(body.priceMax != null ? { priceMaxEuros: String(body.priceMax) } : {}),
+        ...(promoId ? { promoId } : {}),
       },
     })
 
@@ -100,6 +130,16 @@ export async function POST(req: Request) {
 
     if (!paymentIntent.client_secret) {
       throw new Error("Stripe n'a pas renvoyé de client_secret")
+    }
+
+    // Record promo usage immediately
+    if (promoId) {
+      await recordPromoUsage({
+        promoCodeId: promoId,
+        ip,
+        userId: user?.id ?? null,
+        context: "booking",
+      })
     }
 
     return Response.json({

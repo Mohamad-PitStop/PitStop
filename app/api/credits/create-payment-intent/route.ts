@@ -2,12 +2,22 @@ import { z } from "zod"
 import { getStripe } from "@/lib/stripe"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
+import {
+  findPromoCodeByCode,
+  hasIpUsedPromo,
+  hasUserUsedPromo,
+  recordPromoUsage,
+  applyPromoDiscount,
+  formatDiscount,
+} from "@/lib/promo-db"
+import { getClientIp } from "@/lib/rate-limit"
 
 export const runtime = "nodejs"
 
 const BodySchema = z.object({
   packageId: z.enum(["1", "3", "6", "10"]),
   intent: z.enum(["credit_purchase", "guest_diagnostic"]),
+  promoCode: z.string().trim().optional().nullable(),
 })
 
 export async function POST(req: Request) {
@@ -26,14 +36,36 @@ export async function POST(req: Request) {
       userId = user.id
     }
 
+    const ip = getClientIp(req)
+    let finalAmount: number = pkg.amountCents
+    let promoId: string | null = null
+    let appliedDiscountLabel: string | null = null
+
+    if (body.promoCode) {
+      const promo = await findPromoCodeByCode(body.promoCode)
+      if (!promo || !promo.active || (promo.maxUses != null && promo.usedCount >= promo.maxUses)) {
+        return Response.json({ ok: false, error: "Code promo invalide ou expiré." }, { status: 400 })
+      }
+      if (await hasIpUsedPromo(promo.id, ip)) {
+        return Response.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." }, { status: 400 })
+      }
+      if (userId && (await hasUserUsedPromo(promo.id, userId))) {
+        return Response.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." }, { status: 400 })
+      }
+      finalAmount = applyPromoDiscount(pkg.amountCents, promo)
+      promoId = promo.id
+      appliedDiscountLabel = formatDiscount(promo)
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: pkg.amountCents,
+      amount: finalAmount,
       currency: "eur",
       automatic_payment_methods: { enabled: true },
       metadata: {
         intent: body.intent,
         credits: String(pkg.credits),
         ...(userId ? { userId } : {}),
+        ...(promoId ? { promoId } : {}),
       },
     })
 
@@ -41,7 +73,17 @@ export async function POST(req: Request) {
       throw new Error("Stripe n'a pas renvoyé de client_secret")
     }
 
-    return Response.json({ ok: true, clientSecret: paymentIntent.client_secret })
+    // Record promo usage immediately (prevents multi-use before webhook)
+    if (promoId) {
+      await recordPromoUsage({ promoCodeId: promoId, ip, userId: userId ?? null, context: "credits" })
+    }
+
+    return Response.json({
+      ok: true,
+      clientSecret: paymentIntent.client_secret,
+      finalAmount,
+      appliedDiscountLabel,
+    })
   } catch (error) {
     console.error("Erreur credits create-payment-intent:", error)
     return Response.json(

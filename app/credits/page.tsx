@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
+import { PromoInput, type PromoResult } from "@/components/promo-input"
 import { Zap, Check, ArrowLeft } from "lucide-react"
 
 type AuthUser = { id: string; name: string; email: string; role: string; diagnosticCredits: number }
@@ -22,6 +23,12 @@ export default function CreditsPage() {
   const [selectedPkg, setSelectedPkg] = useState<(typeof CREDIT_PACKAGES)[number] | null>(null)
   const [cgvAccepted, setCgvAccepted] = useState(true)
   const [cgvChecked, setCgvChecked] = useState(false)
+
+  // Promo code state
+  const [promoApplied, setPromoApplied] = useState<PromoResult | null>(null)
+  const [promoCodeStr, setPromoCodeStr] = useState<string | null>(null)
+  const [finalAmount, setFinalAmount] = useState<number | null>(null)
+  const [discountLabel, setDiscountLabel] = useState<string | null>(null)
 
   const refreshUser = () => {
     fetch("/api/auth/me")
@@ -65,6 +72,14 @@ export default function CreditsPage() {
     return () => clearTimeout(timer)
   }, [success])
 
+  function closeModal() {
+    setClientSecret(null)
+    setLoadingPkg(null)
+    setSelectedPkg(null)
+    setFinalAmount(null)
+    setDiscountLabel(null)
+  }
+
   const handleBuy = async (packageId: string) => {
     if (!user) {
       router.push("/connexion?redirect=/credits")
@@ -78,6 +93,7 @@ export default function CreditsPage() {
         body: JSON.stringify({
           packageId,
           intent: "credit_purchase",
+          promoCode: promoCodeStr ?? undefined,
         }),
       })
       const data = await res.json().catch(() => null)
@@ -85,7 +101,10 @@ export default function CreditsPage() {
         setSelectedPkg(CREDIT_PACKAGES.find((p) => p.id === packageId) ?? null)
         setClientSecret(data.clientSecret)
         setCgvChecked(cgvAccepted)
+        if (data.finalAmount) setFinalAmount(data.finalAmount)
+        if (data.appliedDiscountLabel) setDiscountLabel(data.appliedDiscountLabel)
       } else {
+        alert(data?.error ?? "Erreur lors du paiement.")
         setLoadingPkg(null)
       }
     } catch {
@@ -98,23 +117,39 @@ export default function CreditsPage() {
       ? `${window.location.origin}/credits`
       : ""
 
+  // Build modal price label
+  function modalPriceLabel() {
+    if (!selectedPkg) return ""
+    if (finalAmount != null && discountLabel) {
+      const discounted = `${(finalAmount / 100).toFixed(2).replace(".", ",")} €`
+      return (
+        <>
+          <span className="line-through text-muted-foreground mr-1">{selectedPkg.priceLabel}</span>
+          <span className="text-green-600 dark:text-green-400 font-semibold">{discounted}</span>
+          <span className="ml-1 text-xs text-green-600 dark:text-green-400">({discountLabel})</span>
+        </>
+      )
+    }
+    return selectedPkg.priceLabel
+  }
+
   const paymentModal = clientSecret && selectedPkg && (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={() => { setClientSecret(null); setLoadingPkg(null); setSelectedPkg(null) }}
+        onClick={closeModal}
       />
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
         <div className="mb-5 flex items-center justify-between">
           <div>
             <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Achat de crédits</p>
             <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-              {selectedPkg.label} — {selectedPkg.priceLabel}
+              {selectedPkg.label} — {modalPriceLabel()}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => { setClientSecret(null); setLoadingPkg(null); setSelectedPkg(null) }}
+            onClick={closeModal}
             className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
             style={{ color: "#1a2d5a" }}
             aria-label="Fermer"
@@ -128,7 +163,7 @@ export default function CreditsPage() {
           <StripePaymentForm
             clientSecret={clientSecret}
             returnUrl={returnUrl}
-            buttonLabel={`Payer ${selectedPkg.priceLabel}`}
+            buttonLabel={`Payer ${finalAmount != null ? `${(finalAmount / 100).toFixed(2).replace(".", ",")} €` : selectedPkg.priceLabel}`}
           />
         ) : (
           <div className="rounded-lg border border-[#c8d8f0] bg-white/60 p-3 text-xs" style={{ color: "#1a2d5a" }}>
@@ -214,6 +249,23 @@ export default function CreditsPage() {
               <Button onClick={() => router.push("/connexion?redirect=/credits")}>Se connecter</Button>
               <Button variant="outline" onClick={() => router.push("/inscription")}>Créer un compte</Button>
             </div>
+          </div>
+        )}
+
+        {/* Code promo */}
+        {user && (
+          <div className="max-w-xs">
+            <PromoInput
+              applied={promoApplied}
+              onApply={(result) => {
+                setPromoApplied(result)
+                setPromoCodeStr(result.code)
+              }}
+              onClear={() => {
+                setPromoApplied(null)
+                setPromoCodeStr(null)
+              }}
+            />
           </div>
         )}
 

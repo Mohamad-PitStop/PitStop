@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Shield, UserCheck, Users, Heart, Clock, Plus, Trash2, CalendarDays, FlaskConical, Coins } from "lucide-react"
+import { Shield, UserCheck, Users, Heart, Clock, Plus, Trash2, CalendarDays, FlaskConical, Coins, Tag, ToggleLeft, ToggleRight } from "lucide-react"
 import Link from "next/link"
 
 type UserRole = "admin" | "tester" | "user_friend" | "user"
@@ -24,6 +24,17 @@ type Pending = {
   id: string
   email: string
   role: UserRole
+  createdAt: string
+}
+
+type PromoCode = {
+  id: string
+  code: string
+  discountType: "percent" | "fixed_cents"
+  discountValue: number
+  maxUses: number | null
+  usedCount: number
+  active: boolean
   createdAt: string
 }
 
@@ -80,6 +91,18 @@ export default function AdminUsersPage() {
   const [creditError, setCreditError] = useState<string | null>(null)
   const [creditReason, setCreditReason] = useState("")
 
+  // Promo codes
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoNewCode, setPromoNewCode] = useState("")
+  const [promoDiscountType, setPromoDiscountType] = useState<"percent" | "fixed_cents">("percent")
+  const [promoDiscountValue, setPromoDiscountValue] = useState("10")
+  const [promoMaxUses, setPromoMaxUses] = useState("")
+  const [promoCreating, setPromoCreating] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [promoSuccess, setPromoSuccess] = useState<string | null>(null)
+  const [promoTogglingId, setPromoTogglingId] = useState<string | null>(null)
+
   async function fetchData() {
     const res = await fetch("/api/admin/users")
     if (res.status === 403) { router.replace("/"); return }
@@ -91,10 +114,11 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json()).catch(() => null)
-      .then((data) => {
+      .then(async (data) => {
         if (!data?.user || data.user.role !== "admin") { router.replace("/"); return }
         setCurrentUserId(data.user.id)
-        return fetchData()
+        await fetchData()
+        await fetchPromoCodes()
       })
       .finally(() => setLoading(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,6 +174,74 @@ export default function AdminUsersPage() {
     })
     await fetchData()
     setPendingActionId(null)
+  }
+
+  async function fetchPromoCodes() {
+    setPromoLoading(true)
+    try {
+      const res = await fetch("/api/admin/promo")
+      const data = await res.json().catch(() => null)
+      if (data?.codes) setPromoCodes(data.codes)
+    } catch {
+      // silent
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  async function createPromo() {
+    const code = promoNewCode.trim().toUpperCase()
+    if (!code || !/^[A-Za-z]{4}[0-9]{2}$/i.test(code)) {
+      setPromoError("Format requis : 4 lettres + 2 chiffres (ex: ABCD12)")
+      return
+    }
+    const value = Number(promoDiscountValue)
+    if (!Number.isInteger(value) || value <= 0) {
+      setPromoError("La valeur de la réduction doit être un entier positif.")
+      return
+    }
+    setPromoCreating(true)
+    setPromoError(null)
+    setPromoSuccess(null)
+    try {
+      const res = await fetch("/api/admin/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          discountType: promoDiscountType,
+          discountValue: value,
+          maxUses: promoMaxUses ? Number(promoMaxUses) : null,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "Erreur lors de la création.")
+      setPromoSuccess(`Code « ${data.code.code} » créé avec succès.`)
+      setPromoNewCode("")
+      setPromoDiscountValue("10")
+      setPromoMaxUses("")
+      await fetchPromoCodes()
+    } catch (err) {
+      setPromoError(err instanceof Error ? err.message : "Erreur serveur.")
+    } finally {
+      setPromoCreating(false)
+    }
+  }
+
+  async function togglePromo(id: string, active: boolean) {
+    setPromoTogglingId(id)
+    try {
+      await fetch("/api/admin/promo", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, active }),
+      })
+      await fetchPromoCodes()
+    } catch {
+      // silent
+    } finally {
+      setPromoTogglingId(null)
+    }
   }
 
   async function grantCredits() {
@@ -396,6 +488,132 @@ export default function AdminUsersPage() {
             })()}
           </CardContent>
         </Card>
+      </section>
+
+      {/* ── Section : codes promo ── */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Codes promo</h2>
+
+        {/* Formulaire de création */}
+        <Card className="border-border/50">
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Tag className="h-4 w-4 text-violet-400" />
+              Créer un code promo (format : 4 lettres + 2 chiffres, ex: ABCD12)
+            </div>
+            <div className="flex gap-2 flex-wrap items-end">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Code</label>
+                <Input
+                  placeholder="ABCD12"
+                  value={promoNewCode}
+                  onChange={(e) => { setPromoNewCode(e.target.value.toUpperCase()); setPromoError(null) }}
+                  className="h-9 text-sm font-mono uppercase w-[120px]"
+                  maxLength={6}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Type de réduction</label>
+                <select
+                  value={promoDiscountType}
+                  onChange={(e) => setPromoDiscountType(e.target.value as "percent" | "fixed_cents")}
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary [&>option]:bg-[#0a1628]"
+                >
+                  <option value="percent">Pourcentage (%)</option>
+                  <option value="fixed_cents">Montant fixe (centimes)</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">
+                  {promoDiscountType === "percent" ? "Valeur (1–100)" : "Valeur en centimes"}
+                </label>
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={promoDiscountValue}
+                  onChange={(e) => setPromoDiscountValue(e.target.value)}
+                  className="h-9 text-sm w-[120px]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Utilisations max (optionnel)</label>
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  placeholder="Illimité"
+                  value={promoMaxUses}
+                  onChange={(e) => setPromoMaxUses(e.target.value)}
+                  className="h-9 text-sm w-[120px]"
+                />
+              </div>
+              <Button
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={createPromo}
+                disabled={promoCreating || !promoNewCode.trim()}
+              >
+                <Plus className="h-4 w-4" />
+                {promoCreating ? "Création..." : "Créer"}
+              </Button>
+            </div>
+            {promoError && <p className="text-xs text-destructive">{promoError}</p>}
+            {promoSuccess && <p className="text-xs text-green-400">{promoSuccess}</p>}
+          </CardContent>
+        </Card>
+
+        {/* Liste des codes existants */}
+        {promoLoading ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Chargement…</p>
+        ) : promoCodes.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4 flex items-center justify-center gap-2">
+            <Tag className="h-4 w-4" /> Aucun code promo créé.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {promoCodes.map((promo) => (
+              <Card key={promo.id} className={`border-border/40 ${promo.active ? "bg-muted/5" : "bg-muted/20 opacity-60"}`}>
+                <CardContent className="pt-3 pb-3 flex items-center gap-3 flex-wrap">
+                  <Tag className="h-4 w-4 text-violet-400 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-bold text-foreground text-sm">{promo.code}</span>
+                      <Badge
+                        variant="outline"
+                        className={promo.active ? "border-green-500/50 text-green-400 text-xs" : "border-border text-muted-foreground text-xs"}
+                      >
+                        {promo.active ? "Actif" : "Inactif"}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {promo.discountType === "percent"
+                          ? `-${promo.discountValue}%`
+                          : `-${(promo.discountValue / 100).toFixed(2).replace(".", ",")} €`}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {promo.usedCount} utilisation{promo.usedCount !== 1 ? "s" : ""}
+                        {promo.maxUses != null ? ` / ${promo.maxUses}` : " (illimité)"}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={`h-8 gap-1.5 text-xs shrink-0 ${promo.active ? "text-muted-foreground hover:text-destructive" : "text-green-400 hover:text-green-300"}`}
+                    disabled={promoTogglingId === promo.id}
+                    onClick={() => togglePromo(promo.id, !promo.active)}
+                  >
+                    {promo.active ? (
+                      <><ToggleLeft className="h-4 w-4" /> Désactiver</>
+                    ) : (
+                      <><ToggleRight className="h-4 w-4" /> Activer</>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── Section : préassignation ── */}

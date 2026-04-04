@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Calendar } from "@/components/ui/calendar"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
+import { PromoInput, type PromoResult } from "@/components/promo-input"
 
 type Slot = { start: string; end: string }
 
@@ -70,6 +71,9 @@ export function BookingCheckout({
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [cgvAccepted, setCgvAccepted] = useState(true)
   const [cgvChecked, setCgvChecked] = useState(false)
+
+  // Promo code
+  const [promoApplied, setPromoApplied] = useState<PromoResult | null>(null)
 
   const dateParam = useMemo(() => (selectedDate ? toDateParam(selectedDate) : null), [selectedDate])
 
@@ -142,6 +146,7 @@ export function BookingCheckout({
           priceMin,
           priceMax,
           vehicle,
+          promoCode: promoApplied?.code ?? undefined,
         }),
       })
       const data = await readJsonOrThrow(res)
@@ -240,6 +245,12 @@ export function BookingCheckout({
               <label className="text-sm font-medium text-foreground">Email (optionnel)</label>
               <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Ex: nom@domaine.com" />
             </div>
+
+            <PromoInput
+              applied={promoApplied}
+              onApply={(result) => setPromoApplied(result)}
+              onClear={() => setPromoApplied(null)}
+            />
 
             {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
