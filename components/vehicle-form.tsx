@@ -80,6 +80,7 @@ export function VehicleForm() {
   const [creditCheckoutLoading, setCreditCheckoutLoading] = useState(false)
   const [creditClientSecret, setCreditClientSecret] = useState<string | null>(null)
   const [creditPaymentType, setCreditPaymentType] = useState<"credit_purchase" | "guest_diagnostic" | null>(null)
+  const [singleDiagPrice, setSingleDiagPrice] = useState("5,99 €")
 
   const cascadeGen = useRef(0)
 
@@ -196,6 +197,14 @@ export function VehicleForm() {
   useEffect(() => {
     fetchModels(formData.marque)
   }, [formData.marque, fetchModels])
+
+  // Fetch the live single-diagnostic price from Stripe once on mount
+  useEffect(() => {
+    fetch("/api/stripe/product-price")
+      .then((r) => r.json())
+      .then((data) => { if (data?.ok && data.formatted) setSingleDiagPrice(data.formatted) })
+      .catch(() => { /* keep default fallback */ })
+  }, [])
 
   /** Dès le modèle : variantes puis chaîne années */
   useEffect(() => {
@@ -1394,7 +1403,7 @@ export function VehicleForm() {
                         onClick={() => startCreditPayment("1", "credit_purchase")}
                         disabled={creditCheckoutLoading}
                       >
-                        {creditCheckoutLoading ? "Préparation…" : "Payer 1 diagnostic — 9,99 €"}
+                        {creditCheckoutLoading ? "Préparation…" : `Payer 1 diagnostic — ${singleDiagPrice}`}
                       </Button>
                     </div>
                   )}
@@ -1478,7 +1487,7 @@ export function VehicleForm() {
                         onClick={() => startCreditPayment("1", "guest_diagnostic")}
                         disabled={creditCheckoutLoading}
                       >
-                        {creditCheckoutLoading ? "Préparation…" : "Payer mon diagnostic — 9,99 €"}
+                        {creditCheckoutLoading ? "Préparation…" : `Payer mon diagnostic — ${singleDiagPrice}`}
                       </Button>
                     </div>
                   ) : (
@@ -1524,7 +1533,7 @@ export function VehicleForm() {
                     {creditPaymentType === "guest_diagnostic" ? "Paiement du diagnostic" : "Achat de crédit"}
                   </p>
                   <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-                    1 diagnostic — 9,99 €
+                    1 diagnostic — {singleDiagPrice}
                   </p>
                 </div>
                 <button
@@ -1546,7 +1555,7 @@ export function VehicleForm() {
                     ? `${window.location.origin}/diagnostic?intent=${creditPaymentType}`
                     : ""
                 }
-                buttonLabel="Payer 9,99 €"
+                buttonLabel={`Payer ${singleDiagPrice}`}
               />
             </div>
           </div>
