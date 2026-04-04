@@ -71,6 +71,7 @@ export function Navbar() {
   const isConnexionPage = pathname.startsWith("/connexion")
   const isDiagnostic = pathname.startsWith("/diagnostic")
   const isVente = pathname.startsWith("/vente")
+  const isDiagnosticOrVente = isDiagnostic || isVente
 
   const [user, setUser] = useState<{
     id: string
@@ -167,7 +168,7 @@ export function Navbar() {
       <div className="container mx-auto flex min-h-16 flex-wrap items-center gap-2 px-4 py-2">
         {/* Mobile */}
         <div className="flex w-full min-w-0 flex-col gap-1.5 sm:hidden">
-          {isDiagnostic ? (
+          {isDiagnosticOrVente ? (
             <>
               {/* Ligne 1 : logo + onglets */}
               <div className="flex w-full items-center justify-between gap-2">
