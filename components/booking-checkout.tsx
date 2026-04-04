@@ -35,12 +35,8 @@ async function readJsonOrThrow(res: Response) {
   }
 }
 
-function computeDepositEuros(priceMin?: number): number {
-  const MIN = 25
-  if (priceMin != null && priceMin > 0) {
-    return Math.max(MIN, Math.round(priceMin * 0.15 * 100) / 100)
-  }
-  return MIN
+function computeDepositEuros(_priceMin?: number): number {
+  return 25
 }
 
 export function BookingCheckout({
