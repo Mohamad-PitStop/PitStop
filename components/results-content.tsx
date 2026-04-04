@@ -21,6 +21,60 @@ import {
 } from "lucide-react"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
 
+/** Rendu léger de markdown : **gras**, sauts de ligne, puces (• ou - en début de ligne) */
+function RichText({ text, className }: { text: string; className?: string }) {
+  // Découpe le texte en blocs (lignes séparées par \n)
+  const lines = text.split(/\n/)
+
+  const renderInline = (str: string): React.ReactNode[] => {
+    const parts = str.split(/(\*\*[^*]+\*\*)/)
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+      }
+      return part
+    })
+  }
+
+  // Regrouper les lignes de puce consécutives en listes
+  type Block = { type: "bullet"; items: string[] } | { type: "text"; content: string }
+  const blocks: Block[] = []
+  for (const line of lines) {
+    const bulletMatch = line.match(/^[\u2022\-]\s*(.+)/)
+    if (bulletMatch) {
+      const last = blocks[blocks.length - 1]
+      if (last?.type === "bullet") {
+        last.items.push(bulletMatch[1])
+      } else {
+        blocks.push({ type: "bullet", items: [bulletMatch[1]] })
+      }
+    } else {
+      blocks.push({ type: "text", content: line })
+    }
+  }
+
+  return (
+    <div className={className}>
+      {blocks.map((block, bi) => {
+        if (block.type === "bullet") {
+          return (
+            <ul key={bi} className="mt-2 space-y-1 list-none pl-0">
+              {block.items.map((item, ii) => (
+                <li key={ii} className="flex items-start gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-current shrink-0 opacity-60" />
+                  <span>{renderInline(item)}</span>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+        if (!block.content.trim()) return <div key={bi} className="h-2" />
+        return <p key={bi} className="mt-1 first:mt-0">{renderInline(block.content)}</p>
+      })}
+    </div>
+  )
+}
+
 type SeverityLevel = "low" | "medium" | "high"
 
 interface DiagnosticResult {
@@ -374,7 +428,7 @@ export function ResultsContent() {
             <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
               {diagnostic.problem}
             </h1>
-            <p className="text-muted-foreground">{diagnostic.description}</p>
+            <RichText text={diagnostic.description} className="text-foreground/85 text-sm md:text-base leading-relaxed" />
           </div>
         </div>
       </div>
