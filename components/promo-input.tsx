@@ -83,9 +83,9 @@ export function PromoInput({
           value={code}
           onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(null) }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); validate() } }}
-          placeholder="Ex: ABCD12"
+          placeholder="Ex: PITSTOP25"
           className="h-9 text-sm uppercase"
-          maxLength={6}
+          maxLength={20}
         />
         <Button
           type="button"

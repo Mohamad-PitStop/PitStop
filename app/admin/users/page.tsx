@@ -191,8 +191,8 @@ export default function AdminUsersPage() {
 
   async function createPromo() {
     const code = promoNewCode.trim().toUpperCase()
-    if (!code || !/^[A-Za-z]{4}[0-9]{2}$/i.test(code)) {
-      setPromoError("Format requis : 4 lettres + 2 chiffres (ex: ABCD12)")
+    if (!code || !/^[A-Za-z]+[0-9]{2}$/i.test(code)) {
+      setPromoError("Format requis : lettres + 2 chiffres (ex: PITSTOP25)")
       return
     }
     const value = Number(promoDiscountValue)
@@ -499,17 +499,17 @@ export default function AdminUsersPage() {
           <CardContent className="pt-4 pb-4 space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Tag className="h-4 w-4 text-violet-400" />
-              Créer un code promo (format : 4 lettres + 2 chiffres, ex: ABCD12)
+              Créer un code promo (format : lettres + 2 chiffres, ex: PITSTOP25)
             </div>
             <div className="flex gap-2 flex-wrap items-end">
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Code</label>
                 <Input
-                  placeholder="ABCD12"
+                  placeholder="PITSTOP25"
                   value={promoNewCode}
                   onChange={(e) => { setPromoNewCode(e.target.value.toUpperCase()); setPromoError(null) }}
-                  className="h-9 text-sm uppercase w-[120px]"
-                  maxLength={6}
+                  className="h-9 text-sm uppercase w-[140px]"
+                  maxLength={20}
                 />
               </div>
               <div className="space-y-1">

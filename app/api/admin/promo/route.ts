@@ -14,7 +14,7 @@ export const runtime = "nodejs"
 const CreateSchema = z.object({
   code: z
     .string()
-    .regex(/^[A-Za-z]{4}[0-9]{2}$/, "Format : 4 lettres + 2 chiffres (ex: ABCD12)"),
+    .regex(/^[A-Za-z]+[0-9]{2}$/, "Format : lettres + 2 chiffres (ex: PITSTOP25)"),
   discountType: z.enum(["percent", "fixed_cents"]),
   discountValue: z.number().int().positive(),
   maxUses: z.number().int().positive().optional().nullable(),
