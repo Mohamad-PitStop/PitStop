@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { flushSync } from "react-dom"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X, Zap } from "lucide-react"
+import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X } from "lucide-react"
 import { getAvailableYearsForModel } from "@/lib/vehicle-year-catalog"
 import { carBrands, carModels } from "@/lib/vehicle-model-catalog"
 import {
@@ -776,22 +775,6 @@ export function VehicleForm() {
   return (
     <>
       {isLoading && <DiagnosticLoader vehicle={vehicleLabel || undefined} mode="initial" />}
-
-      {/* Solde de crédits — visible uniquement pour les utilisateurs connectés */}
-      {authUser && (
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400">
-            <Zap className="h-3.5 w-3.5" />
-            {authUser.diagnosticCredits} crédit{authUser.diagnosticCredits !== 1 ? "s" : ""} disponible{authUser.diagnosticCredits !== 1 ? "s" : ""}
-          </div>
-          <Link href="/credits">
-            <Button size="sm" className="h-7 px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white">
-              Acheter
-            </Button>
-          </Link>
-        </div>
-      )}
-
     <Card className="w-full max-w-2xl mx-auto border-border/50 bg-card shadow-xl pt-3">
       <CardContent className="pt-3">
         <form onSubmit={openAuthDialog} onInvalid={handleInvalid} className="space-y-5">

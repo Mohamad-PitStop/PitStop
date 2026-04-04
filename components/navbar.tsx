@@ -146,9 +146,9 @@ export function Navbar() {
       </Link>
     ))
 
-  // Indicateur crédits pour la page d'accueil desktop uniquement
+  // Indicateur crédits pour la page d'accueil et la page diagnostic (desktop)
   const creditsIndicator =
-    user && isHome ? (
+    user && (isHome || isDiagnostic) ? (
       <div className="hidden sm:flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400">
           <Zap className="h-3.5 w-3.5" />
