@@ -6,6 +6,14 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   AlertTriangle,
   CheckCircle,
   AlertCircle,
@@ -214,6 +222,7 @@ export function ResultsContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isFollowUpLoading, setIsFollowUpLoading] = useState(false)
   const [isAbandoning, setIsAbandoning] = useState(false)
+  const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
   const [followUps, setFollowUps] = useState<Array<{ question: string; answer: string }>>([])
   const [pendingChoices, setPendingChoices] = useState<string[]>([])
   const [pendingDetails, setPendingDetails] = useState("")
@@ -396,7 +405,7 @@ export function ResultsContent() {
             variant="outline"
             size="sm"
             className="gap-1.5 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-colors"
-            onClick={handleAbandon}
+            onClick={() => setShowAbandonConfirm(true)}
             disabled={isAbandoning}
           >
             <X className="h-3.5 w-3.5" />
@@ -404,6 +413,41 @@ export function ResultsContent() {
           </Button>
         )}
       </div>
+
+      <Dialog open={showAbandonConfirm} onOpenChange={setShowAbandonConfirm}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+              Abandonner le diagnostic ?
+            </DialogTitle>
+            <DialogDescription className="pt-1 leading-relaxed">
+              Un crédit de diagnostic a été consommé pour cette analyse. En abandonnant maintenant, ce crédit{" "}
+              <span className="font-semibold text-foreground">ne sera pas remboursé</span>.
+              <br /><br />
+              Êtes-vous sûr de vouloir abandonner ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowAbandonConfirm(false)}
+              disabled={isAbandoning}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto"
+              onClick={() => { setShowAbandonConfirm(false); handleAbandon() }}
+              disabled={isAbandoning}
+            >
+              {isAbandoning ? "Abandon…" : "Oui, abandonner"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Vehicle summary */}
       <div className="mb-8 animate-in fade-in slide-in-from-bottom-2 duration-400" style={{ animationDelay: "60ms", animationFillMode: "both" }}>

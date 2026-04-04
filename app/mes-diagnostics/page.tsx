@@ -43,7 +43,14 @@ function truncate(text: string, max = 120) {
 }
 
 function StatusBadge({ status }: { status: DiagnosticStatus }) {
-  if (status === "completed") return null
+  if (status === "completed") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-medium text-green-400 border border-green-500/25">
+        <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+        Terminé
+      </span>
+    )
+  }
   if (status === "in_progress") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-400 border border-amber-500/25">
