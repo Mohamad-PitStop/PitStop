@@ -202,11 +202,11 @@ export function BookingCheckout({
               <p className="text-xs text-muted-foreground">
                 {dateParam ? format(new Date(`${dateParam}T00:00:00`), "EEEE d MMMM", { locale: fr }) : ""}
               </p>
-              <div className="mt-3 flex flex-wrap gap-2 min-h-[164px] content-start">
+              <div className="mt-3 grid grid-cols-3 gap-2 min-h-[164px] content-start">
                 {isLoadingSlots ? (
-                  <p className="text-sm text-muted-foreground">Chargement…</p>
+                  <p className="text-sm text-muted-foreground col-span-3">Chargement…</p>
                 ) : slots.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucun créneau disponible.</p>
+                  <p className="text-sm text-muted-foreground col-span-3">Aucun créneau disponible.</p>
                 ) : (
                   slots.map((s) => {
                     const active = selectedSlot?.start === s.start
@@ -217,6 +217,7 @@ export function BookingCheckout({
                         size="sm"
                         variant={active ? "default" : "secondary"}
                         onClick={() => setSelectedSlot(s)}
+                        className="w-full"
                       >
                         {slotLabel(s.start)}
                       </Button>
