@@ -167,7 +167,12 @@ export function Navbar() {
       <div className="container mx-auto flex min-h-16 flex-wrap items-center gap-2 px-4 py-2">
         {/* Mobile : ligne connexion puis logo + onglets */}
         <div className="flex w-full min-w-0 flex-col gap-2 sm:hidden">
-          <div className="flex w-full min-w-0 items-center justify-end">{authBlock}</div>
+          <div className="flex w-full min-w-0 items-center justify-between">
+            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 shrink-0">
+              Phase de test
+            </span>
+            {authBlock}
+          </div>
           {!isHome && (
             <div className="flex w-full items-center justify-between gap-2">
               <Link href="/" className="flex shrink-0 items-center">
@@ -186,7 +191,7 @@ export function Navbar() {
           )}
         </div>
 
-        {/* PC : une ligne — logo (hors accueil) | [infos connexion][onglets] alignés à droite */}
+        {/* PC : une ligne — logo (hors accueil) | badge | [infos connexion][onglets] alignés à droite */}
         <div className="hidden min-h-[3rem] w-full items-center gap-4 sm:flex">
           {!isHome && (
             <Link href="/" className="flex shrink-0 items-center">
@@ -201,12 +206,10 @@ export function Navbar() {
               />
             </Link>
           )}
-          <div
-            className={cn(
-              "flex min-w-0 flex-1 items-center gap-3",
-              isHome ? "justify-end" : "justify-end"
-            )}
-          >
+          <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300 shrink-0">
+            Phase de test
+          </span>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
             {creditsIndicator}
             {authBlock}
             <TabNav isDiagnostic={isDiagnostic} isVente={isVente} />

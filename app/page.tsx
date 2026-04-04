@@ -24,9 +24,6 @@ export default function LandingPage() {
       <main className="flex-1 pb-24 md:pb-0">
         {/* Hero — logo centré */}
         <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-24">
-          <div className="absolute left-4 top-6 z-10 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-200 md:left-6 md:top-6">
-            Phase de test
-          </div>
           <div className="absolute right-4 top-4 z-10 sm:hidden">
             <nav
               className="bg-muted text-muted-foreground inline-flex min-h-9 w-fit items-stretch rounded-lg p-[3px]"
