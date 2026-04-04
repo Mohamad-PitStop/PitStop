@@ -268,8 +268,12 @@ export function BookingCheckout({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={() => setClientSecret(null)}
       />
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
-        <div className="mb-5 flex items-center justify-between">
+      <div
+        className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] shadow-2xl flex flex-col"
+        style={{ backgroundColor: "#E8EEF8", maxHeight: "calc(100dvh - 2rem)" }}
+      >
+        {/* Header — fixe */}
+        <div className="shrink-0 px-6 pt-6 pb-4 flex items-center justify-between">
           <div>
             <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Paiement de l'acompte</p>
             {selectedSlot && (
@@ -281,7 +285,7 @@ export function BookingCheckout({
           <button
             type="button"
             onClick={() => setClientSecret(null)}
-            className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
+            className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0] shrink-0"
             style={{ color: "#1a2d5a" }}
             aria-label="Fermer"
           >
@@ -290,40 +294,44 @@ export function BookingCheckout({
             </svg>
           </button>
         </div>
-        <div className="mb-4 rounded-lg px-3 py-2.5 text-xs leading-relaxed" style={{ backgroundColor: "#d4e2f4", color: "#1a2d5a" }}>
-          Conformément à la législation belge, cet acompte sera intégralement imputé sur le montant final de votre facture. Vous ne paierez que le solde restant directement au garage le jour de l'intervention.
-        </div>
-        {!cgvAccepted && (
-          <label className="mb-3 flex items-start gap-2 text-xs leading-relaxed" style={{ color: "#1a2d5a" }}>
-            <input
-              type="checkbox"
-              className="mt-0.5 h-4 w-4 accent-green-600"
-              checked={cgvChecked}
-              onChange={(e) => {
-                const checked = e.target.checked
-                setCgvChecked(checked)
-                if (checked) {
-                  saveCgvConsent("accepted")
-                  setCgvAccepted(true)
-                }
-              }}
-            />
-            <span>
-              En cochant cette case, vous acceptez nos{" "}
-              <Link href="/conditions-generales-vente" className="text-primary underline" target="_blank">
-                conditions générales de vente
-              </Link>
-              .
-            </span>
-          </label>
-        )}
-        {cgvAccepted ? (
-          <StripePaymentForm clientSecret={clientSecret} returnUrl={returnUrl} />
-        ) : (
-          <div className="rounded-lg border border-[#c8d8f0] bg-white/60 p-3 text-xs" style={{ color: "#1a2d5a" }}>
-            Veuillez accepter les CGV pour confirmer le paiement de l&apos;acompte.
+
+        {/* Corps scrollable */}
+        <div className="overflow-y-auto px-6 pb-6 space-y-4">
+          <div className="rounded-lg px-3 py-2.5 text-xs leading-relaxed" style={{ backgroundColor: "#d4e2f4", color: "#1a2d5a" }}>
+            Conformément à la législation belge, cet acompte sera intégralement imputé sur le montant final de votre facture. Vous ne paierez que le solde restant directement au garage le jour de l'intervention.
           </div>
-        )}
+          {!cgvAccepted && (
+            <label className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "#1a2d5a" }}>
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-green-600"
+                checked={cgvChecked}
+                onChange={(e) => {
+                  const checked = e.target.checked
+                  setCgvChecked(checked)
+                  if (checked) {
+                    saveCgvConsent("accepted")
+                    setCgvAccepted(true)
+                  }
+                }}
+              />
+              <span>
+                En cochant cette case, vous acceptez nos{" "}
+                <Link href="/conditions-generales-vente" className="text-primary underline" target="_blank">
+                  conditions générales de vente
+                </Link>
+                .
+              </span>
+            </label>
+          )}
+          {cgvAccepted ? (
+            <StripePaymentForm clientSecret={clientSecret} returnUrl={returnUrl} />
+          ) : (
+            <div className="rounded-lg border border-[#c8d8f0] bg-white/60 p-3 text-xs" style={{ color: "#1a2d5a" }}>
+              Veuillez accepter les CGV pour confirmer le paiement de l&apos;acompte.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
