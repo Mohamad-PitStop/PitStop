@@ -87,6 +87,7 @@ type SeverityLevel = "low" | "medium" | "high"
 
 interface DiagnosticResult {
   diagnosticRequestId?: string | null
+  creditRefunded?: boolean
   serviceRecommendation?: {
     type: "none" | "lavage-auto"
     title?: string | null
@@ -726,9 +727,12 @@ export function ResultsContent() {
               <span className="font-medium text-foreground">aucune intervention n&apos;est nécessaire</span> pour ce que
               vous avez décrit (pas de devis ni de passage garage pour ça). Profitez de la route !
             </p>
-            <p className="mx-auto mt-5 max-w-lg rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm leading-relaxed text-foreground">
-              <span className="font-medium">Cadeau PitStop :</span> étant donné qu'aucune intervention n'est nécessaire, <span className="font-semibold">votre prochain diagnostic vous est offert</span>. <br />(Ne s&apos;applique pas aux autres résultats d&apos;analyse).
-            </p>
+            {diagnostic.creditRefunded && (
+              <p className="mx-auto mt-5 max-w-lg rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm leading-relaxed text-foreground">
+                <span className="font-medium">🎁 Crédit remboursé !</span> Aucune intervention n&apos;étant nécessaire,{" "}
+                <span className="font-semibold">votre crédit de diagnostic vous a été restitué</span>. Vous pouvez relancer une analyse quand vous le souhaitez.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

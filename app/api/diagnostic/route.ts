@@ -5,7 +5,7 @@ import { createDiagnosticRequest, updateDiagnosticRequestFollowUps, updateDiagno
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
 import { GUEST_USED_COOKIE_NAME, GUEST_PAID_SESSION_COOKIE_NAME, extractCookieValue, getUserFromAuthCookie } from "@/lib/auth-session"
-import { deductCredit } from "@/lib/accounts-db"
+import { deductCredit, addCredits } from "@/lib/accounts-db"
 import { isPaidGuestSessionValid, markPaidGuestSessionUsed } from "@/lib/guest-credits-db"
 import { NextResponse } from "next/server"
 
@@ -142,14 +142,44 @@ function applyFriendDiscount(diagnostic: z.infer<typeof DiagnosticSchema>): z.in
   }
 }
 
+/** Miroir serveur de isNoInterventionResult (client) — rien à réparer, pas de devis. */
+function isNoInterventionDiagnostic(d: z.infer<typeof DiagnosticSchema>): boolean {
+  if (d.needsMoreInfo) return false
+  if (d.concessionOnly?.required) return false
+  if (d.obdScanFirst?.required) return false
+  if (d.serviceRecommendation?.type === "lavage-auto") return false
+
+  const pr = d.priceRange
+  const priceClear = pr === null || pr === undefined || (pr.min === 0 && pr.max === 0)
+  if (!priceClear) return false
+
+  const g = d.garage
+  if (g) {
+    if (g.costRange.min !== 0 || g.costRange.max !== 0) return false
+    const block = `${g.estimatedTime}\n${(g.includes ?? []).join("\n")}`.toLowerCase()
+    if (
+      /aucune intervention|pas d.intervention|non nécessaire|sans intervention|rien à faire|aucune prestation|pas de prestation|aucun frais|pas de frais|tout va bien|rien à prévoir/.test(block)
+    ) return true
+  }
+
+  const diy = d.diy
+  if (!g && diy && !diy.possible && diy.costRange.min === 0 && diy.costRange.max === 0) {
+    const blob = [diy.difficulty, diy.estimatedTime, ...(diy.steps ?? [])].join(" ").toLowerCase()
+    if (/pas applicable|n'est pas applicable|impossible|aucune intervention|non applicable/.test(blob)) return true
+  }
+
+  return false
+}
+
 function buildDiagnosticResponse(
   diagnostic: z.infer<typeof DiagnosticSchema>,
   markGuestUsed: boolean,
   applyDiscount = false,
-  diagnosticRequestId: string | null = null
+  diagnosticRequestId: string | null = null,
+  creditRefunded = false
 ) {
   const payload = applyDiscount ? applyFriendDiscount(diagnostic) : diagnostic
-  const res = NextResponse.json({ ...payload, diagnosticRequestId })
+  const res = NextResponse.json({ ...payload, diagnosticRequestId, creditRefunded })
   if (markGuestUsed) {
     res.cookies.set(GUEST_USED_COOKIE_NAME, "1", {
       httpOnly: true,
@@ -483,7 +513,12 @@ mentionnant les variantes concernées.
         const status = diagnostic1.needsMoreInfo ? "in_progress" : "completed"
         await updateDiagnosticResult(diagId, JSON.stringify(diagnostic1), status)
       }
-      return buildDiagnosticResponse(diagnostic1, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId)
+      let creditRefunded = false
+      if (isAuthenticated && !isPrivileged && user && isNoInterventionDiagnostic(diagnostic1)) {
+        await addCredits(user.id, 1)
+        creditRefunded = true
+      }
+      return buildDiagnosticResponse(diagnostic1, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId, creditRefunded)
     }
 
     const refinementPrompt = `${prompt}\n\nCONTRAINTE ABSOLUE: toutes les fourchettes de prix (priceRange, diy.costRange, garage.costRange) doivent avoir un ecart <= 100 euros. Si tu ne peux pas respecter ca sans inventer, mets needsMoreInfo=true et pose UNE question courte et ciblée (missingInfo.question) pour reduire l'incertitude, puis donne quand meme une fourchette provisoire avec ecart <= 100.\n\nTa reponse precedente avait des fourchettes trop larges. Corrige en respectant strictement ecart <= 100 euros partout.\nReponse precedente (JSON): ${JSON.stringify(diagnostic1)}`
@@ -502,7 +537,12 @@ mentionnant les variantes concernées.
       const status = finalDiagnostic.needsMoreInfo ? "in_progress" : "completed"
       await updateDiagnosticResult(diagId, JSON.stringify(finalDiagnostic), status)
     }
-    return buildDiagnosticResponse(finalDiagnostic, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId)
+    let creditRefunded = false
+    if (isAuthenticated && !isPrivileged && user && isNoInterventionDiagnostic(finalDiagnostic)) {
+      await addCredits(user.id, 1)
+      creditRefunded = true
+    }
+    return buildDiagnosticResponse(finalDiagnostic, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId, creditRefunded)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json({ error: "Données du formulaire invalides." }, { status: 400 })
