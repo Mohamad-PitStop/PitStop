@@ -508,7 +508,7 @@ export default function AdminUsersPage() {
                   placeholder="ABCD12"
                   value={promoNewCode}
                   onChange={(e) => { setPromoNewCode(e.target.value.toUpperCase()); setPromoError(null) }}
-                  className="h-9 text-sm font-mono uppercase w-[120px]"
+                  className="h-9 text-sm uppercase w-[120px]"
                   maxLength={6}
                 />
               </div>
@@ -578,7 +578,7 @@ export default function AdminUsersPage() {
                   <Tag className="h-4 w-4 text-violet-400 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-foreground text-sm">{promo.code}</span>
+                      <span className="font-bold text-foreground text-sm">{promo.code}</span>
                       <Badge
                         variant="outline"
                         className={promo.active ? "border-green-500/50 text-green-400 text-xs" : "border-border text-muted-foreground text-xs"}
