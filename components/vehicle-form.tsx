@@ -491,6 +491,51 @@ export function VehicleForm() {
       }
     }
 
+    // ── Validation de tous les champs ───────────────────────────────────────
+    if (!formData.marque.trim()) {
+      setAuthError("Veuillez sélectionner une marque.")
+      return
+    }
+    if (!formData.modele.trim()) {
+      setAuthError("Veuillez sélectionner ou saisir le modèle de votre véhicule.")
+      return
+    }
+    if (!formData.annee.trim()) {
+      setAuthError("Veuillez indiquer l'année de votre véhicule.")
+      return
+    }
+    const anneeRaw = parseInt(formData.annee, 10)
+    const currentYear = new Date().getFullYear()
+    if (isNaN(anneeRaw) || anneeRaw < 1900 || anneeRaw > currentYear) {
+      setAuthError(`L'année doit être comprise entre 1900 et ${currentYear}.`)
+      return
+    }
+    if (!fuelLocked && !formData.carburant.trim()) {
+      setAuthError("Veuillez sélectionner le type de carburant.")
+      return
+    }
+    if (!transLocked && !formData.transmission.trim()) {
+      setAuthError("Veuillez sélectionner la transmission.")
+      return
+    }
+    const kmRaw = parseInt(formData.kilometrage, 10)
+    if (!formData.kilometrage.trim() || isNaN(kmRaw) || kmRaw < 0) {
+      setAuthError("Veuillez indiquer un kilométrage valide (ex : 85000).")
+      return
+    }
+    if (kmRaw > 2_000_000) {
+      setAuthError("Le kilométrage ne peut pas dépasser 2 000 000 km.")
+      return
+    }
+    if (!formData.probleme.trim()) {
+      setAuthError("Veuillez décrire le problème rencontré.")
+      return
+    }
+    if (formData.probleme.trim().length < 10) {
+      setAuthError("La description du problème doit contenir au moins 10 caractères.")
+      return
+    }
+
     const MAX_EXTRA = 80
     const trim = (s: string) => (s || "").trim()
     const cylindree = trim(formData.cylindree)
@@ -781,7 +826,12 @@ export function VehicleForm() {
       } else if (target.name === "annee") {
         target.setCustomValidity("Veuillez indiquer l'année du véhicule.")
       } else if (target.name === "kilometrage") {
-        target.setCustomValidity("Veuillez indiquer le kilométrage du véhicule.")
+        const v = parseInt((target as HTMLInputElement).value, 10)
+        if (!isNaN(v) && v > 2_000_000) {
+          target.setCustomValidity("Le kilométrage ne peut pas dépasser 2 000 000 km.")
+        } else {
+          target.setCustomValidity("Veuillez indiquer le kilométrage du véhicule.")
+        }
       } else if (target.name === "probleme") {
         target.setCustomValidity("Veuillez décrire le problème rencontré.")
       } else {
@@ -1186,6 +1236,7 @@ export function VehicleForm() {
                     type="number"
                     placeholder="Ex: 85000"
                     min="0"
+                    max="2000000"
                     value={formData.kilometrage}
                     onChange={handleChange}
                     onInput={clearValidity}
