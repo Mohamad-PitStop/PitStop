@@ -3,8 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/navbar"
 import { getSiteUrl } from "@/lib/stripe"
-import { CheckCircle, Euro, Calendar, Info } from "lucide-react"
-import { format } from "date-fns"
+import { CheckCircle, Euro, Calendar, Info, XCircle } from "lucide-react"
+import { formatInTimeZone } from "date-fns-tz"
 import { fr } from "date-fns/locale"
 
 async function getStatus(params: { session_id?: string; payment_intent?: string }) {
@@ -31,9 +31,9 @@ async function getStatus(params: { session_id?: string; payment_intent?: string 
   >
 }
 
-function formatDateTime(iso: string) {
+function formatDateTime(iso: string, timeZone = "Europe/Brussels") {
   try {
-    return format(new Date(iso), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })
+    return formatInTimeZone(new Date(iso), timeZone, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })
   } catch {
     return iso
   }
@@ -52,13 +52,64 @@ export default async function RendezVousSuccessPage({
     ? await getStatus({ session_id: sessionId, payment_intent: paymentIntent })
     : null
 
-  const depositEuros = data?.ok ? (data.payment.depositAmountCents ?? 0) / 100 : null
-  const priceMin = data?.ok ? data.payment.priceMinEuros ?? null : null
-  const priceMax = data?.ok ? data.payment.priceMaxEuros ?? null : null
+  const isPaid = data?.ok && data.payment.paymentStatus === "paid"
+  const isCancelled = data?.ok && data.payment.paymentStatus !== "paid"
+
+  const depositEuros = isPaid ? (data!.payment.depositAmountCents ?? 0) / 100 : null
+  const priceMin = isPaid ? data!.payment.priceMinEuros ?? null : null
+  const priceMax = isPaid ? data!.payment.priceMaxEuros ?? null : null
 
   const remainingMin = depositEuros != null && priceMin != null ? Math.max(0, priceMin - depositEuros) : null
   const remainingMax = depositEuros != null && priceMax != null ? Math.max(0, priceMax - depositEuros) : null
   const hasRemainingInfo = remainingMin != null && remainingMax != null
+
+  // Payment was not completed (cancelled, failed, or still pending)
+  if (isCancelled) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-8 md:py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div>
+                <Link href="/rendez-vous" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  ← Retour
+                </Link>
+              </div>
+              <Card className="border-destructive/30 bg-card">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
+                      <XCircle className="h-5 w-5 text-destructive" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-foreground">Paiement annulé</CardTitle>
+                      <CardDescription>
+                        Le paiement n&apos;a pas été complété. Votre réservation n&apos;a pas été confirmée.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Aucun montant n&apos;a été débité. Vous pouvez recommencer la réservation à tout moment.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <Button asChild size="lg" className="w-full sm:w-auto">
+                      <Link href="/rendez-vous">Réessayer</Link>
+                    </Button>
+                    <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
+                      <Link href="/">Accueil</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,7 +135,7 @@ export default async function RendezVousSuccessPage({
                   <div>
                     <CardTitle className="text-foreground">Paiement confirmé ✓</CardTitle>
                     <CardDescription>
-                      {data?.ok
+                      {isPaid
                         ? "Votre réservation est enregistrée. Le créneau a été bloqué dans le calendrier du garage."
                         : "Nous finalisons votre réservation."}
                     </CardDescription>
@@ -93,7 +144,7 @@ export default async function RendezVousSuccessPage({
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {data?.ok ? (
+                {isPaid ? (
                   <>
                     {/* Créneau réservé */}
                     <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 flex items-start gap-3">
@@ -101,10 +152,10 @@ export default async function RendezVousSuccessPage({
                       <div>
                         <p className="text-sm font-medium text-foreground">Votre rendez-vous</p>
                         <p className="text-sm text-muted-foreground capitalize">
-                          {formatDateTime(data.reservation.startAt)}
+                          {formatDateTime(data!.reservation.startAt, data!.reservation.timeZone || "Europe/Brussels")}
                         </p>
-                        {data.reservation.name && (
-                          <p className="text-sm text-muted-foreground">Au nom de : {data.reservation.name}</p>
+                        {data!.reservation.name && (
+                          <p className="text-sm text-muted-foreground">Au nom de : {data!.reservation.name}</p>
                         )}
                       </div>
                     </div>
