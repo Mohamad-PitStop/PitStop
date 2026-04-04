@@ -19,6 +19,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react"
+import { DiagnosticLoader } from "@/components/diagnostic-loader"
 
 type SeverityLevel = "low" | "medium" | "high"
 
@@ -314,8 +315,15 @@ export function ResultsContent() {
 
   return (
     <div className="container mx-auto px-4">
+      {isFollowUpLoading && (
+        <DiagnosticLoader
+          mode="followup"
+          vehicle={`${vehicleInfo.marque} ${vehicleInfo.modele}`}
+        />
+      )}
+
       {/* Back button + Abandon */}
-      <div className="flex items-center justify-between mb-6 gap-3">
+      <div className="flex items-center justify-between mb-6 gap-3 animate-in fade-in duration-300">
         <Link href="/diagnostic" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
           Nouvelle analyse
@@ -335,7 +343,7 @@ export function ResultsContent() {
       </div>
 
       {/* Vehicle summary */}
-      <div className="mb-8">
+      <div className="mb-8 animate-in fade-in slide-in-from-bottom-2 duration-400" style={{ animationDelay: "60ms", animationFillMode: "both" }}>
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
           <span className="font-medium text-foreground">{vehicleInfo.marque} {vehicleInfo.modele}</span>
           <span>•</span>
@@ -347,7 +355,7 @@ export function ResultsContent() {
       </div>
 
       {/* Severity Badge & Problem */}
-      <div className={`relative rounded-xl border border-border/50 bg-gradient-to-r ${severityConfig[diagnostic.severity].bgGradient} to-transparent p-6 mb-8`}>
+      <div className={`relative rounded-xl border border-border/50 bg-gradient-to-r ${severityConfig[diagnostic.severity].bgGradient} to-transparent p-6 mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500`} style={{ animationDelay: "130ms", animationFillMode: "both" }}>
         <div className="flex flex-col md:flex-row md:items-start gap-4">
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border ${severityConfig[diagnostic.severity].color} text-sm font-medium w-fit`}>
             <SeverityIcon className="h-4 w-4" />
@@ -364,7 +372,7 @@ export function ResultsContent() {
 
       {/* Concession only (exception vehicles) */}
       {isConcessionOnly && diagnostic.concessionOnly && (
-        <Card className="mb-8 border-primary/30 bg-card">
+        <Card className="mb-8 border-primary/30 bg-card animate-in fade-in slide-in-from-bottom-3 duration-500" style={{ animationDelay: "220ms", animationFillMode: "both" }}>
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
@@ -569,7 +577,7 @@ export function ResultsContent() {
 
       {/* Price Range */}
       {!isConcessionOnly && !isObdScanFirst && !noInterventionNeeded && diagnostic.priceRange && (
-        <Card className="mb-8 border-border/50 bg-card">
+        <Card className="mb-8 border-border/50 bg-card animate-in fade-in slide-in-from-bottom-3 duration-500" style={{ animationDelay: "280ms", animationFillMode: "both" }}>
           <CardContent className="pt-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -595,9 +603,10 @@ export function ResultsContent() {
       {/* DIY vs Garage Cards — chaque carte si l’API renvoie les données (souvent l’une sans l’autre) */}
       {!isConcessionOnly && !isObdScanFirst && !noInterventionNeeded && (diagnostic.diy || diagnostic.garage) && (
         <div
-          className={`grid grid-cols-1 gap-6 mb-8 ${
+          className={`grid grid-cols-1 gap-6 mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500 ${
             diagnostic.diy && diagnostic.garage ? "lg:grid-cols-2" : ""
           }`}
+          style={{ animationDelay: "360ms", animationFillMode: "both" }}
         >
         {/* DIY Card */}
         {diagnostic.diy && (
@@ -745,7 +754,7 @@ export function ResultsContent() {
         !isCarWashOnlyRequest &&
         diagnostic.priceRange &&
         !diagnostic.garage && (
-          <Card className="mb-8 border-primary/30 bg-card">
+          <Card className="mb-8 border-primary/30 bg-card animate-in fade-in slide-in-from-bottom-3 duration-500" style={{ animationDelay: "440ms", animationFillMode: "both" }}>
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />
@@ -767,7 +776,7 @@ export function ResultsContent() {
         )}
 
       {/* Disclaimer */}
-      <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/30 border border-border/50">
+      <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/30 border border-border/50 animate-in fade-in duration-500" style={{ animationDelay: "500ms", animationFillMode: "both" }}>
         <Info className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
         <div className="text-sm text-muted-foreground">
           <p className="font-medium text-foreground mb-1">Avertissement</p>

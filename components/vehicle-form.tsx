@@ -20,6 +20,7 @@ import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
+import { DiagnosticLoader } from "@/components/diagnostic-loader"
 
 const MANUAL_PLACEHOLDER = "Saisir manuellement"
 const MODEL_MANUAL_PLACEHOLDER = "Ex : Continental GT, Macan, Stelvio..."
@@ -744,7 +745,11 @@ export function VehicleForm() {
   const yearOptionsForSelect = yearList
   const showYearFallbackInput = fallbackYear && !loadingYear
 
+  const vehicleLabel = [formData.marque, formData.modele, formData.annee].filter(Boolean).join(" ")
+
   return (
+    <>
+      {isLoading && <DiagnosticLoader vehicle={vehicleLabel || undefined} mode="initial" />}
     <Card className="w-full max-w-2xl mx-auto border-border/50 bg-card shadow-xl pt-3">
       <CardContent className="pt-3">
         <form onSubmit={openAuthDialog} onInvalid={handleInvalid} className="space-y-5">
@@ -933,7 +938,7 @@ export function VehicleForm() {
           </div>
 
           {isException && (
-            <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-foreground">
+            <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-foreground animate-in fade-in slide-in-from-bottom-2 duration-300">
               <p className="text-sm font-medium text-amber-200/90 mb-1">Concession spécialisée requise</p>
               <p className="text-sm text-muted-foreground">{MESSAGE_MARQUE_EXCEPTION}</p>
             </div>
@@ -1510,5 +1515,6 @@ export function VehicleForm() {
         )}
       </CardContent>
     </Card>
+    </>
   )
 }
