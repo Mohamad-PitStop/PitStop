@@ -31,8 +31,8 @@ export default function ConfidentialitePage() {
             </p>
             <p className="text-muted-foreground">
               Responsable du traitement : Mohamad ALI AHMAD, Braine-l&apos;Alleud, Belgique —{" "}
-              <a className="text-primary hover:underline" href="mailto:amoudialiahmad@gmail.com">
-                amoudialiahmad@gmail.com
+              <a className="text-primary hover:underline" href="mailto:pitstopbelgique@gmail.com">
+                pitstopbelgique@gmail.com
               </a>
             </p>
           </section>
@@ -136,8 +136,8 @@ export default function ConfidentialitePage() {
             </ul>
             <p className="text-muted-foreground">
               Exercice des droits :{" "}
-              <a className="text-primary hover:underline" href="mailto:amoudialiahmad@gmail.com">
-                amoudialiahmad@gmail.com
+              <a className="text-primary hover:underline" href="mailto:pitstopbelgique@gmail.com">
+                pitstopbelgique@gmail.com
               </a>
               <br />
               APD Belgique :{" "}
@@ -184,8 +184,8 @@ export default function ConfidentialitePage() {
             <p className="text-muted-foreground">
               Pour toute question relative à cette politique :
               <br />
-              <a className="text-primary hover:underline" href="mailto:amoudialiahmad@gmail.com">
-                amoudialiahmad@gmail.com
+              <a className="text-primary hover:underline" href="mailto:pitstopbelgique@gmail.com">
+                pitstopbelgique@gmail.com
               </a>
             </p>
           </section>

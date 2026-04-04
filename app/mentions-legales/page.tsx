@@ -32,8 +32,8 @@ export default function MentionsLegalesPage() {
               Adresse : Braine-l&apos;Alleud, Belgique
               <br />
               Contact :{" "}
-              <a className="text-primary hover:underline" href="mailto:amoudialiahmad@gmail.com">
-                amoudialiahmad@gmail.com
+              <a className="text-primary hover:underline" href="mailto:pitstopbelgique@gmail.com">
+                pitstopbelgique@gmail.com
               </a>
               <br />
               Statut : Personne physique — service en phase bêta non commerciale.
@@ -121,8 +121,8 @@ export default function MentionsLegalesPage() {
             <p className="text-muted-foreground">
               Pour toute question relative au service ou aux présentes mentions légales, contactez l&apos;éditeur à
               l&apos;adresse suivante :{" "}
-              <a className="text-primary hover:underline" href="mailto:amoudialiahmad@gmail.com">
-                amoudialiahmad@gmail.com
+              <a className="text-primary hover:underline" href="mailto:pitstopbelgique@gmail.com">
+                pitstopbelgique@gmail.com
               </a>
             </p>
             <p className="text-sm text-muted-foreground">Document rédigé en date du 26 mars 2026.</p>

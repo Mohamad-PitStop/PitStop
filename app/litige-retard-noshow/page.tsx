@@ -20,7 +20,7 @@ Cette annexe encadre :
 
 2) Canal officiel de réclamation
 Toute réclamation doit être transmise à :
-amoudialiahmad@gmail.com
+pitstopbelgique@gmail.com
 La réclamation doit inclure au minimum :
 • identité du demandeur ;
 • email utilisé sur la plateforme ;

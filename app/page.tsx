@@ -258,7 +258,7 @@ export default function LandingPage() {
                 <Link href="/sla" className="hover:text-foreground transition-colors">
                   SLA
                 </Link>
-                <a href="mailto:amoudialiahmad@gmail.com" className="hover:text-foreground transition-colors">
+                <a href="mailto:pitstopbelgique@gmail.com" className="hover:text-foreground transition-colors">
                   Contact
                 </a>
               </div>

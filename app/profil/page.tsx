@@ -575,8 +575,8 @@ export default function ProfilPage() {
                 </Button>
                 <p className="text-[11px] text-muted-foreground">
                   Pour toute autre demande relative à vos droits RGPD :{" "}
-                  <a href="mailto:amoudialiahmad@gmail.com" className="text-primary hover:underline">
-                    amoudialiahmad@gmail.com
+                  <a href="mailto:pitstopbelgique@gmail.com" className="text-primary hover:underline">
+                    pitstopbelgique@gmail.com
                   </a>
                 </p>
               </div>
