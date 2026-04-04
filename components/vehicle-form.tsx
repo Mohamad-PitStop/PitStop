@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X } from "lucide-react"
+import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X, Mic, RefreshCw, Send } from "lucide-react"
 import { getAvailableYearsForModel } from "@/lib/vehicle-year-catalog"
 import { carBrands, carModels } from "@/lib/vehicle-model-catalog"
 import {
@@ -81,6 +81,97 @@ export function VehicleForm() {
   const [creditClientSecret, setCreditClientSecret] = useState<string | null>(null)
   const [creditPaymentType, setCreditPaymentType] = useState<"credit_purchase" | "guest_diagnostic" | null>(null)
   const [singleDiagPrice, setSingleDiagPrice] = useState("5,99 €")
+
+  // ── Reconnaissance vocale ────────────────────────────────────────────────────
+  const [isVoiceActive, setIsVoiceActive] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [voiceTranscript, setVoiceTranscript] = useState("")
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const recognitionRef = useRef<any>(null)
+
+  function startVoiceRecording() {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setVoiceError("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.")
+      setIsVoiceActive(true)
+      return
+    }
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+      recognitionRef.current = null
+    }
+    const recognition = new SpeechRecognition()
+    recognition.lang = "fr-FR"
+    recognition.continuous = true
+    recognition.interimResults = true
+    let finalText = ""
+    recognition.onresult = (event: any) => {
+      let interim = ""
+      finalText = ""
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalText += event.results[i][0].transcript + " "
+        } else {
+          interim += event.results[i][0].transcript
+        }
+      }
+      setVoiceTranscript((finalText + interim).trimStart())
+    }
+    recognition.onerror = (event: any) => {
+      if (event.error === "not-allowed") {
+        setVoiceError("Accès au microphone refusé. Veuillez autoriser l'accès dans les paramètres du navigateur.")
+      } else if (event.error === "no-speech") {
+        setVoiceError("Aucune parole détectée. Réessayez.")
+      } else {
+        setVoiceError(`Erreur : ${event.error}`)
+      }
+      setIsListening(false)
+    }
+    recognition.onend = () => setIsListening(false)
+    recognitionRef.current = recognition
+    recognition.start()
+    setIsVoiceActive(true)
+    setIsListening(true)
+    setVoiceTranscript("")
+    setVoiceError(null)
+  }
+
+  function retryVoiceRecording() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+      recognitionRef.current = null
+    }
+    setVoiceTranscript("")
+    setVoiceError(null)
+    startVoiceRecording()
+  }
+
+  function sendVoiceTranscript() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+      recognitionRef.current = null
+    }
+    setIsListening(false)
+    setIsVoiceActive(false)
+    const text = voiceTranscript.trim()
+    if (text) {
+      setFormData((prev) => ({ ...prev, probleme: text }))
+    }
+    setVoiceTranscript("")
+    setVoiceError(null)
+  }
+
+  function cancelVoiceRecording() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+      recognitionRef.current = null
+    }
+    setIsListening(false)
+    setIsVoiceActive(false)
+    setVoiceTranscript("")
+    setVoiceError(null)
+  }
 
   const cascadeGen = useRef(0)
 
@@ -1317,20 +1408,93 @@ export function VehicleForm() {
                   <Search className="h-4 w-4 text-primary" />
                   Description du problème
                 </label>
-                <textarea
-                  id="probleme"
-                  name="probleme"
-                  lang="fr"
-                  spellCheck={true}
-                  placeholder="Décrivez le problème que vous rencontrez avec votre véhicule..."
-                  value={formData.probleme}
-                  onChange={handleChange}
-                  onInput={clearValidity}
-                  required
-                  disabled={!isKilometrageDone}
-                  rows={4}
-                  className="w-full rounded-lg border border-input bg-secondary/50 px-3 py-3 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                />
+
+                {isVoiceActive ? (
+                  <div className="rounded-lg border border-primary/40 bg-secondary/50 p-3 space-y-3 min-h-[108px] shadow-sm">
+                    {/* Indicateur */}
+                    <div className="flex items-center gap-2">
+                      {voiceError ? (
+                        <span className="text-xs text-destructive">{voiceError}</span>
+                      ) : isListening ? (
+                        <span className="flex items-center gap-2 text-xs text-primary font-medium">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-70" />
+                            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+                          </span>
+                          Écoute en cours…
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Mic className="h-3 w-3" /> En attente…
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={cancelVoiceRecording}
+                        className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+                        aria-label="Annuler"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Transcription en direct */}
+                    <p className="text-sm text-foreground min-h-[2.5rem] leading-relaxed">
+                      {voiceTranscript
+                        ? voiceTranscript
+                        : !voiceError && (
+                            <span className="text-muted-foreground italic">Parlez maintenant…</span>
+                          )}
+                    </p>
+
+                    {/* Boutons */}
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={retryVoiceRecording}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-sm hover:bg-accent transition-colors"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Réessayer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={sendVoiceTranscript}
+                        disabled={!voiceTranscript.trim()}
+                        className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <Send className="h-3 w-3" />
+                        Envoyer
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <textarea
+                      id="probleme"
+                      name="probleme"
+                      lang="fr"
+                      spellCheck={true}
+                      placeholder="Décrivez le problème que vous rencontrez avec votre véhicule..."
+                      value={formData.probleme}
+                      onChange={handleChange}
+                      onInput={clearValidity}
+                      required
+                      disabled={!isKilometrageDone}
+                      rows={4}
+                      className="w-full rounded-lg border border-input bg-secondary/50 px-3 py-3 pr-10 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <button
+                      type="button"
+                      onClick={startVoiceRecording}
+                      disabled={!isKilometrageDone}
+                      title="Décrire oralement"
+                      className="absolute bottom-2.5 right-2.5 h-7 w-7 rounded-full border border-input bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Mic className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <Button
