@@ -1,4 +1,4 @@
-export type FetchVehicleOptsResult = { options: string[]; error: boolean }
+export type FetchVehicleOptsResult = { options: string[]; hasMultipleAutoTypes?: boolean; error: boolean }
 
 /**
  * Appelle l’API de vérification des options véhicule (cascade marque → modèle → …).
@@ -16,7 +16,7 @@ export async function postVehicleOptions(body: Record<string, string>): Promise<
       console.error("vehicle-options invalid response", data)
       return { options: [], error: true }
     }
-    return { options: data.options as string[], error: data.error === true }
+    return { options: data.options as string[], hasMultipleAutoTypes: data.hasMultipleAutoTypes === true, error: data.error === true }
   } catch (e) {
     console.error("vehicle-options fetch error", e)
     return { options: [], error: true }

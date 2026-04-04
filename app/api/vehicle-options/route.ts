@@ -4,7 +4,7 @@ import type { SystemModelMessage } from "@ai-sdk/provider-utils"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-const cache = new Map<string, { options: string[]; cachedAt: number }>()
+const cache = new Map<string, { options: string[]; hasMultipleAutoTypes: boolean; cachedAt: number }>()
 
 const TTL = 7 * 24 * 60 * 60 * 1000 // 1 semaine en ms
 
@@ -59,11 +59,11 @@ type InferredStep = "modeles" | "variantes" | "annees" | "carburants" | "transmi
 /**
  * Post-traitement des transmissions retournées par Claude :
  * - Sépare les options manuelles des automatiques
- * - Si un seul type automatique → le remplace par "Automatique" (peu importe son nom spécifique)
- * - Si plusieurs types automatiques → conserve les noms spécifiques (utile pour le diagnostic)
- * - Normalise "automatique" (minuscule) → "Automatique"
+ * - Toutes les boîtes automatiques sont regroupées en une seule option "Automatique"
+ * - Retourne aussi hasMultipleAutoTypes pour permettre au front d'afficher un champ
+ *   "Type de boîte automatique" dans les infos complémentaires si plusieurs types existent
  */
-function normalizeTransmissions(options: string[]): string[] {
+function normalizeTransmissions(options: string[]): { normalized: string[]; hasMultipleAutoTypes: boolean } {
   const isManual = (t: string) => /^manuelle/i.test(t.trim())
 
   const manuals = options.filter(isManual)
@@ -71,22 +71,14 @@ function normalizeTransmissions(options: string[]): string[] {
 
   // Dédupliquer les autos (insensible à la casse) pour compter les types distincts
   const uniqueAutos = [...new Map(autos.map((t) => [t.trim().toLowerCase(), t.trim()])).values()]
-
-  let normalizedAutos: string[]
-  if (uniqueAutos.length === 0) {
-    normalizedAutos = []
-  } else if (uniqueAutos.length === 1) {
-    // Un seul type automatique → simplifier en "Automatique"
-    normalizedAutos = ["Automatique"]
-  } else {
-    // Plusieurs types → conserver les noms spécifiques, normaliser juste la casse de "automatique"
-    normalizedAutos = uniqueAutos.map((t) => (/^automatique$/i.test(t) ? "Automatique" : t))
-  }
+  const hasMultipleAutoTypes = uniqueAutos.length > 1
 
   // Normaliser la casse des manuelles (première lettre en majuscule)
   const normalizedManuals = manuals.map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+  // Toujours une seule entrée "Automatique" pour l'affichage côté client
+  const normalizedAutos = uniqueAutos.length > 0 ? ["Automatique"] : []
 
-  return [...normalizedManuals, ...normalizedAutos]
+  return { normalized: [...normalizedManuals, ...normalizedAutos], hasMultipleAutoTypes }
 }
 
 function inferStep(body: z.infer<typeof BodySchema>): InferredStep {
@@ -166,7 +158,7 @@ export async function POST(req: Request) {
 
   const entry = cache.get(cacheKey)
   if (entry && Date.now() - entry.cachedAt < TTL) {
-    return NextResponse.json({ options: entry.options })
+    return NextResponse.json({ options: entry.options, hasMultipleAutoTypes: entry.hasMultipleAutoTypes })
   }
 
   try {
@@ -182,11 +174,19 @@ export async function POST(req: Request) {
     logAnthropicCacheStats(usage)
 
     const rawOptions = output?.options ?? []
-    const options = step === "transmissions" ? normalizeTransmissions(rawOptions) : rawOptions
-    cache.set(cacheKey, { options, cachedAt: Date.now() })
-    return Response.json({ options })
+    let options: string[]
+    let hasMultipleAutoTypes = false
+    if (step === "transmissions") {
+      const result = normalizeTransmissions(rawOptions)
+      options = result.normalized
+      hasMultipleAutoTypes = result.hasMultipleAutoTypes
+    } else {
+      options = rawOptions
+    }
+    cache.set(cacheKey, { options, hasMultipleAutoTypes, cachedAt: Date.now() })
+    return Response.json({ options, hasMultipleAutoTypes })
   } catch (error) {
     console.error("vehicle-options API error:", error)
-    return Response.json({ options: [] as string[], error: true })
+    return Response.json({ options: [] as string[], hasMultipleAutoTypes: false, error: true })
   }
 }

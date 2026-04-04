@@ -46,6 +46,7 @@ export function VehicleForm() {
     puissance: "",
     nombrePortes: "",
     typeCarrosserie: "",
+    typeBoiteAuto: "",
   })
 
   const [variantList, setVariantList] = useState<string[]>([])
@@ -66,6 +67,7 @@ export function VehicleForm() {
   const [variantUiSkipped, setVariantUiSkipped] = useState(true)
   const [fuelLocked, setFuelLocked] = useState(false)
   const [transLocked, setTransLocked] = useState(false)
+  const [hasMultipleAutoTypes, setHasMultipleAutoTypes] = useState(false)
 
   const [extraOpen, setExtraOpen] = useState(false)
   const [puissanceUnite, setPuissanceUnite] = useState<"ch" | "kW">("ch")
@@ -179,6 +181,7 @@ export function VehicleForm() {
           return
         }
         setTransList(r.options)
+        setHasMultipleAutoTypes(r.hasMultipleAutoTypes ?? false)
         if (r.options.length === 1) {
           setFormData((prev) => ({ ...prev, transmission: r.options[0] }))
           setTransLocked(true)
@@ -219,9 +222,11 @@ export function VehicleForm() {
         transmission: "",
         kilometrage: "",
         probleme: "",
+        typeBoiteAuto: "",
       }))
       setFuelLocked(false)
       setTransLocked(false)
+      setHasMultipleAutoTypes(false)
 
       const r = await postVehicleOptions({
         marque: formData.marque,
@@ -579,6 +584,7 @@ export function VehicleForm() {
   /** Sélection d'une marque via le combobox (remplace le <select> natif). */
   const handleMarqueSelect = (value: string) => {
     cascadeGen.current += 1
+    setHasMultipleAutoTypes(false)
     setFormData((prev) => ({
       ...prev,
       marque: value,
@@ -589,6 +595,7 @@ export function VehicleForm() {
       annee: "",
       kilometrage: "",
       probleme: "",
+      typeBoiteAuto: "",
     }))
     setVariantList([])
     setYearList([])
@@ -674,6 +681,7 @@ export function VehicleForm() {
     if (name === "modele") {
       setManualModelEntry(false)
       cascadeGen.current += 1
+      setHasMultipleAutoTypes(false)
       setFormData((prev) => ({
         ...prev,
         modele: value,
@@ -683,6 +691,7 @@ export function VehicleForm() {
         annee: "",
         kilometrage: "",
         probleme: "",
+        typeBoiteAuto: "",
       }))
       return
     }
@@ -744,6 +753,13 @@ export function VehicleForm() {
   const yearSelectDisabled = !isModeleDone || loadingVariant || loadingYear
   const yearOptionsForSelect = yearList
   const showYearFallbackInput = fallbackYear && !loadingYear
+
+  // Auto-ouvrir les infos complémentaires si plusieurs types de boîte auto existent
+  useEffect(() => {
+    if (hasMultipleAutoTypes && formData.transmission === "Automatique") {
+      setExtraOpen(true)
+    }
+  }, [hasMultipleAutoTypes, formData.transmission])
 
   const vehicleLabel = [formData.marque, formData.modele, formData.annee].filter(Boolean).join(" ")
 
@@ -1165,6 +1181,28 @@ export function VehicleForm() {
                 </button>
                 {extraOpen && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 pb-4 pt-1">
+                    {hasMultipleAutoTypes && formData.transmission === "Automatique" && (
+                      <div className="md:col-span-2 space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <label htmlFor="typeBoiteAuto" className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                          <Settings2 className="h-3.5 w-3.5 text-primary" />
+                          Type de boîte automatique
+                          <span className="text-muted-foreground">(optionnel)</span>
+                        </label>
+                        <Input
+                          id="typeBoiteAuto"
+                          name="typeBoiteAuto"
+                          placeholder="Ex: DSG, S tronic, PDK, CVT… (si vous le connaissez)"
+                          value={formData.typeBoiteAuto}
+                          onChange={handleChange}
+                          maxLength={100}
+                          disabled={!isKilometrageDone}
+                          className="h-10 bg-background text-sm"
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          Si vous ne savez pas, laissez vide — PitStop vous guidera.
+                        </p>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <label htmlFor="cylindree" className="text-xs font-medium text-muted-foreground">
                         Cylindrée

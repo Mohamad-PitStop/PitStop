@@ -63,6 +63,7 @@ const DiagnosticSchema = z.object({
         )
         .nullable()
         .default(null),
+      requestsGearboxPhoto: z.boolean().default(false),
     })
     .nullable(),
   obdScanFirst: z
@@ -185,6 +186,8 @@ const DiagnosticInputSchema = z.object({
   puissance: z.string().trim().max(40).optional().nullable(),
   nombrePortes: z.string().trim().max(10).optional().nullable(),
   typeCarrosserie: z.string().trim().max(60).optional().nullable(),
+  typeBoiteAuto: z.string().trim().max(100).optional().nullable(),
+  photoLevier: z.string().max(12_000_000).optional().nullable(),
   authType: z.enum(["guest", "account"]).optional().nullable(),
 })
 
@@ -197,6 +200,8 @@ export async function POST(req: Request) {
     const puissance = body.puissance?.trim() || ""
     const nombrePortes = body.nombrePortes?.trim() || ""
     const typeCarrosserie = body.typeCarrosserie?.trim() || ""
+    const typeBoiteAuto = body.typeBoiteAuto?.trim() || ""
+    const photoLevier = body.photoLevier?.trim() || ""
     const hasFollowUps = Array.isArray(followUps) && followUps.length > 0
     const cookieHeader = req.headers.get("cookie")
     const user = await getUserFromAuthCookie(cookieHeader)
@@ -279,6 +284,13 @@ CAS OBD (PRIORITAIRE): si le probleme ne peut pas etre diagnostique sans codes d
 - Dans ce mode, mets priceRange=null, diy=null, garage=null (puisque le devis viendra apres le scan).
 
 EXEMPLE FREINAGE: si tu soupconnes un changement de plaquettes de frein et que le kilometrage est eleve (ex: > 80000 km) ou symptomes compatibles, demande si les disques de frein ont deja ete changes recemment (Oui/Non) afin de savoir s'il faut proposer de changer disques + plaquettes ensemble.
+
+BOITE AUTOMATIQUE — IDENTIFICATION DU TYPE (IMPORTANT):
+Le client a renseigne sa transmission comme "Automatique". Plusieurs types de boites auto existent (DSG, S tronic, PDK, EDC, CVT, Powershift, etc.) et leur diagnostic differe.
+- Si le client a fourni le type dans "typeBoiteAuto", utilise cette information directement pour le diagnostic.
+- Si le probleme NE CONCERNE PAS la boite de vitesses (ex: freinage, suspension, carrosserie), ne demande JAMAIS le type de boite auto — c'est sans rapport.
+- Si le probleme CONCERNE la boite de vitesses ET que le type n'est pas renseigne (typeBoiteAuto vide) : ne demande PAS au client quel type de boite il a (il ne sait probablement pas). A la place, active requestsGearboxPhoto=true et demande-lui de photographier le levier de vitesses. Sur ce levier, le type de boite est generalement inscrit (ex: "S tronic", "DSG", "PDK", etc.). Formule la demande ainsi dans missingInfo.question : "Pour affiner le diagnostic, j'ai besoin d'identifier votre type de boîte automatique. Pourriez-vous prendre en photo le levier de vitesses de votre véhicule ? Le type de boîte est généralement inscrit dessus (ex: S tronic, DSG, PDK…)."
+- Si une photo est fournie (visible dans la conversation), analyse-la pour identifier le type de boite (inscriptions sur le levier, forme, couleurs). Utilise cette identification pour le diagnostic. Si tu n'arrives pas a lire le type depuis la photo, continue le diagnostic sans bloquer — mentionne juste l'incertitude sur le type exact.
 
 REGLES DE PRIX BELGIQUE : garage independant 65-85 euros/h, concession 100-140 euros/h, TVA 21% incluse, fourchettes de prix precises et realistes avec ecart maximum de 100 euros. PRIX DES PIECES : base tes estimations de prix des pieces sur les prix constates sur le site AutoDoc (ordre de grandeur realiste, adapte au vehicule). POLITIQUE PIECES CONSOMMABLES : pour les reparations de consommables (filtres, plaquettes, disques, courroies, balais, bougies, fluides, batterie, etc.), ne propose pas les pieces d'origine/OEM de prime abord. Par defaut, propose des pieces de revendeurs tiers (qualite equivalente, homologuees). Ensuite seulement, precise explicitement qu'une option pieces d'origine est possible sur demande du client, avec un surcout potentiel. DEFAUTS CONNUS : Renault Clio 4 : boite EDC hesitations et a-coups defaut de conception reconnu, chaine 0.9 TCe etirement premature. VW Golf 7 : boite DSG7 a-coups, pompe a eau avant 100000km. Peugeot 308 : chaine 1.2 PureTech etirement critique. Ford Focus 3 : boite Powershift a-coups. BMW Serie 3 E90 : chaine N47 diesel casse moteur. Quand le symptome du client correspond clairement a un defaut connu sur ce modele, mentionne obligatoirement "defaut connu sur ce modele" puis l'explication. En revanche, ne cite pas un defaut connu du modele si le probleme decrit par le client n'y est manifestement pas lie : pas de digression inutile (ex : ne pas parler de la boite EDC si les symptomes evoquent plutot train roulant ou equilibrage des roues).
 
@@ -399,8 +411,8 @@ mentionnant les variantes concernées.
             .join("\n")}`
         : ""
 
-    const extraLines = [cylindree, puissance, nombrePortes, typeCarrosserie].filter(Boolean).length
-      ? `\nInfos complementaires: ${[cylindree && `Cylindree: ${cylindree}`, puissance && `Puissance: ${puissance}`, nombrePortes && `Portes: ${nombrePortes}`, typeCarrosserie && `Carrosserie: ${typeCarrosserie}`].filter(Boolean).join(", ")}`
+    const extraLines = [cylindree, puissance, nombrePortes, typeCarrosserie, typeBoiteAuto].filter(Boolean).length
+      ? `\nInfos complementaires: ${[cylindree && `Cylindree: ${cylindree}`, puissance && `Puissance: ${puissance}`, nombrePortes && `Portes: ${nombrePortes}`, typeCarrosserie && `Carrosserie: ${typeCarrosserie}`, typeBoiteAuto && `Type de boite auto: ${typeBoiteAuto}`].filter(Boolean).join(", ")}`
       : ""
     const autodocCtx = getAutoDocContext({
       marque: String(marque ?? ""),
@@ -447,7 +459,17 @@ mentionnant les variantes concernées.
       model: anthropic("claude-sonnet-4-6"),
       headers: ANTHROPIC_PROMPT_CACHE_HEADERS,
       system: [systemMessage],
-      prompt,
+      ...(photoLevier
+        ? {
+            messages: [{
+              role: "user" as const,
+              content: [
+                { type: "image" as const, image: `data:image/jpeg;base64,${photoLevier}` },
+                { type: "text" as const, text: prompt },
+              ],
+            }],
+          }
+        : { prompt }),
       output: Output.object({ schema: DiagnosticSchema })
     })
     logAnthropicCacheStats(usage1)

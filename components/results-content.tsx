@@ -45,6 +45,7 @@ interface DiagnosticResult {
     answerType?: "yes_no" | "choice"
     options?: Array<{ id: string; label: string; value: string }> | null
     help?: string | null
+    requestsGearboxPhoto?: boolean
   } | null
   obdScanFirst?: {
     required: boolean
@@ -162,6 +163,12 @@ export function ResultsContent() {
   const [followUps, setFollowUps] = useState<Array<{ question: string; answer: string }>>([])
   const [pendingChoices, setPendingChoices] = useState<string[]>([])
   const [pendingDetails, setPendingDetails] = useState("")
+  const [pendingPhoto, setPendingPhoto] = useState<string | null>(null) // base64
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(navigator.maxTouchPoints > 0)
+  }, [])
 
   useEffect(() => {
     const storedDiagnostic = sessionStorage.getItem("diagnostic")
@@ -245,6 +252,7 @@ export function ResultsContent() {
           ...vehicleInfo,
           followUps: nextFollowUps,
           diagnosticRequestId: diagnostic?.diagnosticRequestId,
+          ...(pendingPhoto ? { photoLevier: pendingPhoto } : {}),
         }),
       })
 
@@ -259,6 +267,7 @@ export function ResultsContent() {
       sessionStorage.setItem("followUps", JSON.stringify(nextFollowUps))
       setPendingChoices([])
       setPendingDetails("")
+      setPendingPhoto(null)
     } catch (error) {
       console.error("Erreur:", error)
       alert("Une erreur est survenue. Veuillez réessayer.")
@@ -419,7 +428,75 @@ export function ResultsContent() {
               </div>
             ) : null}
 
-            <div className="flex w-full flex-wrap gap-3">
+            {/* Mode photo levier de vitesses */}
+            {diagnostic.missingInfo.requestsGearboxPhoto ? (
+              <div className="space-y-3 w-full">
+                <label className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-6 cursor-pointer hover:bg-primary/10 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    {...(isMobile ? { capture: "environment" as const } : {})}
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = (ev) => {
+                        const result = ev.target?.result as string
+                        // Extraire uniquement la partie base64 (sans le préfixe data:...)
+                        const base64 = result.split(",")[1]
+                        setPendingPhoto(base64 ?? null)
+                      }
+                      reader.readAsDataURL(file)
+                    }}
+                  />
+                  {pendingPhoto ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <CheckCircle className="h-8 w-8 text-green-400" />
+                      <p className="text-sm font-medium text-foreground">Photo reçue ✓</p>
+                      <p className="text-xs text-muted-foreground">Cliquez pour changer de photo</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-foreground">
+                        {isMobile ? "Prendre une photo" : "Uploader une photo"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Photographiez le levier de vitesses</p>
+                    </div>
+                  )}
+                </label>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full"
+                  disabled={isFollowUpLoading || !pendingPhoto}
+                  onClick={submitFollowUp}
+                >
+                  {isFollowUpLoading ? "Analyse de la photo…" : "Envoyer la photo"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-muted-foreground"
+                  disabled={isFollowUpLoading}
+                  onClick={() => {
+                    setPendingPhoto(null)
+                    submitFollowUp()
+                  }}
+                >
+                  Passer cette étape
+                </Button>
+              </div>
+            ) : null}
+
+            <div className={`flex w-full flex-wrap gap-3 ${diagnostic.missingInfo.requestsGearboxPhoto ? "hidden" : ""}`}>
               {diagnostic.missingInfo.answerType === "choice" &&
               Array.isArray(diagnostic.missingInfo.options) &&
               diagnostic.missingInfo.options.length >= 2 ? (
@@ -459,26 +536,30 @@ export function ResultsContent() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Détails (optionnel)</p>
-              <textarea
-                value={pendingDetails}
-                onChange={(e) => setPendingDetails(e.target.value)}
-                placeholder="Ajoutez un détail utile (ex: ce que vous observez, depuis quand, si ça arrive souvent, et tout élément qui peut aider)."
-                className="min-h-[96px] w-full rounded-lg border border-border/50 bg-secondary/20 p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                disabled={isFollowUpLoading}
-              />
-            </div>
+            {!diagnostic.missingInfo.requestsGearboxPhoto && (
+              <>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-foreground">Détails (optionnel)</p>
+                  <textarea
+                    value={pendingDetails}
+                    onChange={(e) => setPendingDetails(e.target.value)}
+                    placeholder="Ajoutez un détail utile (ex: ce que vous observez, depuis quand, si ça arrive souvent, et tout élément qui peut aider)."
+                    className="min-h-[96px] w-full rounded-lg border border-border/50 bg-secondary/20 p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    disabled={isFollowUpLoading}
+                  />
+                </div>
 
-            <Button
-              type="button"
-              size="lg"
-              className="w-full"
-              disabled={isFollowUpLoading || (pendingChoices.length === 0 && !pendingDetails.trim())}
-              onClick={submitFollowUp}
-            >
-              {isFollowUpLoading ? "Analyse en cours…" : "Envoyer ma réponse"}
-            </Button>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full"
+                  disabled={isFollowUpLoading || (pendingChoices.length === 0 && !pendingDetails.trim())}
+                  onClick={submitFollowUp}
+                >
+                  {isFollowUpLoading ? "Analyse en cours…" : "Envoyer ma réponse"}
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
