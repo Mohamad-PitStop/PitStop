@@ -21,6 +21,7 @@ import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
+import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 
 const MANUAL_PLACEHOLDER = "Saisir manuellement"
 const MODEL_MANUAL_PLACEHOLDER = "Ex : Continental GT, Macan, Stelvio..."
@@ -795,6 +796,10 @@ export function VehicleForm() {
     packageId: "1" | "3" | "6" | "10",
     intent: "credit_purchase" | "guest_diagnostic"
   ) => {
+    if (!CREDIT_PURCHASES_ENABLED) {
+      setAuthError("L'achat de crédits est temporairement indisponible.")
+      return
+    }
     setCreditCheckoutLoading(true)
     try {
       sessionStorage.setItem("pendingFormData", JSON.stringify(formData))
@@ -1654,7 +1659,7 @@ export function VehicleForm() {
                     >
                       Utiliser 1 crédit pour mon diagnostic
                     </Button>
-                  ) : (
+                  ) : CREDIT_PURCHASES_ENABLED ? (
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground text-center">
                         Vous n&apos;avez plus de crédits. Payez un diagnostic unique ou rechargez votre compte.
@@ -1667,18 +1672,24 @@ export function VehicleForm() {
                         {creditCheckoutLoading ? "Préparation…" : `Payer 1 diagnostic : ${singleDiagPrice}`}
                       </Button>
                     </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Vous n&apos;avez plus de crédits. L&apos;achat de crédits est temporairement indisponible.
+                    </p>
                   )}
 
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setAuthDialogOpen(false)
-                      router.push("/credits")
-                    }}
-                  >
-                    Recharger mes crédits
-                  </Button>
+                  {CREDIT_PURCHASES_ENABLED && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setAuthDialogOpen(false)
+                        router.push("/credits")
+                      }}
+                    >
+                      Recharger mes crédits
+                    </Button>
+                  )}
                 </div>
 
                 <DialogFooter>
@@ -1698,7 +1709,9 @@ export function VehicleForm() {
                   </DialogTitle>
                   <DialogDescription>
                     {guestAlreadyUsed
-                      ? "Connectez-vous, créez un compte ou payez un diagnostic unique pour continuer."
+                      ? CREDIT_PURCHASES_ENABLED
+                        ? "Connectez-vous, créez un compte ou payez un diagnostic unique pour continuer."
+                        : "Connectez-vous ou créez un compte pour continuer. L'achat en ligne n'est pas disponible pour le moment."
                       : "Créez un compte pour des diagnostics illimités, ou continuez en invité pour un diagnostic gratuit."}
                   </DialogDescription>
                 </DialogHeader>
@@ -1708,7 +1721,9 @@ export function VehicleForm() {
                   <div className="border border-border/60 rounded-lg p-4 space-y-2">
                     <h3 className="text-sm font-semibold text-foreground">Se connecter / Créer un compte</h3>
                     <p className="text-xs text-muted-foreground">
-                      Retrouvez vos diagnostics et rechargez vos crédits depuis votre espace personnel.
+                      {CREDIT_PURCHASES_ENABLED
+                        ? "Retrouvez vos diagnostics et rechargez vos crédits depuis votre espace personnel."
+                        : "Retrouvez vos diagnostics et votre solde depuis votre espace personnel."}
                     </p>
                     <div className="space-y-2">
                       <Button
@@ -1739,17 +1754,25 @@ export function VehicleForm() {
                   {guestAlreadyUsed ? (
                     <div className="border border-orange-400/60 rounded-lg p-4 space-y-2 bg-orange-50/10">
                       <h3 className="text-sm font-semibold text-foreground">Diagnostic unique</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Payez un diagnostic unique sans créer de compte. Valable une fois depuis ce navigateur.
-                      </p>
-                      <Button
-                        size="sm"
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                        onClick={() => startCreditPayment("1", "guest_diagnostic")}
-                        disabled={creditCheckoutLoading}
-                      >
-                        {creditCheckoutLoading ? "Préparation…" : `Payer mon diagnostic : ${singleDiagPrice}`}
-                      </Button>
+                      {CREDIT_PURCHASES_ENABLED ? (
+                        <>
+                          <p className="text-xs text-muted-foreground">
+                            Payez un diagnostic unique sans créer de compte. Valable une fois depuis ce navigateur.
+                          </p>
+                          <Button
+                            size="sm"
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                            onClick={() => startCreditPayment("1", "guest_diagnostic")}
+                            disabled={creditCheckoutLoading}
+                          >
+                            {creditCheckoutLoading ? "Préparation…" : `Payer mon diagnostic : ${singleDiagPrice}`}
+                          </Button>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          L&apos;achat en ligne n&apos;est pas disponible pour le moment. Utilisez les boutons ci-contre pour créer un compte ou vous connecter.
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="border border-primary/50 rounded-lg p-4 space-y-2 bg-primary/5">
@@ -1781,7 +1804,7 @@ export function VehicleForm() {
         </Dialog>
 
         {/* Modal Stripe Elements pour paiement de crédits */}
-        {creditClientSecret && (
+        {CREDIT_PURCHASES_ENABLED && creditClientSecret && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"

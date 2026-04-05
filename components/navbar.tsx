@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { useState, useEffect, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { Wrench, Zap } from "lucide-react"
-import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
+import { VENTE_TAB_ENABLED, CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 
 const tabBase =
   "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 min-w-0 sm:min-w-[7.5rem]"
@@ -155,11 +155,13 @@ export function Navbar() {
           <Zap className="h-3.5 w-3.5" />
           {user.diagnosticCredits ?? 0} crédit{(user.diagnosticCredits ?? 0) !== 1 ? "s" : ""}
         </div>
-        <Link href="/credits">
-          <Button size="sm" className="h-7 px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white">
-            Acheter
-          </Button>
-        </Link>
+        {CREDIT_PURCHASES_ENABLED ? (
+          <Link href="/credits">
+            <Button size="sm" className="h-7 px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white">
+              Acheter
+            </Button>
+          </Link>
+        ) : null}
       </div>
     ) : null
 

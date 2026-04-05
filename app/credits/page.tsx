@@ -10,6 +10,7 @@ import { CREDIT_PACKAGES } from "@/lib/credit-packages"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
 import { PromoInput, type PromoResult } from "@/components/promo-input"
+import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { Zap, Check, ArrowLeft } from "lucide-react"
 
 type AuthUser = { id: string; name: string; email: string; role: string; diagnosticCredits: number }
@@ -81,6 +82,7 @@ export default function CreditsPage() {
   }
 
   const handleBuy = async (packageId: string) => {
+    if (!CREDIT_PURCHASES_ENABLED) return
     if (!user) {
       router.push("/connexion?redirect=/credits")
       return
@@ -133,7 +135,7 @@ export default function CreditsPage() {
     return selectedPkg.priceLabel
   }
 
-  const paymentModal = clientSecret && selectedPkg && (
+  const paymentModal = CREDIT_PURCHASES_ENABLED && clientSecret && selectedPkg && (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -244,7 +246,11 @@ export default function CreditsPage() {
 
         {!user && (
           <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">Connectez-vous pour acheter des crédits et retrouver votre solde.</p>
+            <p className="text-sm text-muted-foreground">
+              {CREDIT_PURCHASES_ENABLED
+                ? "Connectez-vous pour acheter des crédits et retrouver votre solde."
+                : "Connectez-vous pour consulter votre solde de crédits."}
+            </p>
             <div className="flex justify-center gap-3">
               <Button onClick={() => router.push("/connexion?redirect=/credits")}>Se connecter</Button>
               <Button variant="outline" onClick={() => router.push("/inscription")}>Créer un compte</Button>
@@ -252,93 +258,107 @@ export default function CreditsPage() {
           </div>
         )}
 
-        {/* Code promo */}
-        {user && (
-          <div className="max-w-xs">
-            <PromoInput
-              applied={promoApplied}
-              onApply={(result) => {
-                setPromoApplied(result)
-                setPromoCodeStr(result.code)
-              }}
-              onClear={() => {
-                setPromoApplied(null)
-                setPromoCodeStr(null)
-              }}
-            />
+        {/* Code promo + offres : uniquement si la vente est activée (`lib/feature-flags.ts`) */}
+        {CREDIT_PURCHASES_ENABLED ? (
+          <>
+            {user && (
+              <div className="max-w-xs">
+                <PromoInput
+                  applied={promoApplied}
+                  onApply={(result) => {
+                    setPromoApplied(result)
+                    setPromoCodeStr(result.code)
+                  }}
+                  onClear={() => {
+                    setPromoApplied(null)
+                    setPromoCodeStr(null)
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
+              {CREDIT_PACKAGES.map((pkg) => (
+                <Card
+                  key={pkg.id}
+                  className={`flex flex-col ${
+                    pkg.highlight
+                      ? "border-orange-400 ring-2 ring-orange-400/30 shadow-md"
+                      : "border-border/60"
+                  }`}
+                >
+                  <div className="flex h-6 items-center justify-center">
+                    {pkg.highlight && (
+                      <span className="-mt-3 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                        Meilleure offre
+                      </span>
+                    )}
+                  </div>
+
+                  <CardHeader className="pb-2 pt-2">
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-orange-500 shrink-0" />
+                      <CardTitle className="text-base font-semibold">{pkg.label}</CardTitle>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="flex flex-col flex-1 gap-4">
+                    <div>
+                      {pkg.originalPrice && (
+                        <p className="text-xs text-muted-foreground line-through">{pkg.originalPrice}</p>
+                      )}
+                      <p className="text-2xl font-bold">{pkg.priceLabel}</p>
+                      {pkg.saving && (
+                        <p className="text-xs font-medium text-green-600 dark:text-green-400">{pkg.saving}</p>
+                      )}
+                      {pkg.badge && (
+                        <span className="inline-block mt-1 bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          {pkg.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-muted-foreground flex-1">
+                      {(pkg.amountCents / pkg.credits / 100).toFixed(2).replace(".", ",")} € / diagnostic
+                    </p>
+
+                    <Button
+                      className={`w-full ${pkg.highlight ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}`}
+                      variant={pkg.highlight ? "default" : "outline"}
+                      onClick={() => handleBuy(pkg.id)}
+                      disabled={loadingPkg !== null || !user}
+                    >
+                      {loadingPkg === pkg.id ? "Préparation…" : "Acheter"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <p className="text-[11px] text-muted-foreground text-center">
+              Paiement sécurisé par Stripe. Les crédits sont crédités instantanément après paiement.
+              Pas d&apos;abonnement : achetez uniquement ce dont vous avez besoin.
+            </p>
+            <p className="text-[11px] font-medium text-amber-300/90 text-center">
+              Important : les crédits achetés et non utilisés ne sont pas remboursables.
+            </p>
+          </>
+        ) : (
+          <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-5 py-5 space-y-3">
+            <p className="text-sm font-semibold text-foreground">Achat de crédits temporairement indisponible</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Tant que la structure juridique de PitStop n&apos;est pas constituée, aucune vente de crédits ne peut être proposée en ligne, conformément aux conditions affichées sur le site. Vous pouvez continuer à utiliser les crédits déjà présents sur votre compte.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/diagnostic">Retour au diagnostic</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/profil">Mon profil</Link>
+              </Button>
+            </div>
           </div>
         )}
-
-        {/* Grille des offres */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-          {CREDIT_PACKAGES.map((pkg) => (
-            <Card
-              key={pkg.id}
-              className={`flex flex-col ${
-                pkg.highlight
-                  ? "border-orange-400 ring-2 ring-orange-400/30 shadow-md"
-                  : "border-border/60"
-              }`}
-            >
-              {/* Espace badge : même hauteur sur toutes les cartes pour aligner le contenu */}
-              <div className="flex h-6 items-center justify-center">
-                {pkg.highlight && (
-                  <span className="-mt-3 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                    Meilleure offre
-                  </span>
-                )}
-              </div>
-
-              <CardHeader className="pb-2 pt-2">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-orange-500 shrink-0" />
-                  <CardTitle className="text-base font-semibold">{pkg.label}</CardTitle>
-                </div>
-              </CardHeader>
-
-              <CardContent className="flex flex-col flex-1 gap-4">
-                {/* Prix */}
-                <div>
-                  {pkg.originalPrice && (
-                    <p className="text-xs text-muted-foreground line-through">{pkg.originalPrice}</p>
-                  )}
-                  <p className="text-2xl font-bold">{pkg.priceLabel}</p>
-                  {pkg.saving && (
-                    <p className="text-xs font-medium text-green-600 dark:text-green-400">{pkg.saving}</p>
-                  )}
-                  {pkg.badge && (
-                    <span className="inline-block mt-1 bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {pkg.badge}
-                    </span>
-                  )}
-                </div>
-
-                {/* Détail */}
-                <p className="text-xs text-muted-foreground flex-1">
-                  {(pkg.amountCents / pkg.credits / 100).toFixed(2).replace(".", ",")} € / diagnostic
-                </p>
-
-                {/* Bouton */}
-                <Button
-                  className={`w-full ${pkg.highlight ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}`}
-                  variant={pkg.highlight ? "default" : "outline"}
-                  onClick={() => handleBuy(pkg.id)}
-                  disabled={loadingPkg !== null || !user}
-                >
-                  {loadingPkg === pkg.id ? "Préparation…" : "Acheter"}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <p className="text-[11px] text-muted-foreground text-center">
-          Paiement sécurisé par Stripe. Les crédits sont crédités instantanément après paiement.
-          Pas d&apos;abonnement : achetez uniquement ce dont vous avez besoin.
-        </p>
-        <p className="text-[11px] font-medium text-amber-300/90 text-center">
-          Important : les crédits achetés et non utilisés ne sont pas remboursables.
-        </p>
       </main>
 
       {paymentModal}

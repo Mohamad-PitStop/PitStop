@@ -38,7 +38,7 @@ export default function MerciPage() {
               Phase de test : accès temporairement limité
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              PitStop est actuellement en phase de test restreinte. L&apos;achat de crédits supplémentaires n&apos;est pas encore disponible, le service n&apos;étant pas encore officiellement ouvert au public.
+              PitStop est actuellement en phase de test restreinte. Tant que la structure juridique (entreprise, TVA, etc.) n&apos;est pas en place, aucune vente de crédits n&apos;est proposée en ligne, conformément aux conditions affichées sur le site.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Le lancement officiel de PitStop : avec accès libre à l&apos;achat de crédits et à l&apos;ensemble des fonctionnalités : interviendra prochainement.

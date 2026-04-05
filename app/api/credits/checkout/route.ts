@@ -2,6 +2,7 @@ import { z } from "zod"
 import { getStripe, getSiteUrl } from "@/lib/stripe"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
+import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 
 export const runtime = "nodejs"
 
@@ -14,6 +15,17 @@ const BodySchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    if (!CREDIT_PURCHASES_ENABLED) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "L'achat de crédits est temporairement indisponible. Réessayez lorsque le service sera ouvert à la vente.",
+          code: "CREDIT_PURCHASES_DISABLED",
+        },
+        { status: 403 }
+      )
+    }
     const stripe = getStripe()
     const siteUrl = getSiteUrl()
     const body = BodySchema.parse(await req.json())
