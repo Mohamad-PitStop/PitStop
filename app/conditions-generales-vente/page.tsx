@@ -159,14 +159,14 @@ export default function ConditionsGeneralesVentePage() {
               Les éléments suivants valent commencement de preuve en cas de litige lié à une réservation : horodatages plateforme, historiques de statut, logs applicatifs, confirmations transactionnelles Stripe, échanges écrits client/garage, justificatifs garage (commandes de pièces, préparation matérielle, etc.).
             </p>
             <div>
-              <h3 className="font-medium text-foreground">10.1 Annulation &gt; 18h avant rendez-vous</h3>
+              <h3 className="font-medium text-foreground">10.1 Annulation &gt; 12h avant rendez-vous</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>Preuve : horodatage d&apos;annulation comparé à l&apos;horaire du RDV.</li>
                 <li>Effet : annulation possible en ligne ; remboursement automatique de l&apos;acompte.</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-medium text-foreground">10.2 Annulation entre 18h et 1h avant rendez-vous</h3>
+              <h3 className="font-medium text-foreground">10.2 Annulation entre 12h et 1h avant rendez-vous</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>Preuve : impossibilité d&apos;annuler en ligne + contact direct garage.</li>
                 <li>Effet : annulation en ligne indisponible ; le Client doit contacter directement le garage. Le remboursement éventuel de l&apos;acompte dépend de l&apos;accord conclu avec le garage ; PitStop peut faciliter la médiation.</li>
@@ -180,14 +180,14 @@ export default function ConditionsGeneralesVentePage() {
               </ul>
             </div>
             <div>
-              <h3 className="font-medium text-foreground">10.4 No-show (retard ≥ 45 minutes sans information)</h3>
+              <h3 className="font-medium text-foreground">10.4 No-show (retard ≥ 15 minutes sans information)</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>Preuve : heure de RDV + absence de signalement + constat garage.</li>
                 <li>Effet : l&apos;acompte est automatiquement conservé.</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-medium text-foreground">10.5 Retard &gt; 45 minutes avec information du garage</h3>
+              <h3 className="font-medium text-foreground">10.5 Retard &gt; 15 minutes avec information du garage</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>Preuve : trace d&apos;appel/message + heure.</li>
                 <li>Effet : le Client doit prévenir le garage. L&apos;acompte est conservé. Si le garage accepte néanmoins de réaliser l&apos;inspection/intervention, l&apos;acompte ne sera pas déduit de la facture finale.</li>

@@ -88,11 +88,11 @@ export default function CgpGaragesPage() {
             <p className="text-muted-foreground">6.1 L&apos;acompte client de 25 EUR est collecté conformément aux règles exposées au Client.</p>
             <p className="text-muted-foreground">6.2 Le Garage reconnaît les mécanismes suivants :</p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
-              <li>annulation &gt; 18h : remboursement automatique ;</li>
-              <li>annulation entre 18h et 1h : traitement direct Client/Garage ;</li>
+              <li>annulation &gt; 12h : remboursement automatique ;</li>
+              <li>annulation entre 12h et 1h : traitement direct Client/Garage ;</li>
               <li>annulation &lt; 1h : acompte conservé ;</li>
-              <li>no-show (≥45 min sans nouvelle) : acompte conservé ;</li>
-              <li>retard &gt;45 min avec information : acompte conservé, intervention possible à la discrétion du Garage.</li>
+              <li>no-show (≥15 min sans nouvelle) : acompte conservé ;</li>
+              <li>retard &gt;15 min avec information : acompte conservé, intervention possible à la discrétion du Garage.</li>
             </ul>
             <p className="text-muted-foreground">6.3 Le Garage conserve la faculté de justifier la conservation de l&apos;acompte lorsque des coûts de préparation réels ont été engagés.</p>
           </section>
