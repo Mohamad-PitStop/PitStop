@@ -1,9 +1,17 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useLayoutEffect, useMemo, useRef } from "react"
+import { useLayoutEffect, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { getRouteTransitionKind } from "@/lib/route-transition"
+
+/**
+ * Dernier pathname « commité » après navigation (effet client).
+ * Un `useRef` seul échoue si ce composant est remonté lors d’une navigation SPA :
+ * le ref repasse à `null` et l’animation est toujours `none`.
+ * La variable module survit au remontage (un onglet = une instance JS).
+ */
+let lastCommittedPathname: string | null = null
 
 /**
  * Enveloppe les pages pour une entrée animée (glissement horizontal discret ou fondu).
@@ -11,12 +19,14 @@ import { getRouteTransitionKind } from "@/lib/route-transition"
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const prevPathRef = useRef<string | null>(null)
 
-  const kind = useMemo(() => getRouteTransitionKind(prevPathRef.current, pathname), [pathname])
+  const kind = useMemo(
+    () => getRouteTransitionKind(lastCommittedPathname, pathname),
+    [pathname]
+  )
 
   useLayoutEffect(() => {
-    prevPathRef.current = pathname
+    lastCommittedPathname = pathname
   }, [pathname])
 
   const animClass =

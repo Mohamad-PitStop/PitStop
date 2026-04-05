@@ -13,14 +13,22 @@ const MAIN_ORDER: Record<string, number> = {
   "/vente": 2,
 }
 
+/** `usePathname()` est généralement sans slash final ; on normalise pour les cas limites. */
+function normalizePath(p: string): string {
+  if (p.length > 1 && p.endsWith("/")) return p.slice(0, -1)
+  return p
+}
+
 export function getRouteTransitionKind(
   prev: string | null,
   next: string
 ): RouteTransitionKind {
-  if (prev === null || prev === next) return "none"
+  const n = normalizePath(next)
+  const p = prev === null ? null : normalizePath(prev)
+  if (p === null || p === n) return "none"
 
-  const a = MAIN_ORDER[prev]
-  const b = MAIN_ORDER[next]
+  const a = MAIN_ORDER[p]
+  const b = MAIN_ORDER[n]
 
   if (a !== undefined && b !== undefined) {
     if (b > a) return "forward"
@@ -28,8 +36,8 @@ export function getRouteTransitionKind(
     return "none"
   }
 
-  if (next === "/" && prev !== "/") return "back"
-  if (prev === "/" && next !== "/") return "forward"
+  if (n === "/" && p !== "/") return "back"
+  if (p === "/" && n !== "/") return "forward"
 
   return "fade"
 }
