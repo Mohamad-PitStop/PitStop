@@ -43,7 +43,12 @@ export default function ConfidentialitePage() {
               <h3 className="font-medium text-foreground">2.1 Données de compte</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>Adresse e-mail (création/connexion)</li>
+                <li>Nom ou prénom renseigné à l&apos;inscription</li>
                 <li>Identifiant utilisateur généré automatiquement</li>
+                <li>Mot de passe stocké exclusivement sous forme de hachage cryptographique (algorithme scrypt) — PitStop ne conserve jamais le mot de passe en clair</li>
+                <li>Jetons de session stockés sous forme hachée (SHA-256) dans un cookie HTTP-only sécurisé ; le jeton brut n&apos;est jamais persisté en base de données</li>
+                <li>Solde de crédits de diagnostic associé au compte</li>
+                <li>Rôle utilisateur (utilisateur standard, testeur, administrateur)</li>
               </ul>
             </div>
             <div>
@@ -90,27 +95,32 @@ export default function ConfidentialitePage() {
             <h2 className="text-xl font-semibold text-foreground">4. Sous-traitants et transferts</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>
-                Anthropic, Inc. (diagnostic IA) —{" "}
+                <span className="font-medium text-foreground">Turso / ChiselStrike Inc.</span> — base de données relationnelle (libSQL, compatible SQLite) hébergeant les comptes utilisateurs, sessions, historiques de diagnostics et journaux d&apos;audit. Données stockées sur infrastructure AWS eu-west-1 (Irlande, Union européenne). Politique de confidentialité :{" "}
+                <a className="text-primary hover:underline" href="https://turso.tech/privacy" target="_blank" rel="noreferrer">
+                  https://turso.tech/privacy
+                </a>
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Anthropic, Inc.</span> — traitement des requêtes de diagnostic par intelligence artificielle (modèle Claude). Les données saisies lors d&apos;un diagnostic sont transmises à l&apos;API Anthropic pour générer la réponse. Établi aux États-Unis. Politique de confidentialité :{" "}
                 <a className="text-primary hover:underline" href="https://www.anthropic.com/privacy" target="_blank" rel="noreferrer">
                   https://www.anthropic.com/privacy
                 </a>
               </li>
               <li>
-                Stripe, Inc. (paiements) —{" "}
+                <span className="font-medium text-foreground">Stripe, Inc.</span> — traitement sécurisé des paiements (achat de crédits, acomptes de réservation). PitStop ne stocke aucune donnée bancaire. Établi aux États-Unis. Politique de confidentialité :{" "}
                 <a className="text-primary hover:underline" href="https://stripe.com/privacy" target="_blank" rel="noreferrer">
                   https://stripe.com/privacy
                 </a>
               </li>
               <li>
-                Vercel, Inc. (hébergement et analytics) —{" "}
+                <span className="font-medium text-foreground">Vercel, Inc.</span> — hébergement de l&apos;application web et collecte de données analytics anonymisées. Établi aux États-Unis. Politique de confidentialité :{" "}
                 <a className="text-primary hover:underline" href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noreferrer">
                   https://vercel.com/legal/privacy-policy
                 </a>
               </li>
             </ul>
             <p className="text-muted-foreground">
-              Ces prestataires peuvent être établis hors EEE. Les transferts sont encadrés par des mécanismes de
-              protection appropriés (clauses contractuelles types ou équivalent).
+              Les données hébergées dans la base de données Turso sont stockées au sein de l&apos;Union européenne (Irlande) et ne font l&apos;objet d&apos;aucun transfert hors EEE. Les prestataires Anthropic, Stripe et Vercel sont établis hors EEE ; les transferts sont encadrés par les clauses contractuelles types de la Commission européenne (CCT) ou par des mécanismes de protection équivalents reconnus par le RGPD.
             </p>
           </section>
 
@@ -166,8 +176,18 @@ export default function ConfidentialitePage() {
           <section className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">8. Sécurité</h2>
             <p className="text-muted-foreground">
-              PitStop met en oeuvre des mesures techniques appropriées : HTTPS/TLS, accès restreint aux bases de
-              données, gestion sécurisée des clés API. Aucun système n&apos;offre néanmoins une sécurité absolue.
+              PitStop met en œuvre des mesures techniques appropriées pour protéger les données personnelles :
+            </p>
+            <ul className="list-disc pl-6 text-muted-foreground space-y-1">
+              <li>Chiffrement des communications en transit (HTTPS/TLS)</li>
+              <li>Hachage des mots de passe par l&apos;algorithme scrypt — aucun mot de passe n&apos;est stocké en clair</li>
+              <li>Jetons de session hachés (SHA-256) et transmis exclusivement via cookies HTTP-only, empêchant leur accès par JavaScript</li>
+              <li>Accès restreint à la base de données Turso via token d&apos;authentification sécurisé</li>
+              <li>Clés API (Stripe, Anthropic) gérées exclusivement comme variables d&apos;environnement côté serveur</li>
+              <li>Journalisation des opérations administratives sensibles (octroi de crédits, modifications de rôles)</li>
+            </ul>
+            <p className="text-muted-foreground">
+              Aucun système d&apos;information n&apos;offre une sécurité absolue. En cas de violation de données susceptible d&apos;engendrer un risque pour vos droits et libertés, PitStop s&apos;engage à notifier l&apos;Autorité de protection des données (APD) belge dans les délais prévus par le RGPD.
             </p>
           </section>
 
