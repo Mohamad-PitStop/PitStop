@@ -128,7 +128,7 @@ Réponds avec : { "options": ["2015", "2016", ...] }`
 Réponds avec : { "options": ["essence", "diesel", ...] }`
     case "transmissions":
       return `Pour ${m} ${mo}${v ? ` ${v}` : ""} ${a} ${c} vendu en Europe, liste TOUTES les transmissions qui ont existé pour cette configuration, en incluant toutes les boîtes commercialisées selon les marchés européens (ex: manuelle 5 ou 6 vitesses, automatique, DCT, DSG, TCT, EDC, PDK, robotisée, CVT, etc.).
-Sois exhaustif — ne retourne jamais une seule option si plusieurs ont existé, même si l'une d'elles était minoritaire ou optionnelle.
+Sois exhaustif : ne retourne jamais une seule option si plusieurs ont existé, même si l'une d'elles était minoritaire ou optionnelle.
 Réponds avec : { "options": ["manuelle", "automatique"] }`
     default:
       return ""

@@ -21,7 +21,7 @@ function isLikelyEnglishModelLabel(s: string): boolean {
   if (/\bLiftback\b/i.test(t)) return true
   if (/\bCrossover\b/i.test(t)) return true
 
-  // "Coupe" sans accent (anglais) — "Coupé" / "Gran Coupé" restent
+  // "Coupe" sans accent (anglais) : "Coupé" / "Gran Coupé" restent
   if (/\bCoupe\b/i.test(t) && !/Coupé/i.test(t)) return true
 
   return false

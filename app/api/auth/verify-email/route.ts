@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     // Nettoyer la vérification en attente
     await deletePendingVerification(pending.email)
 
-    // Crédit de bienvenue (1 diagnostic gratuit) — accordé sauf si la même IP
+    // Crédit de bienvenue (1 diagnostic gratuit) : accordé sauf si la même IP
     // a déjà bénéficié d'un crédit de bienvenue dans les 60 derniers jours.
     const grantWelcome = await canGrantWelcomeCredit(ip)
     if (grantWelcome) {

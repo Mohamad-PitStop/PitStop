@@ -143,7 +143,7 @@ export function VehicleForm() {
       return
     }
 
-    // Demande explicite de permission micro — force le popup natif du navigateur
+    // Demande explicite de permission micro : force le popup natif du navigateur
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       stream.getTracks().forEach((t) => t.stop()) // libère le flux, la reconnaissance gérera le sien
@@ -562,8 +562,8 @@ export function VehicleForm() {
         void runDiagnostic("account")
         return
       }
-      // Utilisateur connecté sans crédit → ouvrir la modale
-      setAuthDialogOpen(true)
+      // Utilisateur connecté sans crédit → page de remerciement (achat non disponible en phase de test)
+      router.push("/merci")
       return
     }
 
@@ -571,6 +571,12 @@ export function VehicleForm() {
     if (paidSessionVerified) {
       setPaidSessionVerified(false)
       void runDiagnostic("guest")
+      return
+    }
+
+    // Invité ayant déjà utilisé son diagnostic gratuit → page de remerciement
+    if (guestAlreadyUsed) {
+      router.push("/merci")
       return
     }
 
@@ -1376,7 +1382,7 @@ export function VehicleForm() {
                           className="h-10 bg-background text-sm"
                         />
                         <p className="text-[11px] text-muted-foreground">
-                          Si vous ne savez pas, laissez vide — PitStop vous guidera.
+                          Si vous ne savez pas, laissez vide : PitStop vous guidera.
                         </p>
                       </div>
                     )}
@@ -1658,7 +1664,7 @@ export function VehicleForm() {
                         onClick={() => startCreditPayment("1", "credit_purchase")}
                         disabled={creditCheckoutLoading}
                       >
-                        {creditCheckoutLoading ? "Préparation…" : `Payer 1 diagnostic — ${singleDiagPrice}`}
+                        {creditCheckoutLoading ? "Préparation…" : `Payer 1 diagnostic : ${singleDiagPrice}`}
                       </Button>
                     </div>
                   )}
@@ -1742,7 +1748,7 @@ export function VehicleForm() {
                         onClick={() => startCreditPayment("1", "guest_diagnostic")}
                         disabled={creditCheckoutLoading}
                       >
-                        {creditCheckoutLoading ? "Préparation…" : `Payer mon diagnostic — ${singleDiagPrice}`}
+                        {creditCheckoutLoading ? "Préparation…" : `Payer mon diagnostic : ${singleDiagPrice}`}
                       </Button>
                     </div>
                   ) : (
@@ -1788,7 +1794,7 @@ export function VehicleForm() {
                     {creditPaymentType === "guest_diagnostic" ? "Paiement du diagnostic" : "Achat de crédit"}
                   </p>
                   <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-                    1 diagnostic — {singleDiagPrice}
+                    1 diagnostic : {singleDiagPrice}
                   </p>
                 </div>
                 <button

@@ -431,7 +431,7 @@ export function SaleEstimator() {
     }
   }, [form.marque, form.modele, form.variante, yearList, form.annee, fallbackYear])
 
-  /** Variante textuelle si plusieurs variantes API ou erreur — comme le diagnostic */
+  /** Variante textuelle si plusieurs variantes API ou erreur : comme le diagnostic */
   const showVariantField =
     isModeleDone && (fallbackVariant || (!variantUiSkipped && variantList.length > 1))
   const yearSelectDisabled = !isModeleDone || loadingVariant || loadingYear
@@ -1182,7 +1182,7 @@ export function SaleEstimator() {
               )}
             </div>
 
-            {/* Description détaillée — envoyée à Claude */}
+            {/* Description détaillée : envoyée à Claude */}
             <div className="space-y-2">
               <label htmlFor="description" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Search className="h-4 w-4 text-primary" />

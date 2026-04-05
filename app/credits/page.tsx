@@ -144,7 +144,7 @@ export default function CreditsPage() {
           <div>
             <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Achat de crédits</p>
             <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-              {selectedPkg.label} — {modalPriceLabel()}
+              {selectedPkg.label} : {modalPriceLabel()}
             </p>
           </div>
           <button
@@ -280,7 +280,7 @@ export default function CreditsPage() {
                   : "border-border/60"
               }`}
             >
-              {/* Espace badge — même hauteur sur toutes les cartes pour aligner le contenu */}
+              {/* Espace badge : même hauteur sur toutes les cartes pour aligner le contenu */}
               <div className="flex h-6 items-center justify-center">
                 {pkg.highlight && (
                   <span className="-mt-3 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
@@ -334,7 +334,7 @@ export default function CreditsPage() {
 
         <p className="text-[11px] text-muted-foreground text-center">
           Paiement sécurisé par Stripe. Les crédits sont crédités instantanément après paiement.
-          Pas d&apos;abonnement — achetez uniquement ce dont vous avez besoin.
+          Pas d&apos;abonnement : achetez uniquement ce dont vous avez besoin.
         </p>
         <p className="text-[11px] font-medium text-amber-300/90 text-center">
           Important : les crédits achetés et non utilisés ne sont pas remboursables.

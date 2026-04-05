@@ -169,7 +169,7 @@ export function GarageFinder() {
                     <p className="text-xs text-muted-foreground">{garage.address}</p>
                   </div>
                   <div className="text-sm text-muted-foreground whitespace-nowrap">
-                    {km == null ? "—" : `${km.toFixed(1)} km`}
+                    {km == null ? ":" : `${km.toFixed(1)} km`}
                   </div>
                 </div>
               ))}

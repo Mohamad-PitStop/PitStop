@@ -223,7 +223,7 @@ export function Navbar() {
           )}
         </div>
 
-        {/* PC : une ligne — logo (hors accueil) | badge | [infos connexion][onglets] alignés à droite */}
+        {/* PC : une ligne : logo (hors accueil) | badge | [infos connexion][onglets] alignés à droite */}
         <div className="hidden min-h-[3rem] w-full items-center gap-4 sm:flex">
           {!isHome && (
             <Link href="/" className="flex shrink-0 items-center">

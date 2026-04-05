@@ -21,7 +21,7 @@ export default async function RendezVousPage({
   const garageAddress = "Route de Trazegnies 738, 6031 Charleroi"
   const garagePhoneDisplay = "+32 483 00 00 30"
   const garagePhoneTel = "+32483000030"
-  // OpenStreetMap embed — coordonnées exactes de Route de Trazegnies 738, 6031 Charleroi
+  // OpenStreetMap embed : coordonnées exactes de Route de Trazegnies 738, 6031 Charleroi
   const mapsEmbedUrl =
     "https://www.openstreetmap.org/export/embed.html?bbox=4.351%2C50.424%2C4.371%2C50.444&layer=mapnik&marker=50.43432%2C4.36125"
 

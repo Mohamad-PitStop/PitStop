@@ -724,7 +724,7 @@ export function ResultsContent() {
         </Card>
       )}
 
-      {/* Rien à faire mécaniquement — message positif (pas de devis / DIY / garage) */}
+      {/* Rien à faire mécaniquement : message positif (pas de devis / DIY / garage) */}
       {noInterventionNeeded && (
         <Card className="mb-8 overflow-hidden border-emerald-500/30 bg-gradient-to-br from-emerald-500/15 via-card to-sky-500/10 shadow-lg">
           <CardContent className="px-6 py-10 text-center">
@@ -798,7 +798,7 @@ export function ResultsContent() {
         </Card>
       )}
 
-      {/* DIY vs Garage Cards — chaque carte si l’API renvoie les données (souvent l’une sans l’autre) */}
+      {/* DIY vs Garage Cards : chaque carte si l’API renvoie les données (souvent l’une sans l’autre) */}
       {!isConcessionOnly && !isObdScanFirst && !noInterventionNeeded && (diagnostic.diy || diagnostic.garage) && (
         <div
           className={`grid grid-cols-1 gap-6 mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500 ${
@@ -806,7 +806,7 @@ export function ResultsContent() {
           }`}
           style={{ animationDelay: "360ms", animationFillMode: "both" }}
         >
-        {/* DIY Card — affiche uniquement si difficulte Facile */}
+        {/* DIY Card : affiche uniquement si difficulte Facile */}
         {diagnostic.diy && diagnostic.diy.difficulty.trim().toLowerCase() === "facile" && (
         <Card className={`border-border/50 bg-card ${!diagnostic.diy.possible ? 'opacity-75' : ''}`}>
           <CardHeader>

@@ -182,7 +182,7 @@ export default function MesDiagnosticsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-foreground">
                         {d.marque} {d.modele}
-                        {d.variante ? ` — ${d.variante}` : ""}
+                        {d.variante ? ` : ${d.variante}` : ""}
                       </span>
                       {d.carburant && (
                         <span className="text-xs bg-muted text-muted-foreground rounded-full px-2 py-0.5">

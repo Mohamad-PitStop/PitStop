@@ -1,6 +1,6 @@
 /**
  * Modèles proposés dans les listes (diagnostic / vente).
- * Liste **étendue** (VP, SUV, utilitaires légers courants en Europe) — la finition / carrosserie
+ * Liste **étendue** (VP, SUV, utilitaires légers courants en Europe) : la finition / carrosserie
  * détaillée reste dans « Variante / finition » ou « Mon modèle n'apparaît pas ? ».
  */
 export const carModels: Record<string, string[]> = {

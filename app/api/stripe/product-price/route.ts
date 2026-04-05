@@ -2,7 +2,7 @@ import { getStripe } from "@/lib/stripe"
 import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
-// Revalidate every hour — price changes are rare
+// Revalidate every hour : price changes are rare
 export const revalidate = 3600
 
 const PRODUCT_ID = "prod_UFXxyva072Ms0Y"

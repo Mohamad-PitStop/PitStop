@@ -262,7 +262,7 @@ export function BookingCheckout({
             </Button>
 
             <p className="text-xs text-muted-foreground text-center leading-snug">
-              Cet acompte sera intégralement déduit du montant total de votre facture — vous ne réglez que le solde directement au garage le jour de l’intervention.
+              Cet acompte sera intégralement déduit du montant total de votre facture : vous ne réglez que le solde directement au garage le jour de l’intervention.
             </p>
           </div>
         </div>
@@ -280,7 +280,7 @@ export function BookingCheckout({
         className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] shadow-2xl flex flex-col"
         style={{ backgroundColor: "#E8EEF8", maxHeight: "calc(100dvh - 2rem)" }}
       >
-        {/* Header — fixe */}
+        {/* Header : fixe */}
         <div className="shrink-0 px-6 pt-6 pb-4 flex items-center justify-between">
           <div>
             <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Paiement de l'acompte</p>

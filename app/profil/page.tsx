@@ -235,7 +235,7 @@ export default function ProfilPage() {
       a.click()
       URL.revokeObjectURL(url)
     } catch {
-      // Erreur silencieuse — l'utilisateur peut réessayer
+      // Erreur silencieuse : l'utilisateur peut réessayer
     } finally {
       setDownloadingData(false)
     }
@@ -310,7 +310,7 @@ export default function ProfilPage() {
               </div>
             )}
 
-            {/* Mes informations — Art. 16 RGPD */}
+            {/* Mes informations : Art. 16 RGPD */}
             {user && (
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -492,7 +492,7 @@ export default function ProfilPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-semibold text-foreground">
                                 {d.marque} {d.modele}
-                                {d.variante ? ` — ${d.variante}` : ""}
+                                {d.variante ? ` : ${d.variante}` : ""}
                               </span>
                               {d.carburant && (
                                 <span className="text-xs bg-muted text-muted-foreground rounded-full px-2 py-0.5">
@@ -552,7 +552,7 @@ export default function ProfilPage() {
               )}
             </section>
 
-            {/* Mes données — Art. 20 RGPD (portabilité) */}
+            {/* Mes données : Art. 20 RGPD (portabilité) */}
             <section className="space-y-3">
               <h2 className="text-base font-semibold">Mes données</h2>
               <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-3">
@@ -623,7 +623,7 @@ export default function ProfilPage() {
               <div>
                 <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Achat de crédits</p>
                 <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-                  {selectedPkg.label} — {selectedPkg.priceLabel}
+                  {selectedPkg.label} : {selectedPkg.priceLabel}
                 </p>
               </div>
               <button

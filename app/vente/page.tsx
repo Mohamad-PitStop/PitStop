@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 import { CheckCircle, Info, Wrench } from "lucide-react"
 
-/** Contenu complet du parcours Vente — affiché lorsque `VENTE_TAB_ENABLED` est `true` dans `lib/feature-flags.ts`. */
+/** Contenu complet du parcours Vente : affiché lorsque `VENTE_TAB_ENABLED` est `true` dans `lib/feature-flags.ts`. */
 function VentePageFull() {
   return (
     <>
@@ -71,7 +71,7 @@ function VenteComingSoon() {
           <CardDescription className="text-base leading-relaxed text-muted-foreground">
             Cette fonctionnalité est en cours de mise en production. Nous préparons un parcours dédié pour estimer la
             valeur de reprise de votre véhicule auprès de notre réseau de garages partenaires en Belgique. Elle sera
-            prochainement disponible — merci de votre patience.
+            prochainement disponible : merci de votre patience.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:justify-center">

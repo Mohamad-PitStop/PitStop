@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       allSlots = buildSlotsForDay({ dayStartIso: formatISO(dayStart), dayEndIso: formatISO(dayEnd), slotMinutes: 30 })
     }
 
-    // Ajouter les créneaux spéciaux (custom) — valables tous les jours
+    // Ajouter les créneaux spéciaux (custom) : valables tous les jours
     const customSlots = await getCustomSlotsForRange(fullDayStart, fullDayEnd)
     const existingStarts = new Set(allSlots.map(s => s.start))
     for (const cs of customSlots) {

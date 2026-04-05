@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialité — PitStop",
+  title: "Politique de confidentialité : PitStop",
   description: "Politique de confidentialité du service PitStop.",
 }
 
@@ -16,9 +16,9 @@ export default function ConfidentialitePage() {
           <header className="space-y-2">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">Politique de confidentialité</h1>
             <p className="text-muted-foreground">
-              PitStop — Service de diagnostic automobile assisté par IA
+              PitStop : Service de diagnostic automobile assisté par IA
               <br />
-              Dernière mise à jour : 2 avril 2026
+              Dernière mise à jour : 5 avril 2026
             </p>
           </header>
 
@@ -30,7 +30,7 @@ export default function ConfidentialitePage() {
               applicable.
             </p>
             <p className="text-muted-foreground">
-              Responsable du traitement : Mohamad ALI AHMAD, Braine-l&apos;Alleud, Belgique —{" "}
+              Responsable du traitement : Mohamad ALI AHMAD, Braine-l&apos;Alleud, Belgique :{" "}
               <a className="text-primary hover:underline" href="mailto:pitstopbelgique@gmail.com">
                 pitstopbelgique@gmail.com
               </a>
@@ -45,7 +45,7 @@ export default function ConfidentialitePage() {
                 <li>Adresse e-mail (création/connexion)</li>
                 <li>Nom ou prénom renseigné à l&apos;inscription</li>
                 <li>Identifiant utilisateur généré automatiquement</li>
-                <li>Mot de passe stocké exclusivement sous forme de hachage cryptographique (algorithme scrypt) — PitStop ne conserve jamais le mot de passe en clair</li>
+                <li>Mot de passe stocké exclusivement sous forme de hachage cryptographique (algorithme scrypt) : PitStop ne conserve jamais le mot de passe en clair</li>
                 <li>Jetons de session stockés sous forme hachée (SHA-256) dans un cookie HTTP-only sécurisé ; le jeton brut n&apos;est jamais persisté en base de données</li>
                 <li>Solde de crédits de diagnostic associé au compte</li>
                 <li>Rôle utilisateur (utilisateur standard, testeur, administrateur)</li>
@@ -95,25 +95,25 @@ export default function ConfidentialitePage() {
             <h2 className="text-xl font-semibold text-foreground">4. Sous-traitants et transferts</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>
-                <span className="font-medium text-foreground">Turso / ChiselStrike Inc.</span> — base de données relationnelle (libSQL, compatible SQLite) hébergeant les comptes utilisateurs, sessions, historiques de diagnostics et journaux d&apos;audit. Données stockées sur infrastructure AWS eu-west-1 (Irlande, Union européenne). Politique de confidentialité :{" "}
+                <span className="font-medium text-foreground">Turso / ChiselStrike Inc.</span> : base de données relationnelle (libSQL, compatible SQLite) hébergeant les comptes utilisateurs, sessions, historiques de diagnostics et journaux d&apos;audit. Données stockées sur infrastructure AWS eu-west-1 (Irlande, Union européenne). Politique de confidentialité :{" "}
                 <a className="text-primary hover:underline" href="https://turso.tech/privacy" target="_blank" rel="noreferrer">
                   https://turso.tech/privacy
                 </a>
               </li>
               <li>
-                <span className="font-medium text-foreground">Anthropic, Inc.</span> — traitement des requêtes de diagnostic par intelligence artificielle (modèle Claude). Les données saisies lors d&apos;un diagnostic sont transmises à l&apos;API Anthropic pour générer la réponse. Établi aux États-Unis. Politique de confidentialité :{" "}
+                <span className="font-medium text-foreground">Anthropic, Inc.</span> : traitement des requêtes de diagnostic par intelligence artificielle (modèle Claude). Les données saisies lors d&apos;un diagnostic sont transmises à l&apos;API Anthropic pour générer la réponse. Établi aux États-Unis. Politique de confidentialité :{" "}
                 <a className="text-primary hover:underline" href="https://www.anthropic.com/privacy" target="_blank" rel="noreferrer">
                   https://www.anthropic.com/privacy
                 </a>
               </li>
               <li>
-                <span className="font-medium text-foreground">Stripe, Inc.</span> — traitement sécurisé des paiements (achat de crédits, acomptes de réservation). PitStop ne stocke aucune donnée bancaire. Établi aux États-Unis. Politique de confidentialité :{" "}
+                <span className="font-medium text-foreground">Stripe, Inc.</span> : traitement sécurisé des paiements (achat de crédits, acomptes de réservation). PitStop ne stocke aucune donnée bancaire. Établi aux États-Unis. Politique de confidentialité :{" "}
                 <a className="text-primary hover:underline" href="https://stripe.com/privacy" target="_blank" rel="noreferrer">
                   https://stripe.com/privacy
                 </a>
               </li>
               <li>
-                <span className="font-medium text-foreground">Vercel, Inc.</span> — hébergement de l&apos;application web et collecte de données analytics anonymisées. Établi aux États-Unis. Politique de confidentialité :{" "}
+                <span className="font-medium text-foreground">Vercel, Inc.</span> : hébergement de l&apos;application web et collecte de données analytics anonymisées. Établi aux États-Unis. Politique de confidentialité :{" "}
                 <a className="text-primary hover:underline" href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noreferrer">
                   https://vercel.com/legal/privacy-policy
                 </a>
@@ -180,7 +180,7 @@ export default function ConfidentialitePage() {
             </p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1">
               <li>Chiffrement des communications en transit (HTTPS/TLS)</li>
-              <li>Hachage des mots de passe par l&apos;algorithme scrypt — aucun mot de passe n&apos;est stocké en clair</li>
+              <li>Hachage des mots de passe par l&apos;algorithme scrypt : aucun mot de passe n&apos;est stocké en clair</li>
               <li>Jetons de session hachés (SHA-256) et transmis exclusivement via cookies HTTP-only, empêchant leur accès par JavaScript</li>
               <li>Accès restreint à la base de données Turso via token d&apos;authentification sécurisé</li>
               <li>Clés API (Stripe, Anthropic) gérées exclusivement comme variables d&apos;environnement côté serveur</li>

@@ -11,7 +11,7 @@ import { MarketingSteps } from "@/components/marketing-steps"
 import { PartnerContactForm } from "@/components/partner-contact-form"
 
 export const metadata: Metadata = {
-  title: "PitStop — Diagnostic et estimation auto",
+  title: "PitStop : Diagnostic et estimation auto",
   description:
     "Estimez vos réparations et la valeur de revente de votre véhicule. Transparent, rapide, sans inscription.",
 }
@@ -22,7 +22,7 @@ export default function LandingPage() {
       <Navbar />
 
       <main className="flex-1 pb-24 md:pb-0">
-        {/* Hero — logo centré */}
+        {/* Hero : logo centré */}
         <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-24">
           <div className="absolute right-4 top-4 z-10 sm:hidden">
             <nav
@@ -248,9 +248,6 @@ export default function LandingPage() {
                 </Link>
                 <Link href="/politique-ia" className="hover:text-foreground transition-colors">
                   Politique IA
-                </Link>
-                <Link href="/litige-retard-noshow" className="hover:text-foreground transition-colors">
-                  Litige, retard & no-show
                 </Link>
                 <Link href="/cgp-garages" className="hover:text-foreground transition-colors">
                   CGP garages

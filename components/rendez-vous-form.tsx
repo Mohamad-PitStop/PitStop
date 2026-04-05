@@ -171,7 +171,7 @@ export function RendezVousForm({ isObd }: { isObd: boolean }) {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{day}</p>
                   <div className="flex flex-wrap gap-2">
                     {SLOTS.map((slot) => {
-                      const key = `${day} — ${slot}`
+                      const key = `${day} : ${slot}`
                       const selected = availability.includes(key)
                       return (
                         <button

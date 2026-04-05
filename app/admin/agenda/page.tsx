@@ -273,7 +273,7 @@ export default function AdminAgendaPage() {
           ].map(({ label, count, color }) => (
             <Card key={label} className="border-border/50">
               <CardContent className="pt-4 pb-4 text-center">
-                <p className={`text-2xl font-bold ${color} leading-none`}>{loading ? "—" : isWeekend && label !== "Libres" ? "—" : count}</p>
+                <p className={`text-2xl font-bold ${color} leading-none`}>{loading ? ":" : isWeekend && label !== "Libres" ? ":" : count}</p>
                 <p className="text-xs text-muted-foreground mt-1">{label}</p>
               </CardContent>
             </Card>
@@ -306,7 +306,7 @@ export default function AdminAgendaPage() {
                     {format(toZonedTime(selectedDate, TIME_ZONE), "EEEE d MMMM", { locale: fr })}
                   </CardTitle>
                   <CardDescription>
-                    {isWeekend ? "Fermé — créneaux spéciaux uniquement" : `${freeCount} créneau${freeCount !== 1 ? "x" : ""} disponible${freeCount !== 1 ? "s" : ""}`}
+                    {isWeekend ? "Fermé : créneaux spéciaux uniquement" : `${freeCount} créneau${freeCount !== 1 ? "x" : ""} disponible${freeCount !== 1 ? "s" : ""}`}
                   </CardDescription>
                 </div>
                 {!isWeekend && !loading && (
@@ -349,7 +349,7 @@ export default function AdminAgendaPage() {
                         const busy = actionId === s.time
                         if (s.status === "reserved") return (
                           <button key={s.time}
-                            title={`Réservé : ${s.reservationName} — cliquer pour déplacer`}
+                            title={`Réservé : ${s.reservationName} : cliquer pour déplacer`}
                             disabled={busy}
                             onClick={() => { setMovingSlot(s); setMoveDate(dateStr); setMoveTime(isoToLocalTime(s.startIso)) }}
                             className="flex flex-col items-center justify-center rounded-md border border-amber-500/40 bg-amber-500/10 px-1 py-2 hover:bg-amber-500/20 transition-colors disabled:opacity-50 cursor-pointer"
@@ -360,7 +360,7 @@ export default function AdminAgendaPage() {
                         )
                         if (s.status === "blocked") return (
                           <button key={s.time}
-                            title={`Bloqué : ${s.blockedLabel ?? "Indisponible"} — cliquer pour débloquer`}
+                            title={`Bloqué : ${s.blockedLabel ?? "Indisponible"} : cliquer pour débloquer`}
                             disabled={busy}
                             onClick={() => unblockSlot(s)}
                             className="flex flex-col items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 px-1 py-2 hover:bg-destructive/20 transition-colors disabled:opacity-50 cursor-pointer"
@@ -371,7 +371,7 @@ export default function AdminAgendaPage() {
                         )
                         if (s.status === "custom") return (
                           <button key={s.time}
-                            title={`Créneau spécial : ${s.customLabel ?? ""} — cliquer pour supprimer`}
+                            title={`Créneau spécial : ${s.customLabel ?? ""} : cliquer pour supprimer`}
                             disabled={busy}
                             onClick={() => deleteCustom(s)}
                             className="flex flex-col items-center justify-center rounded-md border border-violet-500/40 bg-violet-500/10 px-1 py-2 hover:bg-violet-500/20 transition-colors disabled:opacity-50 cursor-pointer"
@@ -416,7 +416,7 @@ export default function AdminAgendaPage() {
                 <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
-                      <ArrowRight className="h-3.5 w-3.5"/> Déplacer — {movingSlot.reservationName}
+                      <ArrowRight className="h-3.5 w-3.5"/> Déplacer : {movingSlot.reservationName}
                     </p>
                     <button onClick={() => setMovingSlot(null)} className="text-muted-foreground hover:text-foreground">
                       <X className="h-3.5 w-3.5"/>

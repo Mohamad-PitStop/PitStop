@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: `"PitStop" <${smtpUser}>`,
       to: email,
-      subject: "Confirmez votre adresse email — PitStop",
+      subject: "Confirmez votre adresse email : PitStop",
       text: `Bonjour ${body.name},\n\nCliquez sur ce lien pour confirmer votre adresse email (valable 24 h) :\n${verifyUrl}\n\nSi vous n'avez pas créé de compte PitStop, ignorez cet email.`,
       html: buildVerificationEmail(body.name, verifyUrl),
     })

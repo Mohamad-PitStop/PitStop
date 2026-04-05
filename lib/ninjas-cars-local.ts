@@ -1,6 +1,6 @@
 /**
  * Lecture de la base véhicules stockée en local (data/ninjas-cars-local.json).
- * Le site n’utilise plus l’API Ninjas — tout est servi depuis ce fichier.
+ * Le site n’utilise plus l’API Ninjas : tout est servi depuis ce fichier.
  */
 
 import fs from "node:fs"

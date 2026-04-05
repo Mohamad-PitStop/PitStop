@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 
 export const metadata: Metadata = {
-  title: "Mentions légales — PitStop",
+  title: "Mentions légales : PitStop",
   description: "Mentions légales du service PitStop.",
 }
 
@@ -16,7 +16,7 @@ export default function MentionsLegalesPage() {
           <header className="space-y-2">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">Mentions légales</h1>
             <p className="text-muted-foreground">
-              PitStop — Service de diagnostic automobile assisté par IA
+              PitStop : Service de diagnostic automobile assisté par IA
               <br />
               Dernière mise à jour : 26 mars 2026
             </p>
@@ -36,11 +36,10 @@ export default function MentionsLegalesPage() {
                 pitstopbelgique@gmail.com
               </a>
               <br />
-              Statut : Personne physique — service en phase bêta non commerciale.
+              Statut : Personne physique : activité exercée en nom propre.
             </p>
             <p className="text-muted-foreground">
-              PitStop est actuellement en phase de test restreinte. Aucune structure commerciale ou juridique n&apos;est
-              enregistrée à ce stade.
+              PitStop est actuellement en phase de test restreinte. Aucune structure commerciale ou juridique (société, entreprise individuelle enregistrée) n&apos;est constituée à ce stade. En conséquence, PitStop ne dispose d&apos;aucun numéro de TVA ni de numéro BCE (Banque-Carrefour des Entreprises) belge. Ces informations seront communiquées lors du passage en exploitation commerciale officielle.
             </p>
           </section>
 

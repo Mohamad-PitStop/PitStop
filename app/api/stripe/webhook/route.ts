@@ -154,7 +154,7 @@ export async function POST(req: Request) {
           await addCredits(userId, credits)
         }
       } else if (intent === "guest_diagnostic") {
-        // Paiement d'un diagnostic invité — enregistrement préventif en DB
+        // Paiement d'un diagnostic invité : enregistrement préventif en DB
         await registerPaidGuestSession(session.id)
       } else {
         // Flux réservation existant

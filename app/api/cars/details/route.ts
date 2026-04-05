@@ -7,7 +7,7 @@ import { getAvailableYearsForModel } from "@/lib/vehicle-year-catalog"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-/** GET /api/cars/details?make=XXX&model=YYY — carburant, transmission, années depuis le catalogue statique uniquement (plus d’API Ninjas). */
+/** GET /api/cars/details?make=XXX&model=YYY : carburant, transmission, années depuis le catalogue statique uniquement (plus d’API Ninjas). */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
