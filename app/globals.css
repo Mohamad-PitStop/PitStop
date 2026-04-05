@@ -162,3 +162,45 @@
     opacity: 1;
   }
 }
+
+/* Accueil : première visite — cascade zoom (courbe non linéaire via cubic-bezier) */
+@keyframes landing-stagger-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes landing-stagger-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.landing-stagger-root--run .landing-stagger-item {
+  opacity: 0;
+  transform: scale(0.93);
+  animation: landing-stagger-zoom-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--landing-stagger-delay, 0ms);
+}
+
+.landing-stagger-root--skip .landing-stagger-item {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-stagger-root--run .landing-stagger-item {
+    transform: none;
+    animation: landing-stagger-fade-in 0.28s ease-out both;
+    animation-delay: var(--landing-stagger-delay, 0ms);
+  }
+}

@@ -9,6 +9,7 @@ import { CheckCircle, ArrowRight, Wrench, Car } from "lucide-react"
 import { marketingFeatures } from "@/lib/marketing-content"
 import { MarketingSteps } from "@/components/marketing-steps"
 import { PartnerContactForm } from "@/components/partner-contact-form"
+import { LandingStaggerRoot, LandingStaggerItem } from "@/components/landing-stagger"
 
 export const metadata: Metadata = {
   title: "PitStop : Diagnostic et estimation auto",
@@ -21,6 +22,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
+      <LandingStaggerRoot>
       <main className="flex-1 pb-24 md:pb-0">
         {/* Hero : logo centré */}
         <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-24">
@@ -52,7 +54,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--primary)/0.15),transparent)] pointer-events-none" />
 
           <div className="container relative mx-auto max-w-6xl px-4 flex flex-col items-center text-center">
-            <div className="mt-8 mb-8 select-none md:mt-0 md:mb-10">
+            <LandingStaggerItem index={0} className="mt-8 mb-8 select-none md:mt-0 md:mb-10">
               <Image
                 src="/images/pitstop-logo.png"
                 alt="PitStop"
@@ -62,22 +64,29 @@ export default function LandingPage() {
                 priority
                 draggable={false}
               />
-            </div>
+            </LandingStaggerItem>
 
+            <LandingStaggerItem index={1}>
             <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-5 max-w-4xl text-balance">
               Votre voiture mérite un diagnostic clair et un prix juste
             </h1>
+            </LandingStaggerItem>
 
+            <LandingStaggerItem index={2}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8">
               PitStop vous aide à estimer vos réparations et à connaître la valeur de revente de votre
               véhicule auprès de nos partenaires.
             </p>
+            </LandingStaggerItem>
 
+            <LandingStaggerItem index={3}>
             <p className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
               <CheckCircle className="h-4 w-4 shrink-0" aria-hidden />
               Estimations alignées sur le marché belge et approuvées par des professionnels
             </p>
+            </LandingStaggerItem>
 
+            <LandingStaggerItem index={4}>
             <div className="flex w-full max-w-md flex-col items-stretch justify-center gap-4 sm:max-w-none sm:flex-row sm:items-center sm:justify-center mx-auto">
               <Button
                 asChild
@@ -103,7 +112,9 @@ export default function LandingPage() {
                 </Link>
               </Button>
             </div>
+            </LandingStaggerItem>
 
+            <LandingStaggerItem index={5}>
             <ul className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-12 text-sm text-muted-foreground list-none p-0 m-0">
               <li className="flex items-center justify-center gap-2 text-center">
                 <CheckCircle className="h-4 w-4 text-primary shrink-0" aria-hidden />
@@ -114,12 +125,14 @@ export default function LandingPage() {
                 Données traitées avec soin
               </li>
             </ul>
+            </LandingStaggerItem>
           </div>
         </section>
 
         {/* Blocs services */}
         <section className="py-14 md:py-20 border-t border-border/50 bg-card/30">
           <div className="container mx-auto max-w-6xl px-4">
+            <LandingStaggerItem index={6}>
             <div className="text-center mb-12 md:mb-14">
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
                 Deux parcours, une même exigence
@@ -128,8 +141,10 @@ export default function LandingPage() {
                 Choisissez l’espace qui correspond à votre besoin. Vous pourrez toujours explorer l’autre plus tard.
               </p>
             </div>
+            </LandingStaggerItem>
 
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
+              <LandingStaggerItem index={7}>
               <Link
                 href="/diagnostic"
                 className="group flex flex-col rounded-2xl border border-border/60 bg-card p-8 shadow-sm hover:border-primary/40 hover:shadow-md transition-all text-left h-full"
@@ -147,7 +162,9 @@ export default function LandingPage() {
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </Link>
+              </LandingStaggerItem>
 
+              <LandingStaggerItem index={8}>
               <Link
                 href="/vente"
                 className="group flex flex-col rounded-2xl border border-border/60 bg-card p-8 shadow-sm hover:border-primary/40 hover:shadow-md transition-all text-left h-full"
@@ -165,6 +182,7 @@ export default function LandingPage() {
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </Link>
+              </LandingStaggerItem>
             </div>
           </div>
         </section>
@@ -172,6 +190,7 @@ export default function LandingPage() {
         {/* Avantages */}
         <section id="avantages" className="py-14 md:py-20 border-t border-border/50">
           <div className="container mx-auto max-w-6xl px-4">
+            <LandingStaggerItem index={9}>
             <div className="text-center mb-12">
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
                 Pourquoi PitStop ?
@@ -180,11 +199,12 @@ export default function LandingPage() {
                 Un outil pensé pour vous donner des repères clairs avant de passer au garage.
               </p>
             </div>
+            </LandingStaggerItem>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {marketingFeatures.map((feature, index) => (
+                <LandingStaggerItem key={index} index={10 + index}>
                 <div
-                  key={index}
                   className="flex flex-col items-center text-center p-6 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-colors"
                 >
                   <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
@@ -193,6 +213,7 @@ export default function LandingPage() {
                   <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </div>
+                </LandingStaggerItem>
               ))}
             </div>
           </div>
@@ -201,18 +222,23 @@ export default function LandingPage() {
         {/* Étapes */}
         <section className="py-14 md:py-20 border-t border-border/50 bg-card/20">
           <div className="container mx-auto max-w-6xl px-4">
+            <LandingStaggerItem index={13}>
             <div className="text-center mb-12">
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
                 Comment ça marche ?
               </h2>
             </div>
+            </LandingStaggerItem>
+            <LandingStaggerItem index={14}>
             <MarketingSteps />
+            </LandingStaggerItem>
           </div>
         </section>
 
         {/* Partenaires garages */}
         <section className="py-14 md:py-20 border-t border-border/50">
           <div className="container mx-auto max-w-4xl px-4">
+            <LandingStaggerItem index={15}>
             <div className="text-center mb-10">
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
                 Vous êtes propriétaire d'un garage ?<br />
@@ -223,13 +249,17 @@ export default function LandingPage() {
                 équipe vous recontactera rapidement.
               </p>
             </div>
+            </LandingStaggerItem>
 
+            <LandingStaggerItem index={16}>
             <div className="rounded-2xl border border-border/60 bg-card p-6 md:p-8 shadow-sm">
               <PartnerContactForm />
             </div>
+            </LandingStaggerItem>
           </div>
         </section>
 
+        <LandingStaggerItem index={17}>
         <footer className="py-10 mt-auto border-t border-border/50">
           <div className="container mx-auto max-w-6xl px-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -262,7 +292,9 @@ export default function LandingPage() {
             </div>
           </div>
         </footer>
+        </LandingStaggerItem>
       </main>
+      </LandingStaggerRoot>
     </div>
   )
 }
