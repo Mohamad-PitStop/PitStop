@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
+import { MerciPromoSection } from "@/components/merci-promo-section"
 import { CheckCircle, Clock, Mail } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -44,6 +45,8 @@ export default function MerciPage() {
               Le lancement officiel de PitStop : avec accès libre à l&apos;achat de crédits et à l&apos;ensemble des fonctionnalités : interviendra prochainement.
             </p>
           </div>
+
+          <MerciPromoSection />
 
           {/* Contact */}
           <div className="rounded-xl border border-border/50 bg-card px-6 py-5 text-left space-y-2">

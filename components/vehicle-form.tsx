@@ -81,6 +81,8 @@ export function VehicleForm() {
   const [creditCheckoutLoading, setCreditCheckoutLoading] = useState(false)
   const [creditClientSecret, setCreditClientSecret] = useState<string | null>(null)
   const [creditPaymentType, setCreditPaymentType] = useState<"credit_purchase" | "guest_diagnostic" | null>(null)
+  const [merciPromoCode, setMerciPromoCode] = useState<string | null>(null)
+  const merciPromoFetchDone = useRef(false)
   const [singleDiagPrice, setSingleDiagPrice] = useState("5,99 €")
 
   // ── Reconnaissance vocale ────────────────────────────────────────────────────
@@ -595,6 +597,17 @@ export function VehicleForm() {
     return () => document.removeEventListener("mousedown", handler)
   }, [])
 
+  useEffect(() => {
+    if (!CREDIT_PURCHASES_ENABLED || !authUser || merciPromoFetchDone.current) return
+    merciPromoFetchDone.current = true
+    fetch("/api/credits/merci-promo")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.ok && !d.exhausted && d.code) setMerciPromoCode(d.code)
+      })
+      .catch(() => null)
+  }, [CREDIT_PURCHASES_ENABLED, authUser])
+
   // Focus automatique sur la barre de recherche quand le combobox s'ouvre
   useEffect(() => {
     if (marqueOpen) {
@@ -806,7 +819,11 @@ export function VehicleForm() {
       const res = await fetch("/api/credits/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId, intent }),
+        body: JSON.stringify({
+          packageId,
+          intent,
+          ...(intent === "credit_purchase" && merciPromoCode ? { promoCode: merciPromoCode } : {}),
+        }),
       })
       const data = await res.json().catch(() => null)
       if (data?.ok && data?.clientSecret) {

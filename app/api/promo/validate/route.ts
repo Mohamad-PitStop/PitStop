@@ -4,7 +4,7 @@ import {
   hasIpUsedPromo,
   hasUserUsedPromo,
   formatDiscount,
-  applyPromoDiscount,
+  assertPromoUsableByAccount,
 } from "@/lib/promo-db"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { getClientIp } from "@/lib/rate-limit"
@@ -31,6 +31,11 @@ export async function GET(req: Request) {
     }
 
     const user = await getUserFromAuthCookie(req.headers.get("cookie"))
+    const reserved = assertPromoUsableByAccount(promo, user?.id)
+    if (!reserved.ok) {
+      return NextResponse.json({ ok: false, error: reserved.error })
+    }
+
     if (user && (await hasUserUsedPromo(promo.id, user.id))) {
       return NextResponse.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." })
     }

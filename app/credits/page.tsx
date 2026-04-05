@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -30,6 +30,7 @@ export default function CreditsPage() {
   const [promoCodeStr, setPromoCodeStr] = useState<string | null>(null)
   const [finalAmount, setFinalAmount] = useState<number | null>(null)
   const [discountLabel, setDiscountLabel] = useState<string | null>(null)
+  const merciAutoAppliedRef = useRef(false)
 
   const refreshUser = () => {
     fetch("/api/auth/me")
@@ -72,6 +73,30 @@ export default function CreditsPage() {
     const timer = setTimeout(refreshUser, 2000)
     return () => clearTimeout(timer)
   }, [success])
+
+  /** Code promo page Merci (-30 % premier achat) : appliqué une fois si encore valide. */
+  useEffect(() => {
+    if (!CREDIT_PURCHASES_ENABLED || !user || promoApplied || merciAutoAppliedRef.current) return
+    let cancelled = false
+    fetch("/api/credits/merci-promo")
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled || !d?.ok || d.exhausted || !d.code) return
+        merciAutoAppliedRef.current = true
+        setPromoApplied({
+          promoId: d.promoId,
+          code: d.code,
+          discountLabel: d.discountLabel,
+          discountType: d.discountType,
+          discountValue: d.discountValue,
+        })
+        setPromoCodeStr(d.code)
+      })
+      .catch(() => null)
+    return () => {
+      cancelled = true
+    }
+  }, [CREDIT_PURCHASES_ENABLED, user, promoApplied])
 
   function closeModal() {
     setClientSecret(null)

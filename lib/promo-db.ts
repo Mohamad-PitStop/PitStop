@@ -1,4 +1,4 @@
-import { randomUUID, createHash } from "node:crypto"
+import { randomUUID, createHash, randomBytes } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 
 export type DiscountType = "percent" | "fixed_cents"
@@ -12,6 +12,8 @@ export type PromoCodeRow = {
   usedCount: number
   active: boolean
   createdAt: string
+  /** Si renseigné : code personnel (ex. remerciement testeurs / page Merci), réservé à ce compte uniquement. */
+  reservedForUserId: string | null
 }
 
 const PROMO_ABUSE_WINDOW_DAYS = 60
@@ -48,6 +50,15 @@ async function ensurePromoTables() {
   await prisma.$executeRawUnsafe(
     `CREATE INDEX IF NOT EXISTS "PromoCodeUsage_ipHash_idx" ON "PromoCodeUsage" ("ipHash")`
   )
+  const reservedCol = await prisma.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM pragma_table_info('PromoCode') WHERE name = 'reservedForUserId'`
+  )
+  if (reservedCol.length === 0) {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "PromoCode" ADD COLUMN "reservedForUserId" TEXT`)
+    await prisma.$executeRawUnsafe(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "PromoCode_reservedForUserId_key" ON "PromoCode" ("reservedForUserId")`
+    )
+  }
   ensured = true
 }
 
@@ -65,6 +76,7 @@ function normalizeRow(row: any): PromoCodeRow {
     usedCount: Number(row.usedCount),
     active: Number(row.active) === 1,
     createdAt: row.createdAt,
+    reservedForUserId: row.reservedForUserId ?? null,
   }
 }
 
@@ -157,4 +169,48 @@ export function formatDiscount(promo: PromoCodeRow): string {
   if (promo.discountType === "percent") return `-${promo.discountValue}%`
   const euros = (promo.discountValue / 100).toFixed(2).replace(".", ",")
   return `-${euros} €`
+}
+
+/** Code promo -30 %, 1 utilisation, lié au compte (page /merci, phase test). */
+export async function getOrCreateMerciTesterPromo(userId: string): Promise<PromoCodeRow> {
+  await ensurePromoTables()
+  const existing = await prisma.$queryRawUnsafe<any[]>(
+    `SELECT * FROM "PromoCode" WHERE "reservedForUserId" = ? LIMIT 1`,
+    userId
+  )
+  if (existing[0]) return normalizeRow(existing[0])
+
+  for (let i = 0; i < 20; i++) {
+    const suffix = randomBytes(5).toString("hex").toUpperCase()
+    const code = `PS-MERCI-${suffix}`
+    const id = randomUUID()
+    try {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "PromoCode" ("id", "code", "discountType", "discountValue", "maxUses", "usedCount", "active", "reservedForUserId")
+         VALUES (?, ?, 'percent', 30, 1, 0, 1, ?)`,
+        id,
+        code,
+        userId
+      )
+      const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "PromoCode" WHERE "id" = ? LIMIT 1`, id)
+      return normalizeRow(rows[0])
+    } catch {
+      // collision rare sur code ou index utilisateur
+    }
+  }
+  throw new Error("Impossible de générer un code promo Merci unique.")
+}
+
+export function assertPromoUsableByAccount(
+  promo: PromoCodeRow,
+  authenticatedUserId: string | undefined
+): { ok: true } | { ok: false; error: string } {
+  if (!promo.reservedForUserId) return { ok: true }
+  if (!authenticatedUserId) {
+    return { ok: false, error: "Connectez-vous pour utiliser ce code promo." }
+  }
+  if (authenticatedUserId !== promo.reservedForUserId) {
+    return { ok: false, error: "Ce code promo est personnel et lié à un autre compte." }
+  }
+  return { ok: true }
 }

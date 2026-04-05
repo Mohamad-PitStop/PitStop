@@ -9,6 +9,7 @@ import {
   recordPromoUsage,
   applyPromoDiscount,
   formatDiscount,
+  assertPromoUsableByAccount,
 } from "@/lib/promo-db"
 import { getClientIp } from "@/lib/rate-limit"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
@@ -57,6 +58,10 @@ export async function POST(req: Request) {
       const promo = await findPromoCodeByCode(body.promoCode)
       if (!promo || !promo.active || (promo.maxUses != null && promo.usedCount >= promo.maxUses)) {
         return Response.json({ ok: false, error: "Code promo invalide ou expiré." }, { status: 400 })
+      }
+      const accountCheck = assertPromoUsableByAccount(promo, userId)
+      if (!accountCheck.ok) {
+        return Response.json({ ok: false, error: accountCheck.error }, { status: 400 })
       }
       if (await hasIpUsedPromo(promo.id, ip)) {
         return Response.json({ ok: false, error: "Vous avez déjà utilisé ce code promo." }, { status: 400 })

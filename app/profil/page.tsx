@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -121,6 +121,8 @@ export default function ProfilPage() {
   const [editSuccess, setEditSuccess] = useState(false)
   // Export données
   const [downloadingData, setDownloadingData] = useState(false)
+  const [merciPromoCode, setMerciPromoCode] = useState<string | null>(null)
+  const merciFetchDoneRef = useRef(false)
 
   const refreshUser = () => {
     fetch("/api/auth/me")
@@ -165,6 +167,17 @@ export default function ProfilPage() {
     return () => clearTimeout(timer)
   }, [paySuccess])
 
+  useEffect(() => {
+    if (!CREDIT_PURCHASES_ENABLED || !user || merciFetchDoneRef.current) return
+    merciFetchDoneRef.current = true
+    fetch("/api/credits/merci-promo")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.ok && !d.exhausted && d.code) setMerciPromoCode(d.code)
+      })
+      .catch(() => null)
+  }, [CREDIT_PURCHASES_ENABLED, user])
+
   const handleBuy = async (packageId: string) => {
     if (!CREDIT_PURCHASES_ENABLED) return
     setLoadingPkg(packageId)
@@ -172,7 +185,11 @@ export default function ProfilPage() {
       const res = await fetch("/api/credits/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId, intent: "credit_purchase" }),
+        body: JSON.stringify({
+          packageId,
+          intent: "credit_purchase",
+          ...(merciPromoCode ? { promoCode: merciPromoCode } : {}),
+        }),
       })
       const data = await res.json().catch(() => null)
       if (data?.ok && data?.clientSecret) {
