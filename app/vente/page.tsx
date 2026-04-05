@@ -15,12 +15,7 @@ function VentePageFull() {
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
 
           <div className="container relative mx-auto max-w-6xl px-4">
-            <div className="mx-auto mb-10 max-w-3xl text-center">
-              <div className="mb-5 inline-flex max-w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-2 py-1.5 text-center text-[12px] font-medium leading-tight text-primary sm:px-4 sm:py-2 sm:text-sm sm:leading-normal">
-                <CheckCircle className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
-                Estimation rapide et fiable de la valeur de revente
-              </div>
-
+            <div className="mx-auto mb-6 max-w-3xl text-center md:mb-8">
               <h1 className="font-display mb-4 text-balance text-3xl font-bold leading-tight text-foreground md:text-4xl lg:text-5xl">
                 Vente de votre véhicule
               </h1>
@@ -29,6 +24,13 @@ function VentePageFull() {
                 Renseignez les informations de votre véhicule et obtenez une estimation de son prix de vente idéal. Nos
                 garages partenaires seront informés de l&apos;offre et vous recontacteront dans les plus brefs délais.
               </p>
+            </div>
+
+            <div className="mx-auto mb-8 flex max-w-3xl justify-center md:mb-10">
+              <div className="inline-flex max-w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-2 py-1.5 text-center text-[12px] font-medium leading-tight text-primary sm:px-4 sm:py-2 sm:text-sm sm:leading-normal">
+                <CheckCircle className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
+                Estimation rapide et fiable de la valeur de revente
+              </div>
             </div>
 
             <div className="mx-auto max-w-4xl space-y-6">
