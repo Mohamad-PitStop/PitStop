@@ -10,7 +10,7 @@ export const VENTE_TAB_ENABLED = false
  * dans la navbar, paiement invité après diagnostic gratuit épuisé, API `/api/credits/create-payment-intent`
  * et `/api/credits/checkout`.
  *
- * Mettre à `true` lorsque la structure juridique permet la vente conformément aux CGV. Les garde-fous UI
+ * Mettre à `true` pour réactiver la vente de crédits (Stripe) lorsque tu es prêt côté exploitation. Les garde-fous UI
  * et API sont conditionnés à ce seul booléen ; le code de paiement (Stripe, CGV, promos) reste en place.
  */
 export const CREDIT_PURCHASES_ENABLED = false

@@ -476,7 +476,7 @@ export default function ProfilPage() {
                   <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-4 space-y-2">
                     <p className="text-sm text-foreground font-medium">Achat de crédits indisponible</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Tant que la structure juridique de PitStop n&apos;est pas en place, aucune vente de crédits n&apos;est proposée en ligne. Vous pouvez utiliser les crédits déjà présents sur votre compte.
+                      L&apos;achat de crédits n&apos;est pas proposé pour le moment. Vous pouvez utiliser les crédits déjà présents sur votre compte.
                     </p>
                   </div>
                 )}

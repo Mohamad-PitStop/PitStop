@@ -347,7 +347,7 @@ export default function CreditsPage() {
           <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-5 py-5 space-y-3">
             <p className="text-sm font-semibold text-foreground">Achat de crédits temporairement indisponible</p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Tant que la structure juridique de PitStop n&apos;est pas constituée, aucune vente de crédits ne peut être proposée en ligne, conformément aux conditions affichées sur le site. Vous pouvez continuer à utiliser les crédits déjà présents sur votre compte.
+              L&apos;achat de crédits n&apos;est pas disponible pour le moment. Vous pouvez continuer à utiliser les crédits déjà présents sur votre compte.
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Button asChild variant="outline" size="sm">
