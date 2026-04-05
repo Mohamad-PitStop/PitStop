@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/navbar"
 import { getSiteUrl } from "@/lib/stripe"
-import { CheckCircle, Euro, Calendar, Info, XCircle } from "lucide-react"
+import { CheckCircle, Euro, Calendar, Info, XCircle, XOctagon } from "lucide-react"
 import { formatInTimeZone } from "date-fns-tz"
 import { fr } from "date-fns/locale"
 
@@ -19,7 +19,7 @@ async function getStatus(params: { session_id?: string; payment_intent?: string 
   return res.json() as Promise<
     | {
         ok: true
-        reservation: { status: string; startAt: string; endAt: string; timeZone: string; name: string; type: string }
+        reservation: { status: string; startAt: string; endAt: string; timeZone: string; name: string; type: string; cancelToken: string | null }
         payment: {
           depositAmountCents?: number
           priceMinEuros?: number
@@ -211,6 +211,26 @@ export default async function RendezVousSuccessPage({
                     <Link href="/">Accueil</Link>
                   </Button>
                 </div>
+
+                {/* Lien d'annulation */}
+                {isPaid && data?.ok && data.reservation.cancelToken && (
+                  <div className="rounded-lg border border-border/40 bg-muted/20 p-4 flex items-start gap-3">
+                    <XOctagon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">Annuler ce rendez-vous</p>
+                      <p className="text-sm text-muted-foreground">
+                        L&apos;annulation en ligne est disponible jusqu&apos;à 12h avant le rendez-vous.
+                        Au-delà, vous devrez contacter le garage directement.
+                      </p>
+                      <Link
+                        href={`/rendez-vous/annuler?token=${data.reservation.cancelToken}`}
+                        className="text-sm text-destructive hover:underline"
+                      >
+                        Annuler ce rendez-vous →
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

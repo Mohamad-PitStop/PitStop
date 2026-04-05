@@ -11,6 +11,7 @@ import {
 } from "@/lib/promo-db"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { getClientIp } from "@/lib/rate-limit"
+import { generateCancelToken, ensureReservationMigrations } from "@/lib/reservation-db"
 
 export const runtime = "nodejs"
 
@@ -88,6 +89,9 @@ export async function POST(req: Request) {
       promoId = promo.id
     }
 
+    await ensureReservationMigrations()
+    const cancelToken = generateCancelToken()
+
     const reservation = await prisma.reservation.create({
       data: {
         type: body.type,
@@ -103,6 +107,8 @@ export async function POST(req: Request) {
         vehicleKm: body.vehicle?.km,
         status: "pending",
         calendarId: calendarId ?? undefined,
+        cancelToken,
+        userId: user?.id ?? undefined,
       },
     })
 
@@ -146,6 +152,7 @@ export async function POST(req: Request) {
       ok: true,
       clientSecret: paymentIntent.client_secret,
       reservationId: reservation.id,
+      cancelToken,
     })
   } catch (error) {
     console.error("Erreur create-payment-intent:", error)

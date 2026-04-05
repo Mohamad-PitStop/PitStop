@@ -22,6 +22,7 @@ import {
   Pencil,
   Download,
   X,
+  XOctagon,
 } from "lucide-react"
 
 type AuthUser = {
@@ -46,6 +47,16 @@ type Diagnostic = {
   kilometrage: string
   probleme: string
   status: DiagnosticStatus
+}
+
+type Reservation = {
+  id: string
+  type: string
+  startAt: string
+  endAt: string
+  timeZone: string
+  status: string
+  cancelToken: string | null
 }
 
 function formatDate(iso: string) {
@@ -97,6 +108,7 @@ export default function ProfilPage() {
   const [loadingPkg, setLoadingPkg] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [selectedPkg, setSelectedPkg] = useState<(typeof CREDIT_PACKAGES)[number] | null>(null)
+  const [reservations, setReservations] = useState<Reservation[]>([])
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   // Édition profil
@@ -129,17 +141,19 @@ export default function ProfilPage() {
       window.history.replaceState({}, "", "/profil")
     }
 
-    // Load user + diagnostics in parallel
+    // Load user + diagnostics + reservations in parallel
     Promise.all([
       fetch("/api/auth/me").then((r) => r.json()).catch(() => null),
       fetch("/api/mes-diagnostics").then((r) => r.ok ? r.json() : null).catch(() => null),
-    ]).then(([userData, diagData]) => {
+      fetch("/api/mes-reservations").then((r) => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([userData, diagData, resData]) => {
       if (!userData?.user) {
         router.replace("/connexion?redirect=/profil")
         return
       }
       setUser({ ...userData.user, diagnosticCredits: userData.user.diagnosticCredits ?? 0 })
       setDiagnostics(diagData?.diagnostics ?? [])
+      setReservations(resData?.reservations ?? [])
     }).finally(() => setLoading(false))
   }, [router])
 
@@ -454,6 +468,50 @@ export default function ProfilPage() {
                 <p className="text-[11px] font-medium text-amber-300/90">
                   Important : les crédits achetés et non utilisés ne sont pas remboursables.
                 </p>
+              </section>
+            )}
+
+            {/* Mes réservations */}
+            {reservations.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-base font-semibold">Mes réservations</h2>
+                <div className="space-y-3">
+                  {reservations.map((r) => {
+                    const startAt = new Date(r.startAt)
+                    const dateLabel = new Intl.DateTimeFormat("fr-BE", {
+                      weekday: "long", day: "2-digit", month: "long", year: "numeric",
+                      hour: "2-digit", minute: "2-digit",
+                    }).format(startAt)
+                    const isCancelled = r.status === "cancelled"
+                    const isPast = startAt < new Date()
+                    return (
+                      <div
+                        key={r.id}
+                        className={`rounded-xl border px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
+                          isCancelled ? "border-border/40 bg-muted/20 opacity-60" : "border-border/60 bg-card"
+                        }`}
+                      >
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="text-sm font-medium text-foreground capitalize">{dateLabel}</p>
+                          <p className="text-xs text-muted-foreground capitalize">
+                            {r.type.replace(/-/g, " ")}
+                            {isCancelled && " · Annulé"}
+                            {!isCancelled && isPast && " · Passé"}
+                          </p>
+                        </div>
+                        {!isCancelled && !isPast && r.cancelToken && (
+                          <Link
+                            href={`/rendez-vous/annuler?token=${r.cancelToken}`}
+                            className="inline-flex items-center gap-1.5 shrink-0 text-xs text-destructive hover:underline"
+                          >
+                            <XOctagon className="h-3.5 w-3.5" />
+                            Annuler
+                          </Link>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               </section>
             )}
 

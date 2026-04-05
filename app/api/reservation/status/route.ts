@@ -79,6 +79,7 @@ export async function GET(req: Request) {
         name: reservation.name,
         phone: reservation.phone,
         email: reservation.email,
+        cancelToken: reservation.cancelToken ?? null,
       },
       payment: paymentInfo,
     })

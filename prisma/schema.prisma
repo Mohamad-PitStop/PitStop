@@ -44,7 +44,12 @@ model Reservation {
 
   notes           String?
 
+  cancelToken     String?           @unique
+  userId          String?
+
   @@index([status, startAt])
+  @@index([cancelToken])
+  @@index([userId])
 }
 
 model DiagnosticRequest {
