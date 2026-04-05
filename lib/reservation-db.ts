@@ -30,6 +30,7 @@ export function generateCancelToken(): string {
   return randomUUID()
 }
 
+/** Ligne réservation pour listes (profil) : pas besoin des champs calendrier. */
 export type ReservationRow = {
   id: string
   type: string
@@ -44,14 +45,20 @@ export type ReservationRow = {
   stripeSessionId: string | null
   cancelToken: string | null
   userId: string | null
-  depositAmountCents: number | null
 }
 
-export async function findReservationByCancelToken(token: string): Promise<ReservationRow | null> {
+/** Détail réservation pour annulation (calendrier + Stripe). */
+export type ReservationForCancelRow = ReservationRow & {
+  calendarId: string | null
+  calendarEventId: string | null
+}
+
+export async function findReservationByCancelToken(token: string): Promise<ReservationForCancelRow | null> {
   await ensureReservationMigrations()
-  const rows = await prisma.$queryRawUnsafe<ReservationRow[]>(
+  const rows = await prisma.$queryRawUnsafe<ReservationForCancelRow[]>(
     `SELECT id, type, name, phone, email, startAt, endAt, timeZone, status,
-            stripePaymentIntentId, stripeSessionId, cancelToken, userId, depositAmountCents
+            stripePaymentIntentId, stripeSessionId, cancelToken, userId,
+            calendarId, calendarEventId
      FROM "Reservation" WHERE "cancelToken" = ? LIMIT 1`,
     token
   )
@@ -62,7 +69,7 @@ export async function findReservationsByUserId(userId: string): Promise<Reservat
   await ensureReservationMigrations()
   const rows = await prisma.$queryRawUnsafe<ReservationRow[]>(
     `SELECT id, type, name, phone, email, startAt, endAt, timeZone, status,
-            stripePaymentIntentId, stripeSessionId, cancelToken, userId, depositAmountCents
+            stripePaymentIntentId, stripeSessionId, cancelToken, userId
      FROM "Reservation" WHERE "userId" = ? ORDER BY startAt DESC`,
     userId
   )
@@ -70,10 +77,13 @@ export async function findReservationsByUserId(userId: string): Promise<Reservat
 }
 
 export async function markReservationCancelled(id: string): Promise<void> {
-  await prisma.$executeRawUnsafe(
-    `UPDATE "Reservation" SET "status" = 'cancelled', "updatedAt" = CURRENT_TIMESTAMP WHERE "id" = ?`,
-    id
-  )
+  await prisma.reservation.update({
+    where: { id },
+    data: {
+      status: "cancelled",
+      calendarEventId: null,
+    },
+  })
 }
 
 /** Délais d'annulation (en millisecondes) */

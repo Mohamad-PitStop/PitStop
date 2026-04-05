@@ -5,6 +5,7 @@ import {
   markReservationCancelled,
   getCancelWindow,
 } from "@/lib/reservation-db"
+import { deleteCalendarEvent } from "@/lib/google-calendar"
 import nodemailer from "nodemailer"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -90,7 +91,18 @@ export async function POST(req: Request) {
       }
     } catch (stripeErr) {
       console.error("Stripe refund error:", stripeErr)
-      // On continue quand même pour marquer cancelled — le remboursement peut être fait manuellement
+      // On continue quand même pour marquer cancelled : le remboursement peut être fait manuellement
+    }
+
+    if (reservation.calendarId && reservation.calendarEventId) {
+      try {
+        await deleteCalendarEvent({
+          calendarId: reservation.calendarId,
+          eventId: reservation.calendarEventId,
+        })
+      } catch (calErr) {
+        console.error("Google Calendar delete error:", calErr)
+      }
     }
 
     await markReservationCancelled(reservation.id)
@@ -105,7 +117,7 @@ export async function POST(req: Request) {
         await transporter.sendMail({
           from: `"${siteName}" <${process.env.SMTP_USER}>`,
           to: reservation.email,
-          subject: `${siteName} — Confirmation d'annulation de votre rendez-vous`,
+          subject: `${siteName} : confirmation d'annulation de votre rendez-vous`,
           html: `
             <p>Bonjour ${reservation.name},</p>
             <p>Votre rendez-vous du <strong>${dateLabel}</strong> a bien été annulé.</p>
@@ -124,7 +136,7 @@ export async function POST(req: Request) {
         await transporter.sendMail({
           from: `"${siteName}" <${process.env.SMTP_USER}>`,
           to: garageEmail,
-          subject: `${siteName} — Annulation de réservation (${dateLabel})`,
+          subject: `${siteName} : annulation de réservation (${dateLabel})`,
           html: `
             <p>Un rendez-vous a été annulé en ligne.</p>
             <ul>

@@ -99,3 +99,14 @@ export async function createCalendarEvent({
   return { eventId }
 }
 
+export async function deleteCalendarEvent({
+  calendarId,
+  eventId,
+}: {
+  calendarId: string
+  eventId: string
+}): Promise<void> {
+  const calendar = await getGoogleCalendarClient()
+  await calendar.events.delete({ calendarId, eventId })
+}
+

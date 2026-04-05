@@ -52,12 +52,17 @@ export default async function RendezVousSuccessPage({
     ? await getStatus({ session_id: sessionId, payment_intent: paymentIntent })
     : null
 
-  const isPaid = data?.ok && data.payment.paymentStatus === "paid"
-  const isCancelled = data?.ok && data.payment.paymentStatus !== "paid"
+  // Checkout Session : "paid" ; PaymentIntent (embedded) : "succeeded"
+  const paymentComplete =
+    data?.ok === true &&
+    (data.payment.paymentStatus === "paid" || data.payment.paymentStatus === "succeeded")
+  const isPaid = paymentComplete
+  const isCancelled = data?.ok === true && !paymentComplete
 
-  const depositEuros = isPaid ? (data!.payment.depositAmountCents ?? 0) / 100 : null
-  const priceMin = isPaid ? data!.payment.priceMinEuros ?? null : null
-  const priceMax = isPaid ? data!.payment.priceMaxEuros ?? null : null
+  const paidData = data?.ok === true && paymentComplete ? data : null
+  const depositEuros = paidData ? (paidData.payment.depositAmountCents ?? 0) / 100 : null
+  const priceMin = paidData ? paidData.payment.priceMinEuros ?? null : null
+  const priceMax = paidData ? paidData.payment.priceMaxEuros ?? null : null
 
   const remainingMin = depositEuros != null && priceMin != null ? Math.max(0, priceMin - depositEuros) : null
   const remainingMax = depositEuros != null && priceMax != null ? Math.max(0, priceMax - depositEuros) : null
@@ -152,10 +157,11 @@ export default async function RendezVousSuccessPage({
                       <div>
                         <p className="text-sm font-medium text-foreground">Votre rendez-vous</p>
                         <p className="text-sm text-muted-foreground capitalize">
-                          {formatDateTime(data!.reservation.startAt, data!.reservation.timeZone || "Europe/Brussels")}
+                          {paidData &&
+                            formatDateTime(paidData.reservation.startAt, paidData.reservation.timeZone || "Europe/Brussels")}
                         </p>
-                        {data!.reservation.name && (
-                          <p className="text-sm text-muted-foreground">Au nom de : {data!.reservation.name}</p>
+                        {paidData?.reservation.name && (
+                          <p className="text-sm text-muted-foreground">Au nom de : {paidData.reservation.name}</p>
                         )}
                       </div>
                     </div>
@@ -213,7 +219,7 @@ export default async function RendezVousSuccessPage({
                 </div>
 
                 {/* Lien d'annulation */}
-                {isPaid && data?.ok && data.reservation.cancelToken && (
+                {paidData?.reservation.cancelToken && (
                   <div className="rounded-lg border border-border/40 bg-muted/20 p-4 flex items-start gap-3">
                     <XOctagon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="space-y-1">
@@ -223,7 +229,7 @@ export default async function RendezVousSuccessPage({
                         Au-delà, vous devrez contacter le garage directement.
                       </p>
                       <Link
-                        href={`/rendez-vous/annuler?token=${data.reservation.cancelToken}`}
+                        href={`/rendez-vous/annuler?token=${paidData.reservation.cancelToken}`}
                         className="text-sm text-destructive hover:underline"
                       >
                         Annuler ce rendez-vous →
