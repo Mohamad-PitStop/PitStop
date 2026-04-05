@@ -1,32 +1,45 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useLayoutEffect, useMemo } from "react"
-import { cn } from "@/lib/utils"
+import { useLayoutEffect, useState, type ReactNode } from "react"
 import { getRouteTransitionKind } from "@/lib/route-transition"
 
-/**
- * Dernier pathname « commité » après navigation (effet client).
- * Un `useRef` seul échoue si ce composant est remonté lors d’une navigation SPA :
- * le ref repasse à `null` et l’animation est toujours `none`.
- * La variable module survit au remontage (un onglet = une instance JS).
- */
-let lastCommittedPathname: string | null = null
+const STORAGE_KEY = "pitstop-page-transition-prev"
+
+function readStoredPath(): string | null {
+  if (typeof window === "undefined") return null
+  try {
+    return sessionStorage.getItem(STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeStoredPath(path: string) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, path)
+  } catch {
+    // private mode, etc.
+  }
+}
 
 /**
- * Enveloppe les pages pour une entrée animée (glissement horizontal discret ou fondu).
- * La direction dépend de la route précédente vs nouvelle (`lib/route-transition.ts`).
+ * Enveloppe les pages pour une entrée animée (glissement discret ou fondu).
+ * - Au 1er rendu (SSR + 1er paint client), on ne lit pas sessionStorage : même résultat
+ *   que le serveur (`prev` = null), pas d’erreur d’hydratation.
+ * - Après `useLayoutEffect`, on lit le dernier chemin enregistré → transitions SPA fiables,
+ *   y compris si l’instance React est remontée (ref module insuffisant seul).
  */
-export function PageTransition({ children }: { children: React.ReactNode }) {
+export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
 
-  const kind = useMemo(
-    () => getRouteTransitionKind(lastCommittedPathname, pathname),
-    [pathname]
-  )
+  const prevPath = mounted ? readStoredPath() : null
+  const kind = getRouteTransitionKind(prevPath, pathname)
 
   useLayoutEffect(() => {
-    lastCommittedPathname = pathname
+    setMounted(true)
+    writeStoredPath(pathname)
   }, [pathname])
 
   const animClass =
@@ -38,8 +51,10 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
           ? "page-t-enter-fade"
           : ""
 
+  const className = animClass ? `min-h-screen ${animClass}` : "min-h-screen"
+
   return (
-    <div key={pathname} className={cn("min-h-screen", animClass)}>
+    <div key={pathname} className={className}>
       {children}
     </div>
   )
