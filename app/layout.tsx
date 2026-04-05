@@ -5,6 +5,7 @@ import { CookieConsentBanner } from '@/components/cookie-consent-banner'
 import { AnalyticsConsentGate } from '@/components/analytics-consent-gate'
 import { CookiePreferencesDialog } from '@/components/cookie-preferences-dialog'
 import { ResponsiveProvider } from '@/components/responsive-provider'
+import { PageTransition } from '@/components/page-transition'
 import { Toaster } from '@/components/ui/sonner'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
@@ -47,7 +48,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className={`${raleway.variable} ${inter.variable} font-sans antialiased bg-background text-foreground min-h-screen`}>
         <ResponsiveProvider>
-          {children}
+          <PageTransition>{children}</PageTransition>
           <CookieConsentBanner />
           <CookiePreferencesDialog />
           <AnalyticsConsentGate />
