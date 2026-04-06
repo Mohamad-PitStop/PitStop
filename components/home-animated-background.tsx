@@ -25,7 +25,7 @@ export function HomeAnimatedBackground() {
     >
       <div className="absolute inset-0 bg-background [transform:translateZ(0)]" />
       <div className="home-aurora-fade-y absolute inset-0 bg-gradient-to-b from-background/55 via-transparent to-background/55 [transform:translateZ(0)]" />
-      <div className="absolute left-1/2 top-[36%] [transform:translate3d(-50%,-50%,0)]">
+      <div className="home-aurora-anchor home-aurora-anchor--a absolute left-1/2 top-[36%] [transform:translate3d(-50%,-50%,0)]">
         <div className="home-bg-v2-spin home-bg-v2-spin--a h-[min(235vmin,3200px)] w-[min(235vmin,3200px)] max-w-none will-change-transform [transform:translateZ(0)] [-webkit-backface-visibility:hidden] [backface-visibility:hidden]">
           <div
             className="home-aurora-a-inner h-full w-full blur-[56px] opacity-[0.95] [transform:translateZ(0)] sm:blur-[64px]"
@@ -36,7 +36,7 @@ export function HomeAnimatedBackground() {
           />
         </div>
       </div>
-      <div className="absolute left-1/2 top-[30%] [transform:translate3d(-50%,-50%,0)]">
+      <div className="home-aurora-anchor home-aurora-anchor--b absolute left-1/2 top-[30%] [transform:translate3d(-50%,-50%,0)]">
         <div className="home-bg-v2-spin home-bg-v2-spin--b h-[min(175vmin,2800px)] w-[min(175vmin,2800px)] max-w-none will-change-transform [transform:translateZ(0)] [-webkit-backface-visibility:hidden] [backface-visibility:hidden]">
           <div
             className="home-aurora-b-inner h-full w-full blur-[44px] opacity-[0.82] [transform:translateZ(0)] sm:blur-[52px]"
