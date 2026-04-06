@@ -36,7 +36,8 @@ function VerifierEmailContent() {
           setState("success")
           setTimeout(() => {
             const dest = TEST_PHASE_SIGNUP_BONUS_ENABLED ? "/?welcome_test=1" : "/"
-            router.push(dest)
+            // replace : évite de revenir sur cette page via « retour » puis de rejouer la redirection
+            router.replace(dest)
             router.refresh()
           }, 2000)
         } else {

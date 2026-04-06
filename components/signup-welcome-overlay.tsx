@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -8,24 +8,55 @@ import { TEST_PHASE_SIGNUP_BONUS_ENABLED } from "@/lib/feature-flags"
 import { Sparkles } from "lucide-react"
 
 const PARAM = "welcome_test"
+/** Affichage en attente après redirection depuis la vérification email (URL nettoyée tout de suite). */
+const PENDING_KEY = "pitstop_welcome_test_pending"
+/** Une fois la modale fermée dans cet onglet : ne plus rouvrir si l’URL repasse en ?welcome_test=1 (ex. historique). */
+const ACK_KEY = "pitstop_welcome_test_ack"
 
 /**
  * Modale post-inscription (phase de test uniquement) : remerciement + 1 crédit offert.
+ * L’URL `/?welcome_test=1` est remplacée immédiatement par `/` pour ne pas la garder dans l’historique
+ * (retour navigateur, restauration d’onglet). La modale ne s’affiche qu’une fois par flux de confirmation.
  */
 export function SignupWelcomeOverlay() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
 
+  useLayoutEffect(() => {
+    if (!TEST_PHASE_SIGNUP_BONUS_ENABLED) return
+    if (searchParams.get(PARAM) !== "1") return
+    try {
+      if (sessionStorage.getItem(ACK_KEY) === "1") {
+        router.replace("/", { scroll: false })
+        return
+      }
+      sessionStorage.setItem(PENDING_KEY, "1")
+    } catch {
+      // sessionStorage indisponible : on tente quand même d’ouvrir via l’effet ci-dessous
+    }
+    router.replace("/", { scroll: false })
+  }, [searchParams, router])
+
   useEffect(() => {
     if (!TEST_PHASE_SIGNUP_BONUS_ENABLED) return
-    if (searchParams.get(PARAM) === "1") {
-      setOpen(true)
+    try {
+      if (sessionStorage.getItem(PENDING_KEY) === "1") {
+        setOpen(true)
+      }
+    } catch {
+      // ignore
     }
   }, [searchParams])
 
   function dismiss() {
     setOpen(false)
+    try {
+      sessionStorage.removeItem(PENDING_KEY)
+      sessionStorage.setItem(ACK_KEY, "1")
+    } catch {
+      // ignore
+    }
     const url = new URL(window.location.href)
     url.searchParams.delete(PARAM)
     router.replace(url.pathname + url.search, { scroll: false })
