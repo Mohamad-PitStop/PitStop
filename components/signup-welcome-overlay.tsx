@@ -57,10 +57,14 @@ export function SignupWelcomeOverlay() {
         </h2>
         <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
           Votre compte est confirmé. Pendant cette <strong className="text-foreground">phase de test</strong>, votre
-          participation nous aide à améliorer PitStop — merci de tester le site avec nous.
+          participation nous aide à améliorer PitStop.
+        </p>
+        <p className="mt-2 text-center text-sm leading-relaxed text-muted-foreground">
+          Merci de tester le site avec nous.
         </p>
         <p className="mt-4 rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-center text-sm font-medium text-primary">
-          Pour vous remercier : <span className="font-bold">1 diagnostic gratuit</span> a été ajouté à votre solde.
+          Pour vous remercier : <span className="font-bold">un crédit de diagnostic gratuit</span> a été ajouté à votre
+          solde.
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button asChild className="w-full sm:w-auto">
