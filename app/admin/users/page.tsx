@@ -53,6 +53,8 @@ type PromoCode = {
   usedCount: number
   active: boolean
   createdAt: string
+  /** Code personnel Merci (-30 %, 1 util.) : e-mail du compte lié. */
+  reservedUserEmail?: string | null
 }
 
 type CreditGiftCode = {
@@ -797,7 +799,14 @@ export default function AdminUsersPage() {
                   <Tag className="h-4 w-4 text-violet-400 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-foreground text-sm">{promo.code}</span>
+                      <div className="min-w-0">
+                        <span className="font-bold text-foreground text-sm">{promo.code}</span>
+                        {promo.reservedUserEmail ? (
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[min(100%,28rem)]" title={promo.reservedUserEmail}>
+                            {promo.reservedUserEmail}
+                          </p>
+                        ) : null}
+                      </div>
                       <Badge
                         variant="outline"
                         className={promo.active ? "border-green-500/50 text-green-400 text-xs" : "border-border text-muted-foreground text-xs"}

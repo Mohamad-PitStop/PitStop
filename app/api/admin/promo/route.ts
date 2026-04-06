@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import {
   createPromoCode,
-  getAllPromoCodes,
+  getAllPromoCodesForAdmin,
   setPromoCodeActive,
   type DiscountType,
 } from "@/lib/promo-db"
@@ -23,7 +23,7 @@ const CreateSchema = z.object({
 export async function GET(req: Request) {
   const admin = await requireOwnerAdmin(req)
   if (!admin) return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
-  const codes = await getAllPromoCodes()
+  const codes = await getAllPromoCodesForAdmin()
   return NextResponse.json({ codes })
 }
 

@@ -113,6 +113,25 @@ export async function getAllPromoCodes(): Promise<PromoCodeRow[]> {
   return rows.map(normalizeRow)
 }
 
+/** Liste admin : e-mail du compte pour les codes personnels (ex. PS-MERCI-… / page Merci). */
+export type PromoCodeAdminRow = PromoCodeRow & {
+  reservedUserEmail: string | null
+}
+
+export async function getAllPromoCodesForAdmin(): Promise<PromoCodeAdminRow[]> {
+  await ensurePromoTables()
+  const rows = await prisma.$queryRawUnsafe<any[]>(
+    `SELECT p.*, u."email" AS "reservedUserEmail"
+     FROM "PromoCode" p
+     LEFT JOIN "UserAccount" u ON u."id" = p."reservedForUserId"
+     ORDER BY p."createdAt" DESC`
+  )
+  return rows.map((row) => ({
+    ...normalizeRow(row),
+    reservedUserEmail: row.reservedUserEmail != null ? String(row.reservedUserEmail) : null,
+  }))
+}
+
 export async function setPromoCodeActive(id: string, active: boolean): Promise<void> {
   await ensurePromoTables()
   await prisma.$executeRawUnsafe(
