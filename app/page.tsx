@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -19,6 +18,7 @@ import { PartnerContactForm } from "@/components/partner-contact-form"
 import { LandingStaggerRoot, LandingStaggerItem } from "@/components/landing-stagger"
 import { SignupWelcomeOverlay } from "@/components/signup-welcome-overlay"
 import { HomeAnimatedBackground } from "@/components/home-animated-background"
+import { LandingHeroLogo } from "@/components/landing-hero-logo"
 
 export const metadata: Metadata = {
   title: "PitStop : Diagnostic et estimation auto",
@@ -64,15 +64,7 @@ export default function LandingPage() {
 
           <div className="container relative mx-auto max-w-6xl px-4 flex flex-col items-center text-center">
             <LandingStaggerItem index={0} className="mt-8 mb-8 select-none md:mt-0 md:mb-10">
-              <Image
-                src="/images/pitstop-logo.png"
-                alt="PitStop"
-                width={560}
-                height={160}
-                className="h-24 w-auto md:h-32 lg:h-36 mx-auto [-webkit-user-drag:none]"
-                priority
-                draggable={false}
-              />
+              <LandingHeroLogo />
             </LandingStaggerItem>
 
             <LandingStaggerItem index={1}>
