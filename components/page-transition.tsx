@@ -51,7 +51,11 @@ export function PageTransition({ children }: { children: ReactNode }) {
           ? "page-t-enter-fade"
           : ""
 
-  const className = animClass ? `min-h-screen ${animClass}` : "min-h-screen"
+  const className = [
+    animClass ? `min-h-screen ${animClass}` : "min-h-screen",
+    /* Stacking / compositing : transitions plus stables (Safari / Firefox) */
+    "isolate [transform:translateZ(0)]",
+  ].join(" ")
 
   return (
     <div key={pathname} className={className}>

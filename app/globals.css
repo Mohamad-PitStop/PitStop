@@ -137,22 +137,22 @@
 @keyframes pitstop-page-in-forward {
   from {
     opacity: 0.45;
-    transform: translateY(18px);
+    transform: translate3d(0, 18px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes pitstop-page-in-back {
   from {
     opacity: 0.45;
-    transform: translateY(-18px);
+    transform: translate3d(0, -18px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -169,11 +169,11 @@
 @keyframes landing-stagger-zoom-in {
   from {
     opacity: 0;
-    transform: scale(0.93);
+    transform: scale3d(0.93, 0.93, 1);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale3d(1, 1, 1);
   }
 }
 
@@ -188,7 +188,7 @@
 
 .landing-stagger-root--run .landing-stagger-item {
   opacity: 0;
-  transform: scale(0.93);
+  transform: scale3d(0.93, 0.93, 1);
   animation: landing-stagger-zoom-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--landing-stagger-delay, 0ms);
 }
@@ -240,5 +240,47 @@
   .home-bg-v2-spin--a,
   .home-bg-v2-spin--b {
     animation: none;
+  }
+}
+
+/* Fond aurora : calques plus stables sous WebKit / Gecko (blur + rotation) */
+.home-animated-bg {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.home-bg-v2-spin {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform-origin: 50% 50%;
+}
+
+/* Mobile uniquement : aurora un peu plus présente (ResponsiveProvider → data-viewport) */
+:root[data-viewport="mobile"] .home-aurora-a-inner {
+  opacity: 1 !important;
+}
+
+:root[data-viewport="mobile"] .home-aurora-b-inner {
+  opacity: 0.9 !important;
+}
+
+:root[data-viewport="mobile"] .home-aurora-vignette {
+  opacity: 0.55;
+}
+
+:root[data-viewport="mobile"] .home-aurora-fade-y {
+  opacity: 0.72;
+}
+
+/* Logo hero : mélange + filtres SVG plus stables (Safari / Firefox) */
+.landing-hero-logo-svg {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+@supports not (mix-blend-mode: soft-light) {
+  .landing-hero-logo-glow {
+    mix-blend-mode: screen;
+    opacity: 0.42 !important;
   }
 }

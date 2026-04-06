@@ -48,7 +48,7 @@ export function LandingHeroLogo() {
     <svg
       viewBox={`0 0 ${VB_W} ${VB_H}`}
       preserveAspectRatio="xMidYMid meet"
-      className="mx-auto block h-24 w-auto max-w-full md:h-32 lg:h-36 [-webkit-user-drag:none] select-none"
+      className="landing-hero-logo-svg mx-auto block h-24 w-auto max-w-full md:h-32 lg:h-36 [-webkit-user-drag:none] select-none isolate [transform:translateZ(0)]"
       role="img"
       aria-label="PitStop"
     >
@@ -63,7 +63,7 @@ export function LandingHeroLogo() {
           height={VB_H + FILTER_PAD * 2}
           colorInterpolationFilters="sRGB"
         >
-          <feMorphology in="SourceAlpha" operator="dilate" radius="1.15" result="dil" />
+          <feMorphology in="SourceAlpha" operator="dilate" radius="1" result="dil" />
           <feComposite in="dil" in2="SourceAlpha" operator="out" result="ring" />
           <feComponentTransfer in="ring" result="boost">
             <feFuncA type="linear" slope="1.75" intercept="0" />
@@ -113,6 +113,7 @@ export function LandingHeroLogo() {
               to={`${SWEEP_X1} 0`}
               dur="18s"
               repeatCount="indefinite"
+              additive="replace"
             />
           )}
         </linearGradient>
@@ -126,7 +127,7 @@ export function LandingHeroLogo() {
         height={VB_H}
         fill={`url(#${gid})`}
         mask={`url(#${mid})`}
-        className="mix-blend-soft-light"
+        className="landing-hero-logo-glow mix-blend-soft-light"
         style={{ opacity: reduceMotion ? 0.28 : 0.64 }}
       />
     </svg>
