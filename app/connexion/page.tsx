@@ -15,13 +15,22 @@ function safeInternalPath(p: string | null): string | null {
   return p
 }
 
+/** Évite boucle /connexion → /connexion ou inscription → connexion. */
+function sanitizePostLoginTarget(p: string | null): string | null {
+  const s = safeInternalPath(p)
+  if (!s) return null
+  const base = s.split("?")[0]?.split("#")[0]
+  if (base === "/connexion" || base === "/inscription") return null
+  return s
+}
+
 function ConnexionForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"))
   const redirectParam = safeInternalPath(searchParams.get("redirect"))
   /** `callbackUrl` (liens internes) ou `redirect` (anciens liens navbar / crédits / profil). */
-  const returnTo = callbackUrl ?? redirectParam
+  const returnTo = sanitizePostLoginTarget(callbackUrl ?? redirectParam)
   const fromDiagnosticFlow =
     searchParams.get("reason") === "diagnostic" ||
     returnTo === "/diagnostic" ||
@@ -47,8 +56,10 @@ function ConnexionForm() {
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || "Impossible de se connecter.")
       dispatchAuthSessionChanged()
-      router.refresh()
-      router.push(returnTo ?? "/")
+      const dest = returnTo ?? "/"
+      // Ne pas appeler router.refresh() avant la navigation : sur la route /connexion,
+      // ça peut empêcher router.push/replace d’aller vers l’accueil (Next.js App Router).
+      router.replace(dest)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue.")
     } finally {
