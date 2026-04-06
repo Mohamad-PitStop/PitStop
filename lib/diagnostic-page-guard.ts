@@ -12,7 +12,7 @@ export async function ensureDiagnosticPageAccess(): Promise<void> {
   const user = await getUserFromAuthCookie(h.get("cookie"))
 
   if (!user) {
-    redirect(`/inscription?callbackUrl=${encodeURIComponent("/diagnostic")}&reason=diagnostic`)
+    redirect(`/connexion?callbackUrl=${encodeURIComponent("/diagnostic")}&reason=diagnostic`)
   }
 
   const privileged = user.role === "admin" || user.role === "tester"

@@ -90,7 +90,7 @@ export default function MesDiagnosticsPage() {
     fetch("/api/mes-diagnostics")
       .then(async (r) => {
         if (r.status === 401) {
-          router.replace("/connexion")
+          router.replace("/connexion?callbackUrl=" + encodeURIComponent("/mes-diagnostics"))
           return null
         }
         if (!r.ok) throw new Error("Erreur serveur")

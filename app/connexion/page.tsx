@@ -18,6 +18,15 @@ function ConnexionForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"))
+  const redirectParam = safeInternalPath(searchParams.get("redirect"))
+  /** `callbackUrl` (liens internes) ou `redirect` (anciens liens navbar / crédits / profil). */
+  const returnTo = callbackUrl ?? redirectParam
+  const fromDiagnosticFlow =
+    searchParams.get("reason") === "diagnostic" ||
+    returnTo === "/diagnostic" ||
+    returnTo?.startsWith("/diagnostic") ||
+    returnTo === "/resultat" ||
+    returnTo?.startsWith("/resultat")
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -36,7 +45,7 @@ function ConnexionForm() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || "Impossible de se connecter.")
-      router.push(callbackUrl ?? "/")
+      router.push(returnTo ?? "/")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue.")
     } finally {
@@ -54,6 +63,11 @@ function ConnexionForm() {
               <Button variant="outline" size="sm">Retour à l&apos;accueil</Button>
             </Link>
           </div>
+          {fromDiagnosticFlow ? (
+            <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground leading-relaxed">
+              Connectez-vous pour lancer un diagnostic ou consulter une analyse déjà enregistrée. Pas encore de compte ? Utilisez le lien ci-dessous.
+            </div>
+          ) : null}
           <Card className="border-border/60 bg-card">
             <CardHeader>
               <CardTitle>Connexion</CardTitle>
@@ -97,8 +111,8 @@ function ConnexionForm() {
                 Pas encore de compte ?{" "}
                 <Link
                   href={
-                    callbackUrl
-                      ? `/inscription?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                    returnTo
+                      ? `/inscription?callbackUrl=${encodeURIComponent(returnTo)}`
                       : "/inscription"
                   }
                   className="text-primary hover:underline"

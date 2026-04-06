@@ -554,7 +554,7 @@ export function VehicleForm() {
       return
     }
 
-    router.replace("/inscription?callbackUrl=" + encodeURIComponent("/diagnostic"))
+    router.replace("/connexion?callbackUrl=" + encodeURIComponent("/diagnostic"))
   }
 
   // Fermer le combobox marque si clic en dehors

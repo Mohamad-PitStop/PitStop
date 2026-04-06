@@ -16,7 +16,8 @@ export function proxy(request: NextRequest) {
     const token = request.cookies.get(AUTH_COOKIE)?.value
     if (!token) {
       const url = request.nextUrl.clone()
-      url.pathname = "/inscription"
+      // Connexion d’abord : les utilisateurs existants ne doivent pas être envoyés vers l’inscription.
+      url.pathname = "/connexion"
       url.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`)
       url.searchParams.set("reason", "diagnostic")
       return NextResponse.redirect(url)
