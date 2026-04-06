@@ -20,6 +20,7 @@ import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
+import { buildLoginUrl } from "@/lib/login-redirect"
 const MANUAL_PLACEHOLDER = "Saisir manuellement"
 const MODEL_MANUAL_PLACEHOLDER = "Ex : Continental GT, Macan, Stelvio..."
 
@@ -554,7 +555,7 @@ export function VehicleForm() {
       return
     }
 
-    router.replace("/connexion?callbackUrl=" + encodeURIComponent("/diagnostic"))
+    router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
   }
 
   // Fermer le combobox marque si clic en dehors
@@ -585,7 +586,7 @@ export function VehicleForm() {
         const meData = await meRes.json().catch(() => null)
         if (cancelled) return
         if (!meData?.user) {
-          router.replace("/connexion?callbackUrl=" + encodeURIComponent("/diagnostic"))
+          router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
           return
         }
         setAuthUser({
@@ -595,7 +596,7 @@ export function VehicleForm() {
         })
         setAuthSessionReady(true)
       } catch {
-        if (!cancelled) router.replace("/connexion?callbackUrl=" + encodeURIComponent("/diagnostic"))
+        if (!cancelled) router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
       }
     })()
     return () => {

@@ -2,6 +2,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
+import { buildLoginUrl } from "@/lib/login-redirect"
 
 /**
  * À appeler en tête de `app/diagnostic/page.tsx` : empêche d’afficher le formulaire
@@ -12,7 +13,7 @@ export async function ensureDiagnosticPageAccess(): Promise<void> {
   const user = await getUserFromAuthCookie(h.get("cookie"))
 
   if (!user) {
-    redirect(`/connexion?callbackUrl=${encodeURIComponent("/diagnostic")}&reason=diagnostic`)
+    redirect(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
   }
 
   const privileged = user.role === "admin" || user.role === "tester"

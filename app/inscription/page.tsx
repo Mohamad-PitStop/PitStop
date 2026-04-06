@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { buildLoginUrl } from "@/lib/login-redirect"
 
 function InscriptionForm() {
   const searchParams = useSearchParams()
@@ -246,7 +247,7 @@ function InscriptionForm() {
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Déjà un compte ?{" "}
             <Link
-              href={callbackUrl ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/connexion"}
+              href={callbackUrl ? buildLoginUrl(callbackUrl) : "/connexion"}
               className="text-primary hover:underline font-medium"
             >
               Se connecter

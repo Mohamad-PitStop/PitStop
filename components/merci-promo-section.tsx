@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tag, Copy, CheckCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { buildLoginUrl } from "@/lib/login-redirect"
 
 type MerciPromoState =
   | { phase: "loading" }
@@ -74,7 +75,7 @@ export function MerciPromoSection() {
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           <Button asChild size="sm">
-            <Link href="/connexion?redirect=/merci">Se connecter</Link>
+            <Link href={buildLoginUrl("/merci")}>Se connecter</Link>
           </Button>
           <Button asChild size="sm" variant="outline">
             <Link href="/inscription">Créer un compte</Link>

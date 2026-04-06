@@ -10,6 +10,7 @@ import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
+import { buildLoginUrl } from "@/lib/login-redirect"
 import { Input } from "@/components/ui/input"
 import {
   Car,
@@ -137,12 +138,12 @@ export default function ProfilPage() {
       .then((r) => r.json())
       .then((data) => {
         if (!data?.user) {
-          router.replace("/connexion?redirect=/profil")
+          router.replace(buildLoginUrl("/profil"))
         } else {
           setUser({ ...data.user, diagnosticCredits: data.user.diagnosticCredits ?? 0 })
         }
       })
-      .catch(() => router.replace("/connexion?redirect=/profil"))
+      .catch(() => router.replace(buildLoginUrl("/profil")))
   }
 
   async function redeemGiftCode() {
@@ -192,7 +193,7 @@ export default function ProfilPage() {
       fetch("/api/mes-reservations").then((r) => r.ok ? r.json() : null).catch(() => null),
     ]).then(([userData, diagData, resData]) => {
       if (!userData?.user) {
-        router.replace("/connexion?redirect=/profil")
+        router.replace(buildLoginUrl("/profil"))
         return
       }
       setUser({ ...userData.user, diagnosticCredits: userData.user.diagnosticCredits ?? 0 })

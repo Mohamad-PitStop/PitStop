@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Car, Calendar, Gauge, Search, RotateCcw, Eye } from "lucide-react"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
+import { buildLoginUrl } from "@/lib/login-redirect"
 
 type DiagnosticStatus = "in_progress" | "completed" | "abandoned"
 
@@ -90,7 +91,7 @@ export default function MesDiagnosticsPage() {
     fetch("/api/mes-diagnostics")
       .then(async (r) => {
         if (r.status === 401) {
-          router.replace("/connexion?callbackUrl=" + encodeURIComponent("/mes-diagnostics"))
+          router.replace(buildLoginUrl("/mes-diagnostics"))
           return null
         }
         if (!r.ok) throw new Error("Erreur serveur")

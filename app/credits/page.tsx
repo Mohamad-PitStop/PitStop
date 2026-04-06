@@ -11,6 +11,7 @@ import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
 import { PromoInput, type PromoResult } from "@/components/promo-input"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
+import { buildLoginUrl } from "@/lib/login-redirect"
 import { Input } from "@/components/ui/input"
 import { Zap, Check, ArrowLeft, Gift } from "lucide-react"
 
@@ -148,7 +149,7 @@ export default function CreditsPage() {
   const handleBuy = async (packageId: string) => {
     if (!CREDIT_PURCHASES_ENABLED) return
     if (!user) {
-      router.push("/connexion?redirect=/credits")
+      router.push(buildLoginUrl("/credits"))
       return
     }
     setLoadingPkg(packageId)
@@ -357,7 +358,7 @@ export default function CreditsPage() {
                 : "Connectez-vous pour consulter votre solde de crédits."}
             </p>
             <div className="flex justify-center gap-3">
-              <Button onClick={() => router.push("/connexion?redirect=/credits")}>Se connecter</Button>
+              <Button onClick={() => router.push(buildLoginUrl("/credits"))}>Se connecter</Button>
               <Button variant="outline" onClick={() => router.push("/inscription")}>Créer un compte</Button>
             </div>
           </div>

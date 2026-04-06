@@ -4,22 +4,32 @@ import type { NextRequest } from "next/server"
 /** Aligné sur `AUTH_COOKIE_NAME` dans `lib/auth-session.ts` (évite d'importer ce module en Edge). */
 const AUTH_COOKIE = "pitstop_auth"
 
-/** Routes réservées aux utilisateurs connectés (diagnostic compte uniquement). */
-const PROTECTED_PREFIXES = ["/diagnostic", "/resultat"]
+/** Routes réservées : préfixe → raison optionnelle (bannière / contexte sur /connexion). */
+const PROTECTED_ROUTES: Array<{ prefix: string; reason?: string }> = [
+  { prefix: "/diagnostic", reason: "diagnostic" },
+  { prefix: "/resultat", reason: "diagnostic" },
+  { prefix: "/profil" },
+  { prefix: "/mes-diagnostics" },
+  { prefix: "/admin" },
+]
+
+function matchProtectedRoute(pathname: string) {
+  for (const r of PROTECTED_ROUTES) {
+    if (pathname === r.prefix || pathname.startsWith(`${r.prefix}/`)) return r
+  }
+  return null
+}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const needsAuth = PROTECTED_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`)
-  )
-  if (needsAuth) {
+  const rule = matchProtectedRoute(pathname)
+  if (rule) {
     const token = request.cookies.get(AUTH_COOKIE)?.value
     if (!token) {
       const url = request.nextUrl.clone()
-      // Connexion d’abord : les utilisateurs existants ne doivent pas être envoyés vers l’inscription.
       url.pathname = "/connexion"
       url.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`)
-      url.searchParams.set("reason", "diagnostic")
+      if (rule.reason) url.searchParams.set("reason", rule.reason)
       return NextResponse.redirect(url)
     }
   }
