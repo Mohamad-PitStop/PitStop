@@ -22,7 +22,7 @@ import { SignupWelcomeOverlay } from "@/components/signup-welcome-overlay"
 export const metadata: Metadata = {
   title: "PitStop : Diagnostic et estimation auto",
   description:
-    "Estimez vos réparations et la valeur de revente de votre véhicule. Compte requis pour le diagnostic automobile.",
+    "Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.",
 }
 
 export default function LandingPage() {
@@ -113,7 +113,7 @@ export default function LandingPage() {
             <ul className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-12 text-sm text-muted-foreground list-none p-0 m-0">
               <li className="flex items-center justify-center gap-2 text-center">
                 <CheckCircle className="h-4 w-4 text-primary shrink-0" aria-hidden />
-                Compte requis pour le diagnostic
+                1er diagnostic gratuit
               </li>
               <li className="flex items-center justify-center gap-2 text-center">
                 <CheckCircle className="h-4 w-4 text-primary shrink-0" aria-hidden />

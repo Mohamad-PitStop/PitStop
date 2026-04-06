@@ -537,7 +537,7 @@ export default function AdminUsersPage() {
                       <tbody>
                         {locationStats.rows.map((row) => (
                           <tr key={`${row.postalCode}-${row.city}`} className="border-b border-border/40 last:border-0">
-                            <td className="px-3 py-2 font-mono tabular-nums">{row.postalCode}</td>
+                            <td className="px-3 py-2 tabular-nums">{row.postalCode}</td>
                             <td className="px-3 py-2">{row.city}</td>
                             <td className="px-3 py-2 text-right font-medium">{row.count}</td>
                           </tr>
