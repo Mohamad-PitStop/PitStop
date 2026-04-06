@@ -265,7 +265,7 @@
 }
 
 :root[data-viewport="mobile"] .home-aurora-vignette {
-  opacity: 0.55;
+  opacity: 0.48;
 }
 
 :root[data-viewport="mobile"] .home-aurora-fade-y {
