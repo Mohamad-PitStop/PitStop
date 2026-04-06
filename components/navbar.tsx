@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Wrench, Zap } from "lucide-react"
 import { VENTE_TAB_ENABLED, CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
+import {
+  AUTH_SESSION_CHANGED_EVENT,
+  dispatchAuthSessionChanged,
+} from "@/lib/auth-client-events"
 
 const tabBase =
   "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 min-w-0 sm:min-w-[7.5rem]"
@@ -87,18 +91,24 @@ export function Navbar() {
   const [authReady, setAuthReady] = useState(false)
 
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => r.json())
-      .catch(() => null)
-      .then((data) => {
-        setUser(data?.user ?? null)
-        setAuthReady(true)
-      })
+    function loadSession() {
+      fetch("/api/auth/me", { credentials: "include" })
+        .then((r) => r.json())
+        .catch(() => null)
+        .then((data) => {
+          setUser(data?.user ?? null)
+          setAuthReady(true)
+        })
+    }
+    loadSession()
+    window.addEventListener(AUTH_SESSION_CHANGED_EVENT, loadSession)
+    return () => window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, loadSession)
   }, [pathname])
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" })
     setUser(null)
+    dispatchAuthSessionChanged()
     router.push("/")
     router.refresh()
   }

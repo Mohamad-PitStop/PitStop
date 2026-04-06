@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { dispatchAuthSessionChanged } from "@/lib/auth-client-events"
 
 function safeInternalPath(p: string | null): string | null {
   if (!p || !p.startsWith("/")) return null
@@ -45,6 +46,8 @@ function ConnexionForm() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || "Impossible de se connecter.")
+      dispatchAuthSessionChanged()
+      router.refresh()
       router.push(returnTo ?? "/")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue.")

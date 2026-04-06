@@ -2,21 +2,36 @@
 
 import { useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
+import { AUTH_SESSION_CHANGED_EVENT } from "@/lib/auth-client-events"
 import { ArrowRight, Wrench, Car } from "lucide-react"
+
+function useDiagnosticEntryHrefFromSession() {
+  const pathname = usePathname()
+  const [href, setHref] = useState("/diagnostic")
+
+  useEffect(() => {
+    function refresh() {
+      fetch("/api/auth/me", { credentials: "include" })
+        .then((r) => r.json())
+        .then((data) => setHref(getDiagnosticEntryHref(data?.user)))
+        .catch(() => setHref("/diagnostic"))
+    }
+    refresh()
+    window.addEventListener(AUTH_SESSION_CHANGED_EVENT, refresh)
+    return () => window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, refresh)
+  }, [pathname])
+
+  return href
+}
 
 /** Liens accueil vers le diagnostic : cible /merci ou /credits si solde 0 (phase test). */
 export function LandingDiagnosticTabMobile() {
-  const [href, setHref] = useState("/diagnostic")
-  useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => setHref(getDiagnosticEntryHref(data?.user)))
-      .catch(() => setHref("/diagnostic"))
-  }, [])
+  const href = useDiagnosticEntryHrefFromSession()
   return (
     <Link
       href={href}
@@ -28,13 +43,7 @@ export function LandingDiagnosticTabMobile() {
 }
 
 export function LandingDiagnosticHeroButton() {
-  const [href, setHref] = useState("/diagnostic")
-  useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => setHref(getDiagnosticEntryHref(data?.user)))
-      .catch(() => setHref("/diagnostic"))
-  }, [])
+  const href = useDiagnosticEntryHrefFromSession()
   return (
     <Button
       asChild
@@ -57,13 +66,7 @@ export function LandingDiagnosticCardLink({
   className?: string
   children: ReactNode
 }) {
-  const [href, setHref] = useState("/diagnostic")
-  useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => setHref(getDiagnosticEntryHref(data?.user)))
-      .catch(() => setHref("/diagnostic"))
-  }, [])
+  const href = useDiagnosticEntryHrefFromSession()
   return (
     <Link href={href} className={cn(className)}>
       {children}
