@@ -46,7 +46,7 @@ export default async function MerciPage({
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Vous avez utilisé les crédits associés à votre compte. Pendant cette phase pilote, l’achat de crédits
-                  supplémentaires n’est pas encore ouvert — c’est une étape que nous réserverons au lancement officiel.
+                  supplémentaires n’est pas encore ouvert : c’est une étape que nous réserverons au lancement officiel.
                 </p>
                 <p className="text-sm text-foreground/90 leading-relaxed">
                   Nous tenions à vous remercier chaleureusement d’avoir expérimenté PitStop : votre retour, même informel,
@@ -72,8 +72,8 @@ export default async function MerciPage({
               notre catalogue, le temps de finaliser l’offre avec le soin qu’elle mérite.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Le lancement public — avec la possibilité d’acheter des crédits et l’ensemble des fonctionnalités prévues —
-              suivra dans les prochains mois. Nous avons hâte de vous y retrouver.
+              Le lancement public suivra dans les prochains mois (avec la possibilité d’acheter des crédits et
+              l’ensemble des fonctionnalités prévues). Nous avons hâte de vous y retrouver.
             </p>
           </div>
 
