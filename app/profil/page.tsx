@@ -25,6 +25,8 @@ import {
   Download,
   X,
   XOctagon,
+  Gift,
+  Eye,
 } from "lucide-react"
 
 type AuthUser = {
@@ -125,6 +127,11 @@ export default function ProfilPage() {
   const [merciPromoCode, setMerciPromoCode] = useState<string | null>(null)
   const merciFetchDoneRef = useRef(false)
 
+  const [giftCode, setGiftCode] = useState("")
+  const [giftRedeeming, setGiftRedeeming] = useState(false)
+  const [giftError, setGiftError] = useState<string | null>(null)
+  const [giftSuccess, setGiftSuccess] = useState<string | null>(null)
+
   const refreshUser = () => {
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -136,6 +143,39 @@ export default function ProfilPage() {
         }
       })
       .catch(() => router.replace("/connexion?redirect=/profil"))
+  }
+
+  async function redeemGiftCode() {
+    setGiftError(null)
+    setGiftSuccess(null)
+    const raw = giftCode.trim()
+    if (raw.length < 4) {
+      setGiftError("Saisissez le code reçu (au moins 4 caractères).")
+      return
+    }
+    setGiftRedeeming(true)
+    try {
+      const res = await fetch("/api/credits/redeem-gift-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: raw }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "Impossible d’activer le code.")
+      }
+      setUser((u) =>
+        u ? { ...u, diagnosticCredits: data.newBalance ?? u.diagnosticCredits } : null
+      )
+      setGiftSuccess(
+        `${data.creditsAdded} crédit${data.creditsAdded !== 1 ? "s" : ""} ajouté${data.creditsAdded !== 1 ? "s" : ""}. Nouveau solde : ${data.newBalance}.`
+      )
+      setGiftCode("")
+    } catch (e) {
+      setGiftError(e instanceof Error ? e.message : "Une erreur est survenue.")
+    } finally {
+      setGiftRedeeming(false)
+    }
   }
 
   useEffect(() => {
@@ -213,13 +253,16 @@ export default function ProfilPage() {
       sessionStorage.setItem("vehicleInfo", JSON.stringify(data.vehicleInfo))
       if (data.followUps) sessionStorage.setItem("followUps", data.followUps)
       else sessionStorage.removeItem("followUps")
-      router.push("/resultat")
+      router.push(`/resultat?diagnosticId=${encodeURIComponent(d.id)}`)
     } catch {
-      setResumeError("Impossible de reprendre ce diagnostic. Veuillez réessayer.")
+      setResumeError("Impossible d'afficher les résultats de ce diagnostic. Veuillez réessayer.")
     } finally {
       setResumingId(null)
     }
   }
+
+  const canOpenStoredResult = (d: Diagnostic) =>
+    d.status === "completed" || d.status === "in_progress"
 
   const returnUrl =
     typeof window !== "undefined" ? `${window.location.origin}/profil` : ""
@@ -425,7 +468,6 @@ export default function ProfilPage() {
                 <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 px-5 py-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Solde disponible</p>
-                    <p className="text-lg font-semibold">{user.name}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-orange-500">{user.diagnosticCredits}</p>
@@ -433,6 +475,46 @@ export default function ProfilPage() {
                       crédit{user.diagnosticCredits !== 1 ? "s" : ""}
                     </p>
                   </div>
+                </div>
+
+                <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-4 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Gift className="h-4 w-4 text-primary shrink-0" aria-hidden />
+                    Code cadeau
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Si vous avez reçu un code (partenaire, opération, test), saisissez-le ci-dessous pour ajouter des
+                    crédits diagnostics à votre compte.
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <Input
+                      value={giftCode}
+                      onChange={(e) => {
+                        setGiftCode(e.target.value)
+                        setGiftError(null)
+                        setGiftSuccess(null)
+                      }}
+                      placeholder="Ex. PITSTOP-2026-ABCD"
+                      className="h-10 font-sans sm:flex-1"
+                      maxLength={40}
+                      autoComplete="off"
+                      spellCheck={false}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void redeemGiftCode()
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="h-10 shrink-0 sm:min-w-[120px]"
+                      onClick={() => void redeemGiftCode()}
+                      disabled={giftRedeeming}
+                    >
+                      {giftRedeeming ? "…" : "Activer le code"}
+                    </Button>
+                  </div>
+                  {giftError && <p className="text-xs text-destructive">{giftError}</p>}
+                  {giftSuccess && <p className="text-xs text-green-600 dark:text-green-400">{giftSuccess}</p>}
                 </div>
 
                 {/* Achat de crédits (désactivable : `CREDIT_PURCHASES_ENABLED` dans `lib/feature-flags.ts`) */}
@@ -571,8 +653,38 @@ export default function ProfilPage() {
                     <Card
                       key={d.id}
                       className={`border-border/50 bg-card transition-colors ${
-                        d.status === "abandoned" ? "opacity-60" : "hover:border-border"
+                        d.status === "abandoned"
+                          ? "opacity-60"
+                          : canOpenStoredResult(d)
+                            ? "cursor-pointer hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            : "hover:border-border"
                       }`}
+                      role={canOpenStoredResult(d) ? "link" : undefined}
+                      tabIndex={canOpenStoredResult(d) ? 0 : undefined}
+                      aria-label={
+                        canOpenStoredResult(d)
+                          ? d.status === "completed"
+                            ? "Voir les résultats de ce diagnostic"
+                            : "Reprendre ce diagnostic"
+                          : undefined
+                      }
+                      onClick={
+                        canOpenStoredResult(d)
+                          ? () => {
+                              void handleResume(d)
+                            }
+                          : undefined
+                      }
+                      onKeyDown={
+                        canOpenStoredResult(d)
+                          ? (e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault()
+                                void handleResume(d)
+                              }
+                            }
+                          : undefined
+                      }
                     >
                       <CardContent className="pt-4 pb-4">
                         <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -612,12 +724,37 @@ export default function ProfilPage() {
                             <time className="text-xs text-muted-foreground whitespace-nowrap">
                               {formatDate(d.createdAt)}
                             </time>
+                            {d.status === "completed" && (
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                className="gap-1.5 h-7 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  void handleResume(d)
+                                }}
+                                disabled={resumingId === d.id}
+                              >
+                                {resumingId === d.id ? (
+                                  <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                  </svg>
+                                ) : (
+                                  <Eye className="h-3 w-3" />
+                                )}
+                                {resumingId === d.id ? "Chargement…" : "Voir les résultats"}
+                              </Button>
+                            )}
                             {d.status === "in_progress" && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="gap-1.5 h-7 text-xs border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
-                                onClick={() => handleResume(d)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  void handleResume(d)
+                                }}
                                 disabled={resumingId === d.id}
                               >
                                 {resumingId === d.id ? (

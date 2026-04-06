@@ -22,6 +22,7 @@ import {
   ToggleRight,
   MapPin,
   RefreshCw,
+  Gift,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -52,6 +53,17 @@ type PromoCode = {
   usedCount: number
   active: boolean
   createdAt: string
+}
+
+type CreditGiftCode = {
+  id: string
+  code: string
+  credits: number
+  maxUses: number | null
+  usedCount: number
+  active: boolean
+  createdAt: string
+  label: string | null
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -119,6 +131,17 @@ export default function AdminUsersPage() {
   const [promoSuccess, setPromoSuccess] = useState<string | null>(null)
   const [promoTogglingId, setPromoTogglingId] = useState<string | null>(null)
 
+  const [giftCodes, setGiftCodes] = useState<CreditGiftCode[]>([])
+  const [giftLoading, setGiftLoading] = useState(false)
+  const [giftNewCode, setGiftNewCode] = useState("")
+  const [giftCredits, setGiftCredits] = useState("1")
+  const [giftMaxUses, setGiftMaxUses] = useState("")
+  const [giftLabel, setGiftLabel] = useState("")
+  const [giftCreating, setGiftCreating] = useState(false)
+  const [giftError, setGiftError] = useState<string | null>(null)
+  const [giftSuccess, setGiftSuccess] = useState<string | null>(null)
+  const [giftTogglingId, setGiftTogglingId] = useState<string | null>(null)
+
   const [locationStats, setLocationStats] = useState<{
     rows: Array<{ postalCode: string; city: string; count: number }>
     accountsWithoutLocation: number
@@ -165,6 +188,7 @@ export default function AdminUsersPage() {
         setCurrentUserId(data.user.id)
         await fetchData()
         await fetchPromoCodes()
+        await fetchGiftCodes()
         await fetchLocationStats()
       })
       .finally(() => setLoading(false))
@@ -233,6 +257,77 @@ export default function AdminUsersPage() {
       // silent
     } finally {
       setPromoLoading(false)
+    }
+  }
+
+  async function fetchGiftCodes() {
+    setGiftLoading(true)
+    try {
+      const res = await fetch("/api/admin/credit-gift-codes")
+      if (res.status === 403) {
+        router.replace("/")
+        return
+      }
+      const data = await res.json().catch(() => null)
+      if (data?.codes) setGiftCodes(data.codes)
+    } catch {
+      // silent
+    } finally {
+      setGiftLoading(false)
+    }
+  }
+
+  async function createGiftCodeAdmin() {
+    const code = giftNewCode.trim().toUpperCase()
+    const credits = Number(giftCredits)
+    if (!code || code.length < 4) {
+      setGiftError("Code : au moins 4 caractères.")
+      return
+    }
+    if (!Number.isInteger(credits) || credits < 1 || credits > 100) {
+      setGiftError("Crédits : entier entre 1 et 100.")
+      return
+    }
+    setGiftCreating(true)
+    setGiftError(null)
+    setGiftSuccess(null)
+    try {
+      const res = await fetch("/api/admin/credit-gift-codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          credits,
+          maxUses: giftMaxUses.trim() ? Number(giftMaxUses) : null,
+          label: giftLabel.trim() || null,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) throw new Error(data?.error || "Échec création.")
+      setGiftSuccess(`Code « ${data.code.code} » créé (${data.code.credits} crédit(s) par utilisation).`)
+      setGiftNewCode("")
+      setGiftCredits("1")
+      setGiftMaxUses("")
+      setGiftLabel("")
+      await fetchGiftCodes()
+    } catch (e) {
+      setGiftError(e instanceof Error ? e.message : "Erreur")
+    } finally {
+      setGiftCreating(false)
+    }
+  }
+
+  async function toggleGiftCode(id: string, active: boolean) {
+    setGiftTogglingId(id)
+    try {
+      await fetch("/api/admin/credit-gift-codes", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, active }),
+      })
+      await fetchGiftCodes()
+    } finally {
+      setGiftTogglingId(null)
     }
   }
 
@@ -731,6 +826,121 @@ export default function AdminUsersPage() {
                       <><ToggleLeft className="h-4 w-4" /> Désactiver</>
                     ) : (
                       <><ToggleRight className="h-4 w-4" /> Activer</>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Codes cadeau crédits diagnostics */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+          <Gift className="h-4 w-4 text-orange-400 shrink-0" />
+          Codes cadeau (crédits diagnostics)
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Les utilisateurs saisissent le code dans leur profil (section Crédits diagnostics). Un même compte ne peut utiliser un code qu&apos;une fois.
+        </p>
+        <Card className="border-dashed border-border/60 bg-muted/10">
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="flex flex-wrap gap-2 items-end">
+              <div className="flex-1 min-w-[140px] space-y-1">
+                <label className="text-xs text-muted-foreground">Code (unique)</label>
+                <Input
+                  value={giftNewCode}
+                  onChange={(e) => setGiftNewCode(e.target.value.toUpperCase())}
+                  placeholder="PITSTOP-TEST-01"
+                  className="h-9 text-sm font-sans"
+                  maxLength={40}
+                />
+              </div>
+              <div className="w-[88px] space-y-1">
+                <label className="text-xs text-muted-foreground">Crédits</label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={giftCredits}
+                  onChange={(e) => setGiftCredits(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="w-[100px] space-y-1">
+                <label className="text-xs text-muted-foreground">Utilisations max</label>
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="∞"
+                  value={giftMaxUses}
+                  onChange={(e) => setGiftMaxUses(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-1">
+                <label className="text-xs text-muted-foreground">Libellé interne (optionnel)</label>
+                <Input
+                  value={giftLabel}
+                  onChange={(e) => setGiftLabel(e.target.value)}
+                  placeholder="Campagne partenaire X"
+                  className="h-9 text-sm"
+                  maxLength={120}
+                />
+              </div>
+              <Button
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={() => void createGiftCodeAdmin()}
+                disabled={giftCreating || !giftNewCode.trim()}
+              >
+                <Plus className="h-4 w-4" />
+                {giftCreating ? "Création…" : "Créer"}
+              </Button>
+            </div>
+            {giftError && <p className="text-xs text-destructive">{giftError}</p>}
+            {giftSuccess && <p className="text-xs text-green-400">{giftSuccess}</p>}
+          </CardContent>
+        </Card>
+        {giftLoading ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Chargement…</p>
+        ) : giftCodes.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Aucun code cadeau.</p>
+        ) : (
+          <div className="space-y-2">
+            {giftCodes.map((g) => (
+              <Card key={g.id} className={`border-border/40 ${g.active ? "bg-muted/5" : "bg-muted/20 opacity-60"}`}>
+                <CardContent className="pt-3 pb-3 flex items-center gap-3 flex-wrap">
+                  <Gift className="h-4 w-4 text-orange-400 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap text-sm">
+                      <span className="font-mono font-semibold text-foreground">{g.code}</span>
+                      <Badge variant="outline" className="text-xs">
+                        +{g.credits} crédit{g.credits !== 1 ? "s" : ""} / saisie
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {g.usedCount} utilisation{g.usedCount !== 1 ? "s" : ""}
+                        {g.maxUses != null ? ` / ${g.maxUses}` : " (plafond illimité)"}
+                      </span>
+                      {g.label && <span className="text-xs text-muted-foreground italic">{g.label}</span>}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={`h-8 gap-1.5 text-xs shrink-0 ${g.active ? "text-muted-foreground hover:text-destructive" : "text-green-400 hover:text-green-300"}`}
+                    disabled={giftTogglingId === g.id}
+                    onClick={() => void toggleGiftCode(g.id, !g.active)}
+                  >
+                    {g.active ? (
+                      <>
+                        <ToggleLeft className="h-4 w-4" /> Désactiver
+                      </>
+                    ) : (
+                      <>
+                        <ToggleRight className="h-4 w-4" /> Activer
+                      </>
                     )}
                   </Button>
                 </CardContent>

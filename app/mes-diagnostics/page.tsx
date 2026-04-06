@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Car, Calendar, Gauge, Search, RotateCcw } from "lucide-react"
+import { Car, Calendar, Gauge, Search, RotateCcw, Eye } from "lucide-react"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 
 type DiagnosticStatus = "in_progress" | "completed" | "abandoned"
@@ -118,15 +118,18 @@ export default function MesDiagnosticsPage() {
       } else {
         sessionStorage.removeItem("followUps")
       }
-      router.push("/resultat")
+      router.push(`/resultat?diagnosticId=${encodeURIComponent(d.id)}`)
     } catch {
-      setResumeError("Impossible de reprendre ce diagnostic. Veuillez réessayer.")
+      setResumeError("Impossible d'afficher les résultats de ce diagnostic. Veuillez réessayer.")
     } finally {
       setResumingId(null)
     }
   }
 
   const diagnosticHref = getDiagnosticEntryHref(me)
+
+  const canOpenStoredResult = (d: Diagnostic) =>
+    d.status === "completed" || d.status === "in_progress"
 
   return (
     <main className="container mx-auto max-w-3xl px-4 py-10">
@@ -184,8 +187,38 @@ export default function MesDiagnosticsPage() {
             <Card
               key={d.id}
               className={`border-border/50 bg-card transition-colors ${
-                d.status === "abandoned" ? "opacity-60" : "hover:border-border"
+                d.status === "abandoned"
+                  ? "opacity-60"
+                  : canOpenStoredResult(d)
+                    ? "cursor-pointer hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    : "hover:border-border"
               }`}
+              role={canOpenStoredResult(d) ? "link" : undefined}
+              tabIndex={canOpenStoredResult(d) ? 0 : undefined}
+              aria-label={
+                canOpenStoredResult(d)
+                  ? d.status === "completed"
+                    ? "Voir les résultats de ce diagnostic"
+                    : "Reprendre ce diagnostic"
+                  : undefined
+              }
+              onClick={
+                canOpenStoredResult(d)
+                  ? () => {
+                      void handleResume(d)
+                    }
+                  : undefined
+              }
+              onKeyDown={
+                canOpenStoredResult(d)
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        void handleResume(d)
+                      }
+                    }
+                  : undefined
+              }
             >
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -228,12 +261,37 @@ export default function MesDiagnosticsPage() {
                     <time className="text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(d.createdAt)}
                     </time>
+                    {d.status === "completed" && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="gap-1.5 h-7 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          void handleResume(d)
+                        }}
+                        disabled={resumingId === d.id}
+                      >
+                        {resumingId === d.id ? (
+                          <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                        ) : (
+                          <Eye className="h-3 w-3" />
+                        )}
+                        {resumingId === d.id ? "Chargement…" : "Voir les résultats"}
+                      </Button>
+                    )}
                     {d.status === "in_progress" && (
                       <Button
                         size="sm"
                         variant="outline"
                         className="gap-1.5 h-7 text-xs border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
-                        onClick={() => handleResume(d)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          void handleResume(d)
+                        }}
                         disabled={resumingId === d.id}
                       >
                         {resumingId === d.id ? (

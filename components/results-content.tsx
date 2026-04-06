@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -218,6 +218,7 @@ const severityConfig = {
 
 export function ResultsContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(null)
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -236,21 +237,71 @@ export function ResultsContent() {
   }, [])
 
   useEffect(() => {
-    const storedDiagnostic = sessionStorage.getItem("diagnostic")
-    const storedVehicle = sessionStorage.getItem("vehicleInfo")
-    const storedFollowUps = sessionStorage.getItem("followUps")
-    
-    if (storedDiagnostic && storedVehicle) {
-      setDiagnostic(JSON.parse(storedDiagnostic))
-      setVehicleInfo(JSON.parse(storedVehicle))
-      if (storedFollowUps) {
-        setFollowUps(JSON.parse(storedFollowUps))
+    let cancelled = false
+
+    const applyStoredFollowUps = (raw: string | null) => {
+      if (!raw) {
+        setFollowUps([])
+        return
       }
-      setIsLoading(false)
-    } else {
-      router.push("/")
+      try {
+        const parsed = JSON.parse(raw) as unknown
+        setFollowUps(Array.isArray(parsed) ? parsed : [])
+      } catch {
+        setFollowUps([])
+      }
     }
-  }, [router])
+
+    const run = async () => {
+      const storedDiagnostic = sessionStorage.getItem("diagnostic")
+      const storedVehicle = sessionStorage.getItem("vehicleInfo")
+      const storedFollowUps = sessionStorage.getItem("followUps")
+
+      if (storedDiagnostic && storedVehicle) {
+        setDiagnostic(JSON.parse(storedDiagnostic))
+        setVehicleInfo(JSON.parse(storedVehicle))
+        applyStoredFollowUps(storedFollowUps)
+        setIsLoading(false)
+        return
+      }
+
+      const id = searchParams.get("diagnosticId") ?? searchParams.get("id")
+      if (id) {
+        try {
+          const response = await fetch(`/api/diagnostic/${encodeURIComponent(id)}`, {
+            credentials: "include",
+          })
+          const data = await response.json().catch(() => null)
+          if (!response.ok || !data?.diagnostic || !data?.vehicleInfo) {
+            throw new Error("Chargement impossible")
+          }
+          if (cancelled) return
+          const diagStr = JSON.stringify(data.diagnostic)
+          const vehStr = JSON.stringify(data.vehicleInfo)
+          sessionStorage.setItem("diagnostic", diagStr)
+          sessionStorage.setItem("vehicleInfo", vehStr)
+          if (data.followUps) sessionStorage.setItem("followUps", data.followUps)
+          else sessionStorage.removeItem("followUps")
+          setDiagnostic(data.diagnostic)
+          setVehicleInfo(data.vehicleInfo)
+          applyStoredFollowUps(data.followUps ?? null)
+        } catch {
+          if (!cancelled) router.push("/")
+        } finally {
+          if (!cancelled) setIsLoading(false)
+        }
+        return
+      }
+
+      if (!cancelled) router.push("/")
+      if (!cancelled) setIsLoading(false)
+    }
+
+    void run()
+    return () => {
+      cancelled = true
+    }
+  }, [router, searchParams])
 
   const submitFollowUpAnswer = async (answer: string) => {
     if (!vehicleInfo || !diagnostic?.missingInfo?.question) return
