@@ -1,0 +1,31 @@
+---
+description: Mécanique d’auth et redirections validée en prod — ne pas régresser
+alwaysApply: true
+---
+
+# Auth, session et redirections (à conserver)
+
+Ces choix ont été validés ; **ne pas les remplacer** par des patterns « plus propres » (ex. `router.replace` seul après login) sans test complet.
+
+## Connexion (`app/connexion/page.tsx`)
+
+- **Login réussi** : `window.location.assign(dest)` où `dest = returnTo ?? "/"`. Pas seulement `router.replace` / `router.push` — la navigation **pleine page** garantit que le cookie HttpOnly est bien envoyé ensuite (proxy, `/diagnostic`).
+- **POST /api/auth/login** : `credentials: "include"`.
+- **Au chargement** : vérifier `/api/auth/me` avec `credentials: "include"` ; si `user` présent → `window.location.replace(returnTo ?? "/")` (pas de formulaire inutile).
+- **Cibles post-login** : utiliser `sanitizePostLoginTarget` + `buildLoginUrl` depuis `lib/login-redirect.ts` pour les liens internes.
+
+## Déconnexion (`components/navbar.tsx`)
+
+- `fetch("/api/auth/logout", { method: "POST", credentials: "include" })` puis **`window.location.href = "/"`** (pas seulement `router.push` + `refresh`).
+
+## Liens vers le diagnostic
+
+- Sur les `Link` vers la cible diagnostic (navbar onglet Diagnostic, `landing-diagnostic-links`) : **`prefetch={false}`** pour éviter des préchargements sans session cohérente.
+
+## API client
+
+- Tous les `fetch("/api/auth/me", …)` : **`credentials: "include"`**.
+
+## Côté serveur
+
+- URLs de login : **`buildLoginUrl`** dans `lib/login-redirect.ts` ; routes protégées : **`proxy.ts`** + `ensureDiagnosticPageAccess` où applicable. Ne pas dupliquer des query params `redirect` / `callbackUrl` à la main.
