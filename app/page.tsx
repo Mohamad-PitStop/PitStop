@@ -18,6 +18,7 @@ import { MarketingSteps } from "@/components/marketing-steps"
 import { PartnerContactForm } from "@/components/partner-contact-form"
 import { LandingStaggerRoot, LandingStaggerItem } from "@/components/landing-stagger"
 import { SignupWelcomeOverlay } from "@/components/signup-welcome-overlay"
+import { HomeAnimatedBackground } from "@/components/home-animated-background"
 
 export const metadata: Metadata = {
   title: "PitStop : Diagnostic et estimation auto",
@@ -27,7 +28,10 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="relative min-h-screen flex flex-col bg-background">
+      <HomeAnimatedBackground />
+
+      <div className="relative z-10 flex min-h-screen flex-col">
       <Navbar />
 
       <Suspense fallback={null}>
@@ -287,6 +291,7 @@ export default function LandingPage() {
         </LandingStaggerItem>
       </main>
       </LandingStaggerRoot>
+      </div>
     </div>
   )
 }

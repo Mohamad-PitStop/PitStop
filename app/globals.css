@@ -206,3 +206,39 @@
     animation-delay: var(--landing-stagger-delay, 0ms);
   }
 }
+
+/* Accueil — fond animé (aurora / coniques lents) */
+@keyframes home-bg-v2-rotate-a {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes home-bg-v2-rotate-b {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-bg-v2-spin--a {
+    animation: home-bg-v2-rotate-a 72s linear infinite;
+  }
+
+  .home-bg-v2-spin--b {
+    animation: home-bg-v2-rotate-b 52s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-bg-v2-spin--a,
+  .home-bg-v2-spin--b {
+    animation: none;
+  }
+}
