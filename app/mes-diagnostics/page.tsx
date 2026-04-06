@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Car, Calendar, Gauge, Search, RotateCcw } from "lucide-react"
+import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 
 type DiagnosticStatus = "in_progress" | "completed" | "abandoned"
 
@@ -72,10 +73,18 @@ function StatusBadge({ status }: { status: DiagnosticStatus }) {
 export default function MesDiagnosticsPage() {
   const router = useRouter()
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([])
+  const [me, setMe] = useState<{ role: string; diagnosticCredits?: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [resumingId, setResumingId] = useState<string | null>(null)
   const [resumeError, setResumeError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setMe(data?.user ?? null))
+      .catch(() => setMe(null))
+  }, [])
 
   useEffect(() => {
     fetch("/api/mes-diagnostics")
@@ -117,6 +126,8 @@ export default function MesDiagnosticsPage() {
     }
   }
 
+  const diagnosticHref = getDiagnosticEntryHref(me)
+
   return (
     <main className="container mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6">
@@ -130,7 +141,7 @@ export default function MesDiagnosticsPage() {
           <h1 className="text-2xl font-bold text-foreground">Mes diagnostics</h1>
           <p className="text-sm text-muted-foreground mt-1">Historique de vos analyses véhicule</p>
         </div>
-        <Link href="/diagnostic">
+        <Link href={diagnosticHref}>
           <Button size="sm" className="gap-2">
             <Search className="h-4 w-4" />
             Nouveau diagnostic
@@ -161,7 +172,7 @@ export default function MesDiagnosticsPage() {
         <div className="text-center py-16 space-y-4">
           <Car className="h-12 w-12 text-muted-foreground/40 mx-auto" />
           <p className="text-muted-foreground">Vous n&apos;avez pas encore de diagnostic enregistré.</p>
-          <Link href="/diagnostic">
+          <Link href={diagnosticHref}>
             <Button variant="outline" className="mt-2">Lancer mon premier diagnostic</Button>
           </Link>
         </div>

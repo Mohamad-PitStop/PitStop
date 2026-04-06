@@ -581,11 +581,11 @@ export function VehicleForm() {
     let cancelled = false
     ;(async () => {
       try {
-        const meRes = await fetch("/api/auth/me")
+        const meRes = await fetch("/api/auth/me", { credentials: "include" })
         const meData = await meRes.json().catch(() => null)
         if (cancelled) return
         if (!meData?.user) {
-          router.replace("/inscription?callbackUrl=" + encodeURIComponent("/diagnostic"))
+          router.replace("/connexion?callbackUrl=" + encodeURIComponent("/diagnostic"))
           return
         }
         setAuthUser({
@@ -595,7 +595,7 @@ export function VehicleForm() {
         })
         setAuthSessionReady(true)
       } catch {
-        if (!cancelled) router.replace("/inscription?callbackUrl=" + encodeURIComponent("/diagnostic"))
+        if (!cancelled) router.replace("/connexion?callbackUrl=" + encodeURIComponent("/diagnostic"))
       }
     })()
     return () => {

@@ -1,8 +1,11 @@
 import { Navbar } from "@/components/navbar"
 import { VehicleForm } from "@/components/vehicle-form"
+import { ensureDiagnosticPageAccess } from "@/lib/diagnostic-page-guard"
 import { CheckCircle, Info } from "lucide-react"
 
-export default function DiagnosticPage() {
+export default async function DiagnosticPage() {
+  await ensureDiagnosticPageAccess()
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

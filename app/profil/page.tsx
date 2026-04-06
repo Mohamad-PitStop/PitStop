@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
+import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 import { Input } from "@/components/ui/input"
 import {
   Car,
@@ -325,7 +326,7 @@ export default function ProfilPage() {
                 <h1 className="text-2xl font-bold tracking-tight">Mon profil</h1>
                 {user && <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>}
               </div>
-              <Link href="/diagnostic">
+              <Link href={user ? getDiagnosticEntryHref(user) : "/diagnostic"}>
                 <Button size="sm" className="gap-2">
                   <Search className="h-4 w-4" />
                   Nouveau diagnostic
@@ -560,7 +561,7 @@ export default function ProfilPage() {
                 <div className="text-center py-12 space-y-4 rounded-xl border border-border/50">
                   <Car className="h-10 w-10 text-muted-foreground/40 mx-auto" />
                   <p className="text-sm text-muted-foreground">Aucun diagnostic enregistré.</p>
-                  <Link href="/diagnostic">
+                  <Link href={user ? getDiagnosticEntryHref(user) : "/diagnostic"}>
                     <Button variant="outline" size="sm">Lancer mon premier diagnostic</Button>
                   </Link>
                 </div>

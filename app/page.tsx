@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 import { CheckCircle, ArrowRight, Wrench, Car } from "lucide-react"
+import {
+  LandingDiagnosticTabMobile,
+  LandingDiagnosticHeroButton,
+  LandingDiagnosticCardLink,
+  LandingVenteLink,
+} from "@/components/landing-diagnostic-links"
 import { marketingFeatures } from "@/lib/marketing-content"
 import { MarketingSteps } from "@/components/marketing-steps"
 import { PartnerContactForm } from "@/components/partner-contact-form"
@@ -37,23 +43,16 @@ export default function LandingPage() {
               className="bg-muted text-muted-foreground inline-flex min-h-9 w-fit items-stretch rounded-lg p-[3px]"
               aria-label="Navigation accueil"
             >
-              <Link
-                href="/diagnostic"
-                className="inline-flex min-h-[2.25rem] min-w-[6.5rem] items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:text-foreground/90"
-              >
-                Diagnostic
-              </Link>
-              <Link
-                href="/vente"
+              <LandingDiagnosticTabMobile />
+              <LandingVenteLink
                 className={cn(
                   "inline-flex min-h-[2.25rem] min-w-[6.5rem] items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:text-foreground/90",
                   !VENTE_TAB_ENABLED && "opacity-75"
                 )}
-                title={!VENTE_TAB_ENABLED ? "Fonctionnalité en cours de mise en production" : undefined}
               >
                 <Wrench className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
                 Vente
-              </Link>
+              </LandingVenteLink>
             </nav>
           </div>
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent pointer-events-none" />
@@ -94,17 +93,7 @@ export default function LandingPage() {
 
             <LandingStaggerItem index={4}>
             <div className="flex w-full max-w-md flex-col items-stretch justify-center gap-4 sm:max-w-none sm:flex-row sm:items-center sm:justify-center mx-auto">
-              <Button
-                asChild
-                size="lg"
-                className="h-12 w-full px-8 text-base gap-2 shadow-lg shadow-primary/20 sm:w-auto sm:min-w-[220px]"
-              >
-                <Link href="/diagnostic" className="inline-flex items-center justify-center">
-                  <Wrench className="h-5 w-5 shrink-0" />
-                  <span className="text-center">Diagnostic & réparation</span>
-                  <ArrowRight className="h-4 w-4 shrink-0 opacity-80" />
-                </Link>
-              </Button>
+              <LandingDiagnosticHeroButton />
               <Button
                 asChild
                 size="lg"
@@ -151,10 +140,7 @@ export default function LandingPage() {
 
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
               <LandingStaggerItem index={7}>
-              <Link
-                href="/diagnostic"
-                className="group flex flex-col rounded-2xl border border-border/60 bg-card p-8 shadow-sm hover:border-primary/40 hover:shadow-md transition-all text-left h-full"
-              >
+              <LandingDiagnosticCardLink className="group flex flex-col rounded-2xl border border-border/60 bg-card p-8 shadow-sm hover:border-primary/40 hover:shadow-md transition-all text-left h-full">
                 <div className="h-12 w-12 rounded-xl bg-primary/15 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                   <Wrench className="h-6 w-6 text-primary" />
                 </div>
@@ -167,7 +153,7 @@ export default function LandingPage() {
                   Commencer
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </span>
-              </Link>
+              </LandingDiagnosticCardLink>
               </LandingStaggerItem>
 
               <LandingStaggerItem index={8}>

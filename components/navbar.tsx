@@ -8,6 +8,7 @@ import { useState, useEffect, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { Wrench, Zap } from "lucide-react"
 import { VENTE_TAB_ENABLED, CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
+import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 
 const tabBase =
   "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 min-w-0 sm:min-w-[7.5rem]"
@@ -21,10 +22,13 @@ const tabActive =
 function TabNav({
   isDiagnostic,
   isVente,
+  diagnosticHref,
   className,
 }: {
   isDiagnostic: boolean
   isVente: boolean
+  /** Cible du parcours diagnostic (ex. /merci si 0 crédit en phase test). */
+  diagnosticHref: string
   className?: string
 }) {
   return (
@@ -36,7 +40,7 @@ function TabNav({
       aria-label="Navigation principale"
     >
       <Link
-        href="/diagnostic"
+        href={diagnosticHref}
         className={cn(tabBase, isDiagnostic ? tabActive : tabInactive)}
         aria-current={isDiagnostic ? "page" : undefined}
       >
@@ -83,7 +87,7 @@ export function Navbar() {
   const [authReady, setAuthReady] = useState(false)
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
       .catch(() => null)
       .then((data) => {
@@ -100,6 +104,8 @@ export function Navbar() {
   }
 
   const firstName = user?.name?.split(" ")[0] ?? ""
+
+  const diagnosticHref = authReady ? getDiagnosticEntryHref(user) : "/diagnostic"
 
   const authBlock: ReactNode =
     authReady &&
@@ -185,7 +191,7 @@ export function Navbar() {
                     priority
                   />
                 </Link>
-                <TabNav isDiagnostic={isDiagnostic} isVente={isVente} />
+                <TabNav isDiagnostic={isDiagnostic} isVente={isVente} diagnosticHref={diagnosticHref} />
               </div>
               {/* Ligne 2 : infos connexion */}
               <div className="flex w-full min-w-0 items-center justify-between">
@@ -218,7 +224,7 @@ export function Navbar() {
                       priority
                     />
                   </Link>
-                  <TabNav isDiagnostic={isDiagnostic} isVente={isVente} />
+                  <TabNav isDiagnostic={isDiagnostic} isVente={isVente} diagnosticHref={diagnosticHref} />
                 </div>
               )}
             </>
@@ -246,7 +252,7 @@ export function Navbar() {
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
             {creditsIndicator}
             {authBlock}
-            <TabNav isDiagnostic={isDiagnostic} isVente={isVente} />
+            <TabNav isDiagnostic={isDiagnostic} isVente={isVente} diagnosticHref={diagnosticHref} />
           </div>
         </div>
       </div>
