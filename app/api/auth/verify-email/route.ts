@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createHash } from "node:crypto"
 import { z } from "zod"
+import { TEST_PHASE_SIGNUP_BONUS_ENABLED } from "@/lib/feature-flags"
 import {
   findPendingVerificationByTokenHash,
   deletePendingVerification,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/accounts-db"
 import { AUTH_COOKIE_NAME, buildSessionCookieOptions, createAuthSession } from "@/lib/auth-session"
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit"
+import { sendSignupConfirmedEmail } from "@/lib/signup-confirmed-email"
 
 export const runtime = "nodejs"
 
@@ -92,19 +94,34 @@ export async function POST(req: Request) {
     // Nettoyer la vérification en attente
     await deletePendingVerification(pending.email)
 
-    // Crédit de bienvenue (1 diagnostic gratuit) : accordé sauf si la même IP
-    // a déjà bénéficié d'un crédit de bienvenue dans les 60 derniers jours.
-    const grantWelcome = await canGrantWelcomeCredit(ip)
-    if (grantWelcome) {
+    // Crédit de bienvenue : phase de test = 1 crédit systématique ; sinon anti-abus par IP (60 j).
+    let welcomed = false
+    if (TEST_PHASE_SIGNUP_BONUS_ENABLED) {
       await addCredits(account.id, 1)
-      await recordWelcomeCreditGrant(ip)
+      welcomed = true
+    } else {
+      const grantWelcome = await canGrantWelcomeCredit(ip)
+      if (grantWelcome) {
+        await addCredits(account.id, 1)
+        await recordWelcomeCreditGrant(ip)
+        welcomed = true
+      }
     }
+
+    // E-mail de bienvenue (ne bloque pas la réponse en cas d’échec SMTP)
+    void sendSignupConfirmedEmail({
+      to: account.email,
+      name: account.name,
+      welcomed,
+      testPhaseBonus: TEST_PHASE_SIGNUP_BONUS_ENABLED,
+    }).catch((err) => console.error("verify-email: envoi email de confirmation:", err))
 
     // Créer la session et retourner le cookie
     const sessionToken = await createAuthSession(account.id)
     const res = NextResponse.json({
       ok: true,
-      welcomed: grantWelcome,
+      welcomed,
+      testPhaseBonus: TEST_PHASE_SIGNUP_BONUS_ENABLED,
       user: { id: account.id, name: account.name, email: account.email, role: account.role },
     })
     res.cookies.set(AUTH_COOKIE_NAME, sessionToken, buildSessionCookieOptions())

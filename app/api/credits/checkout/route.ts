@@ -8,7 +8,7 @@ export const runtime = "nodejs"
 
 const BodySchema = z.object({
   packageId: z.enum(["1", "3", "6", "10"]),
-  intent: z.enum(["credit_purchase", "guest_diagnostic"]),
+  intent: z.literal("credit_purchase"),
   /** Chemin de retour après annulation (et succès pour certains cas). */
   returnPath: z.string().default("/diagnostic"),
 })
@@ -35,19 +35,12 @@ export async function POST(req: Request) {
 
     const returnPath = body.returnPath.startsWith("/") ? body.returnPath : "/diagnostic"
 
-    let userId: string | undefined
+    const user = await getUserFromAuthCookie(req.headers.get("cookie"))
+    if (!user) return Response.json({ ok: false, error: "Non authentifié" }, { status: 401 })
+    const userId = user.id
 
-    if (body.intent === "credit_purchase") {
-      const user = await getUserFromAuthCookie(req.headers.get("cookie"))
-      if (!user) return Response.json({ ok: false, error: "Non authentifié" }, { status: 401 })
-      userId = user.id
-    }
-
-    // URL de succès différente selon le contexte
     let successUrl: string
-    if (body.intent === "guest_diagnostic") {
-      successUrl = `${siteUrl}${returnPath}?paid_session={CHECKOUT_SESSION_ID}`
-    } else if (returnPath === "/diagnostic") {
+    if (returnPath === "/diagnostic") {
       // Achat 1 crédit depuis la modale (retour au formulaire)
       successUrl = `${siteUrl}/diagnostic?credits_added=1`
     } else {

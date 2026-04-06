@@ -1,15 +1,24 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, Suspense, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-export default function ConnexionPage() {
+function safeInternalPath(p: string | null): string | null {
+  if (!p || !p.startsWith("/")) return null
+  if (p.startsWith("//")) return null
+  return p
+}
+
+function ConnexionForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"))
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -27,7 +36,7 @@ export default function ConnexionPage() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || "Impossible de se connecter.")
-      router.push("/")
+      router.push(callbackUrl ?? "/")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue.")
     } finally {
@@ -48,7 +57,9 @@ export default function ConnexionPage() {
           <Card className="border-border/60 bg-card">
             <CardHeader>
               <CardTitle>Connexion</CardTitle>
-              <CardDescription>Connectez-vous pour retrouver vos diagnostics et continuer sans limite invité.</CardDescription>
+              <CardDescription>
+                Connectez-vous pour accéder au diagnostic, à votre historique et à votre solde de crédits.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={onSubmit} className="space-y-4">
@@ -84,7 +95,14 @@ export default function ConnexionPage() {
 
               <p className="mt-4 text-xs text-muted-foreground">
                 Pas encore de compte ?{" "}
-                <Link href="/inscription" className="text-primary hover:underline">
+                <Link
+                  href={
+                    callbackUrl
+                      ? `/inscription?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                      : "/inscription"
+                  }
+                  className="text-primary hover:underline"
+                >
                   Créer un compte
                 </Link>
               </p>
@@ -93,5 +111,19 @@ export default function ConnexionPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function ConnexionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <span className="text-sm text-muted-foreground">Chargement…</span>
+        </div>
+      }
+    >
+      <ConnexionForm />
+    </Suspense>
   )
 }

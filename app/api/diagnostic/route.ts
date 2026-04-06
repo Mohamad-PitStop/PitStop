@@ -4,9 +4,8 @@ import { z } from "zod"
 import { createDiagnosticRequest, updateDiagnosticRequestFollowUps, updateDiagnosticResult } from "@/lib/diagnostics-db"
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
-import { GUEST_USED_COOKIE_NAME, GUEST_PAID_SESSION_COOKIE_NAME, extractCookieValue, getUserFromAuthCookie } from "@/lib/auth-session"
+import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { deductCredit, addCredits } from "@/lib/accounts-db"
-import { isPaidGuestSessionValid, markPaidGuestSessionUsed } from "@/lib/guest-credits-db"
 import { NextResponse } from "next/server"
 
 const ANTHROPIC_PROMPT_CACHE_HEADERS = {
@@ -173,23 +172,12 @@ function isNoInterventionDiagnostic(d: z.infer<typeof DiagnosticSchema>): boolea
 
 function buildDiagnosticResponse(
   diagnostic: z.infer<typeof DiagnosticSchema>,
-  markGuestUsed: boolean,
   applyDiscount = false,
   diagnosticRequestId: string | null = null,
   creditRefunded = false
 ) {
   const payload = applyDiscount ? applyFriendDiscount(diagnostic) : diagnostic
-  const res = NextResponse.json({ ...payload, diagnosticRequestId, creditRefunded })
-  if (markGuestUsed) {
-    res.cookies.set(GUEST_USED_COOKIE_NAME, "1", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-    })
-  }
-  return res
+  return NextResponse.json({ ...payload, diagnosticRequestId, creditRefunded })
 }
 
 const DiagnosticInputSchema = z.object({
@@ -218,7 +206,6 @@ const DiagnosticInputSchema = z.object({
   typeCarrosserie: z.string().trim().max(60).optional().nullable(),
   typeBoiteAuto: z.string().trim().max(100).optional().nullable(),
   photoLevier: z.string().max(12_000_000).optional().nullable(),
-  authType: z.enum(["guest", "account"]).optional().nullable(),
 })
 
 export async function POST(req: Request) {
@@ -235,48 +222,25 @@ export async function POST(req: Request) {
     const hasFollowUps = Array.isArray(followUps) && followUps.length > 0
     const cookieHeader = req.headers.get("cookie")
     const user = await getUserFromAuthCookie(cookieHeader)
-    const isAuthenticated = !!user
-    const isPrivileged = user?.role === "admin" || user?.role === "tester"
-    const isFriend = user?.role === "user_friend"
-    const guestAlreadyUsed = extractCookieValue(cookieHeader, GUEST_USED_COOKIE_NAME) === "1"
+    if (!user) {
+      return NextResponse.json(
+        { error: "AUTH_REQUIRED", message: "Connexion requise pour lancer un diagnostic." },
+        { status: 401 }
+      )
+    }
 
-    // ── Gestion des crédits pour les utilisateurs connectés ─────────────────
-    if (isAuthenticated && !isPrivileged && !diagnosticRequestId) {
-      // Premier appel (pas un follow-up) : déduire 1 crédit
-      const deducted = await deductCredit(user!.id)
+    const isPrivileged = user.role === "admin" || user.role === "tester"
+    const isFriend = user.role === "user_friend"
+
+    // ── Gestion des crédits (compte) ─────────────────────────────────────────
+    if (!isPrivileged && !diagnosticRequestId) {
+      const deducted = await deductCredit(user.id)
       if (!deducted) {
         return NextResponse.json(
           { error: "NO_CREDITS", message: "Vous n'avez plus de crédits. Rechargez votre compte pour continuer." },
           { status: 402 }
         )
       }
-    }
-
-    // ── Gestion invité : diag gratuit utilisé ───────────────────────────────
-    if (!isAuthenticated && !hasFollowUps && guestAlreadyUsed) {
-      // Vérifier si l'invité a une session de paiement valide
-      const paidSession = extractCookieValue(cookieHeader, GUEST_PAID_SESSION_COOKIE_NAME)
-      if (!paidSession) {
-        return NextResponse.json(
-          {
-            error:
-              "Mode invité déjà utilisé sur ce navigateur. Connectez-vous, créez un compte, ou payez un diagnostic unique.",
-          },
-          { status: 403 }
-        )
-      }
-      const valid = await isPaidGuestSessionValid(paidSession)
-      if (!valid) {
-        return NextResponse.json(
-          {
-            error:
-              "Mode invité déjà utilisé sur ce navigateur. Connectez-vous, créez un compte, ou payez un diagnostic unique.",
-          },
-          { status: 403 }
-        )
-      }
-      // Session valide → la consommer avant d'appeler l'IA
-      await markPaidGuestSessionUsed(paidSession)
     }
 
     const systemText = `Tu es PitStop, un expert mecanicien automobile virtuel avec 25 ans d'experience. Tu as ete forme par des mecaniciens professionnels belges. Si la marque ou le modele est approximatif, identifie automatiquement le vehicule sans demander confirmation.
@@ -457,7 +421,7 @@ mentionnant les variantes concernées.
     const varianteLine = variante?.trim() ? `\n\nVariante : ${variante.trim()}` : ""
     const prompt = `${userContentBase}${varianteLine}${extraLines}${followUpsText}${autodocBlock}`
     const followUpsJson = Array.isArray(followUps) && followUps.length > 0 ? JSON.stringify(followUps) : null
-    const userId = user?.id ?? null
+    const userId = user.id
 
     let diagId = diagnosticRequestId
     if (!diagId) {
@@ -514,11 +478,11 @@ mentionnant les variantes concernées.
         await updateDiagnosticResult(diagId, JSON.stringify(diagnostic1), status)
       }
       let creditRefunded = false
-      if (isAuthenticated && !isPrivileged && user && isNoInterventionDiagnostic(diagnostic1)) {
+      if (!isPrivileged && isNoInterventionDiagnostic(diagnostic1)) {
         await addCredits(user.id, 1)
         creditRefunded = true
       }
-      return buildDiagnosticResponse(diagnostic1, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId, creditRefunded)
+      return buildDiagnosticResponse(diagnostic1, isFriend, diagId, creditRefunded)
     }
 
     const refinementPrompt = `${prompt}\n\nCONTRAINTE ABSOLUE: toutes les fourchettes de prix (priceRange, diy.costRange, garage.costRange) doivent avoir un ecart <= 100 euros. Si tu ne peux pas respecter ca sans inventer, mets needsMoreInfo=true et pose UNE question courte et ciblée (missingInfo.question) pour reduire l'incertitude, puis donne quand meme une fourchette provisoire avec ecart <= 100.\n\nTa reponse precedente avait des fourchettes trop larges. Corrige en respectant strictement ecart <= 100 euros partout.\nReponse precedente (JSON): ${JSON.stringify(diagnostic1)}`
@@ -538,11 +502,11 @@ mentionnant les variantes concernées.
       await updateDiagnosticResult(diagId, JSON.stringify(finalDiagnostic), status)
     }
     let creditRefunded = false
-    if (isAuthenticated && !isPrivileged && user && isNoInterventionDiagnostic(finalDiagnostic)) {
+    if (!isPrivileged && isNoInterventionDiagnostic(finalDiagnostic)) {
       await addCredits(user.id, 1)
       creditRefunded = true
     }
-    return buildDiagnosticResponse(finalDiagnostic, !isAuthenticated && !hasFollowUps && !isPrivileged, isFriend, diagId, creditRefunded)
+    return buildDiagnosticResponse(finalDiagnostic, isFriend, diagId, creditRefunded)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json({ error: "Données du formulaire invalides." }, { status: 400 })

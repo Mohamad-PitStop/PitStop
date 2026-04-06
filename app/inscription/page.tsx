@@ -1,13 +1,19 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useState, Suspense } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-export default function InscriptionPage() {
+function InscriptionForm() {
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl")
+  const fromDiagnostic =
+    searchParams.get("reason") === "diagnostic" || callbackUrl === "/diagnostic" || callbackUrl?.startsWith("/diagnostic")
+
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -57,6 +63,12 @@ export default function InscriptionPage() {
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-xl px-4">
+          {fromDiagnostic ? (
+            <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground leading-relaxed">
+              Le diagnostic nécessite un compte PitStop. Inscrivez-vous, puis confirmez votre adresse e-mail depuis le
+              message que nous vous envoyons.
+            </div>
+          ) : null}
           <Card className="border-border/60 bg-card">
             <CardHeader>
               <CardTitle>Créer un compte</CardTitle>
@@ -189,12 +201,29 @@ export default function InscriptionPage() {
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Déjà un compte ?{" "}
-            <Link href="/connexion" className="text-primary hover:underline font-medium">
+            <Link
+              href={callbackUrl ? `/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/connexion"}
+              className="text-primary hover:underline font-medium"
+            >
               Se connecter
             </Link>
           </p>
         </div>
       </main>
     </div>
+  )
+}
+
+export default function InscriptionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <span className="text-sm text-muted-foreground">Chargement…</span>
+        </div>
+      }
+    >
+      <InscriptionForm />
+    </Suspense>
   )
 }

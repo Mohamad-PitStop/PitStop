@@ -1,7 +1,28 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+/** Aligné sur `AUTH_COOKIE_NAME` dans `lib/auth-session.ts` (évite d'importer ce module en Edge). */
+const AUTH_COOKIE = "pitstop_auth"
+
+/** Routes réservées aux utilisateurs connectés (diagnostic compte uniquement). */
+const PROTECTED_PREFIXES = ["/diagnostic", "/resultat"]
+
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const needsAuth = PROTECTED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  )
+  if (needsAuth) {
+    const token = request.cookies.get(AUTH_COOKIE)?.value
+    if (!token) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/inscription"
+      url.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`)
+      url.searchParams.set("reason", "diagnostic")
+      return NextResponse.redirect(url)
+    }
+  }
+
   const response = NextResponse.next()
 
   // Prevent clickjacking

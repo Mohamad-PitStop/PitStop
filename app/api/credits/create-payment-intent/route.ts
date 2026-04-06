@@ -18,7 +18,7 @@ export const runtime = "nodejs"
 
 const BodySchema = z.object({
   packageId: z.enum(["1", "3", "6", "10"]),
-  intent: z.enum(["credit_purchase", "guest_diagnostic"]),
+  intent: z.literal("credit_purchase"),
   promoCode: z.string().trim().optional().nullable(),
 })
 
@@ -41,13 +41,9 @@ export async function POST(req: Request) {
     const pkg = CREDIT_PACKAGES.find((p) => p.id === body.packageId)
     if (!pkg) return Response.json({ ok: false, error: "Package invalide" }, { status: 400 })
 
-    let userId: string | undefined
-
-    if (body.intent === "credit_purchase") {
-      const user = await getUserFromAuthCookie(req.headers.get("cookie"))
-      if (!user) return Response.json({ ok: false, error: "Non authentifié" }, { status: 401 })
-      userId = user.id
-    }
+    const user = await getUserFromAuthCookie(req.headers.get("cookie"))
+    if (!user) return Response.json({ ok: false, error: "Non authentifié" }, { status: 401 })
+    const userId = user.id
 
     const ip = getClientIp(req)
     let finalAmount: number = pkg.amountCents

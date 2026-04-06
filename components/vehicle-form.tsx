@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X, Mic, RefreshCw, Send } from "lucide-react"
 import { getAvailableYearsForModel } from "@/lib/vehicle-year-catalog"
 import { carBrands, carModels } from "@/lib/vehicle-model-catalog"
@@ -16,13 +15,10 @@ import {
 } from "@/lib/vehicle-compatibility-catalog"
 import { useCarsApi } from "@/hooks/use-cars-api"
 import { isExceptionBrand, MESSAGE_MARQUE_EXCEPTION } from "@/lib/exception-brands"
-import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
-import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
-
 const MANUAL_PLACEHOLDER = "Saisir manuellement"
 const MODEL_MANUAL_PLACEHOLDER = "Ex : Continental GT, Macan, Stelvio..."
 
@@ -73,17 +69,9 @@ export function VehicleForm() {
   const [extraOpen, setExtraOpen] = useState(false)
   const [puissanceUnite, setPuissanceUnite] = useState<"ch" | "kW">("ch")
   const [isLoading, setIsLoading] = useState(false)
-  const [authDialogOpen, setAuthDialogOpen] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [authUser, setAuthUser] = useState<{ id: string; email: string; name: string; role: string; diagnosticCredits: number } | null>(null)
-  const [guestAlreadyUsed, setGuestAlreadyUsed] = useState(false)
-  const [paidSessionVerified, setPaidSessionVerified] = useState(false)
-  const [creditCheckoutLoading, setCreditCheckoutLoading] = useState(false)
-  const [creditClientSecret, setCreditClientSecret] = useState<string | null>(null)
-  const [creditPaymentType, setCreditPaymentType] = useState<"credit_purchase" | "guest_diagnostic" | null>(null)
-  const [merciPromoCode, setMerciPromoCode] = useState<string | null>(null)
-  const merciPromoFetchDone = useRef(false)
-  const [singleDiagPrice, setSingleDiagPrice] = useState("5,99 €")
+  const [authSessionReady, setAuthSessionReady] = useState(false)
 
   // ── Reconnaissance vocale ────────────────────────────────────────────────────
   const [isVoiceActive, setIsVoiceActive] = useState(false)
@@ -317,14 +305,6 @@ export function VehicleForm() {
   useEffect(() => {
     fetchModels(formData.marque)
   }, [formData.marque, fetchModels])
-
-  // Fetch the live single-diagnostic price from Stripe once on mount
-  useEffect(() => {
-    fetch("/api/stripe/product-price")
-      .then((r) => r.json())
-      .then((data) => { if (data?.ok && data.formatted) setSingleDiagPrice(data.formatted) })
-      .catch(() => { /* keep default fallback */ })
-  }, [])
 
   /** Dès le modèle : variantes puis chaîne années */
   useEffect(() => {
@@ -562,28 +542,14 @@ export function VehicleForm() {
     if (authUser) {
       const isPrivileged = authUser.role === "admin" || authUser.role === "tester"
       if (isPrivileged || authUser.diagnosticCredits > 0) {
-        void runDiagnostic("account")
+        void runDiagnostic()
         return
       }
-      // Utilisateur connecté sans crédit → page de remerciement (achat non disponible en phase de test)
       router.push("/merci")
       return
     }
 
-    // Invité avec session de paiement vérifiée → lancement direct
-    if (paidSessionVerified) {
-      setPaidSessionVerified(false)
-      void runDiagnostic("guest")
-      return
-    }
-
-    // Invité ayant déjà utilisé son diagnostic gratuit → page de remerciement
-    if (guestAlreadyUsed) {
-      router.push("/merci")
-      return
-    }
-
-    setAuthDialogOpen(true)
+    router.replace("/inscription?callbackUrl=" + encodeURIComponent("/diagnostic"))
   }
 
   // Fermer le combobox marque si clic en dehors
@@ -596,17 +562,6 @@ export function VehicleForm() {
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
   }, [])
-
-  useEffect(() => {
-    if (!CREDIT_PURCHASES_ENABLED || !authUser || merciPromoFetchDone.current) return
-    merciPromoFetchDone.current = true
-    fetch("/api/credits/merci-promo")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.ok && !d.exhausted && d.code) setMerciPromoCode(d.code)
-      })
-      .catch(() => null)
-  }, [CREDIT_PURCHASES_ENABLED, authUser])
 
   // Focus automatique sur la barre de recherche quand le combobox s'ouvre
   useEffect(() => {
@@ -621,127 +576,86 @@ export function VehicleForm() {
     let cancelled = false
     ;(async () => {
       try {
-        // Récupérer le statut utilisateur et invité en parallèle
-        const [meRes, guestRes] = await Promise.all([
-          fetch("/api/auth/me"),
-          fetch("/api/credits/guest-status"),
-        ])
+        const meRes = await fetch("/api/auth/me")
         const meData = await meRes.json().catch(() => null)
-        const guestData = await guestRes.json().catch(() => null)
-        if (!cancelled) {
-          if (meData?.user) {
-            setAuthUser({
-              ...meData.user,
-              diagnosticCredits: meData.user.diagnosticCredits ?? 0,
-              role: meData.user.role ?? "user",
-            })
-          }
-          if (guestData?.guestUsed) setGuestAlreadyUsed(true)
+        if (cancelled) return
+        if (!meData?.user) {
+          router.replace("/inscription?callbackUrl=" + encodeURIComponent("/diagnostic"))
+          return
         }
+        setAuthUser({
+          ...meData.user,
+          diagnosticCredits: meData.user.diagnosticCredits ?? 0,
+          role: meData.user.role ?? "user",
+        })
+        setAuthSessionReady(true)
       } catch {
-        // no-op
+        if (!cancelled) router.replace("/inscription?callbackUrl=" + encodeURIComponent("/diagnostic"))
       }
     })()
-    return () => { cancelled = true }
-  }, [])
+    return () => {
+      cancelled = true
+    }
+  }, [router])
 
-  // Gestion des retours depuis Stripe (payment_intent, paid_session, credits_added)
+  // Retour Stripe (achat de crédits connecté) : rafraîchir le solde et restaurer le formulaire
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const paymentIntentId = params.get("payment_intent")
-    const intentType = params.get("intent")
-    const paidSession = params.get("paid_session")
     const creditsAdded = params.get("credits_added")
 
-    // Nouveau flux : retour PaymentIntent + Elements
     if (paymentIntentId && params.get("redirect_status") === "succeeded") {
       window.history.replaceState({}, "", "/diagnostic")
       const savedDataStr = sessionStorage.getItem("pendingFormData")
       if (savedDataStr) {
-        const savedData = JSON.parse(savedDataStr)
-        sessionStorage.removeItem("pendingFormData")
-        setFormData(savedData)
-      }
-
-      if (intentType === "guest_diagnostic") {
-        ;(async () => {
-          try {
-            const res = await fetch(`/api/credits/verify-guest-payment?payment_intent=${encodeURIComponent(paymentIntentId)}`)
-            if (res.ok) {
-              setPaidSessionVerified(true)
-            } else {
-              setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
-            }
-          } catch {
-            setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
-          }
-        })()
-      } else {
-        // credit_purchase : rafraîchir le solde
-        fetch("/api/credits/balance")
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.ok) {
-              setAuthUser((prev) => prev ? { ...prev, diagnosticCredits: data.credits } : null)
-            }
-          })
-          .catch(() => null)
-      }
-      return
-    }
-
-    // Ancien flux rétro-compatible : paid_session (Checkout Session)
-    if (paidSession) {
-      window.history.replaceState({}, "", "/diagnostic")
-      ;(async () => {
         try {
-          const res = await fetch(`/api/credits/verify-guest-payment?session_id=${encodeURIComponent(paidSession)}`)
-          if (res.ok) {
-            const savedDataStr = sessionStorage.getItem("pendingFormData")
-            if (savedDataStr) {
-              const savedData = JSON.parse(savedDataStr)
-              sessionStorage.removeItem("pendingFormData")
-              setFormData(savedData)
-            }
-            setPaidSessionVerified(true)
-          } else {
-            setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
-          }
+          setFormData(JSON.parse(savedDataStr))
         } catch {
-          setAuthError("Erreur de vérification du paiement. Veuillez réessayer.")
+          /* ignore */
         }
-      })()
+        sessionStorage.removeItem("pendingFormData")
+      }
+      fetch("/api/credits/balance")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok) {
+            setAuthUser((prev) => (prev ? { ...prev, diagnosticCredits: data.credits } : null))
+          }
+        })
+        .catch(() => null)
+      return
     }
 
     if (creditsAdded) {
       window.history.replaceState({}, "", "/diagnostic")
       const savedDataStr = sessionStorage.getItem("pendingFormData")
       if (savedDataStr) {
-        const savedData = JSON.parse(savedDataStr)
+        try {
+          setFormData(JSON.parse(savedDataStr))
+        } catch {
+          /* ignore */
+        }
         sessionStorage.removeItem("pendingFormData")
-        setFormData(savedData)
       }
       fetch("/api/credits/balance")
         .then((r) => r.json())
         .then((data) => {
           if (data.ok) {
-            setAuthUser((prev) => prev ? { ...prev, diagnosticCredits: data.credits } : null)
+            setAuthUser((prev) => (prev ? { ...prev, diagnosticCredits: data.credits } : null))
           }
         })
         .catch(() => null)
     }
   }, [])
 
-  const runDiagnostic = async (mode: "guest" | "account") => {
+  const runDiagnostic = async () => {
     setAuthError(null)
     setIsLoading(true)
-    setAuthDialogOpen(false)
 
     try {
       const payload = {
         ...formData,
         puissance: formData.puissance.trim() ? `${formData.puissance.trim()} ${puissanceUnite}` : formData.puissance,
-        authType: mode,
       }
       const response = await fetch("/api/diagnostic", {
         method: "POST",
@@ -802,42 +716,6 @@ export function VehicleForm() {
     setModelDraft("")
     setMarqueOpen(false)
     setMarqueSearch("")
-  }
-
-  /** Prépare un PaymentIntent et ouvre le modal Stripe Elements pour payer. */
-  const startCreditPayment = async (
-    packageId: "1" | "3" | "6" | "10",
-    intent: "credit_purchase" | "guest_diagnostic"
-  ) => {
-    if (!CREDIT_PURCHASES_ENABLED) {
-      setAuthError("L'achat de crédits est temporairement indisponible.")
-      return
-    }
-    setCreditCheckoutLoading(true)
-    try {
-      sessionStorage.setItem("pendingFormData", JSON.stringify(formData))
-      const res = await fetch("/api/credits/create-payment-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          packageId,
-          intent,
-          ...(intent === "credit_purchase" && merciPromoCode ? { promoCode: merciPromoCode } : {}),
-        }),
-      })
-      const data = await res.json().catch(() => null)
-      if (data?.ok && data?.clientSecret) {
-        setCreditPaymentType(intent)
-        setCreditClientSecret(data.clientSecret)
-        setAuthDialogOpen(false)
-      } else {
-        setAuthError("Erreur lors de la création du paiement. Veuillez réessayer.")
-      }
-    } catch {
-      setAuthError("Erreur technique. Veuillez réessayer.")
-    } finally {
-      setCreditCheckoutLoading(false)
-    }
   }
 
   const handleInvalid = (e: React.FormEvent<HTMLFormElement>) => {
@@ -966,6 +844,14 @@ export function VehicleForm() {
   }, [hasMultipleAutoTypes, formData.transmission])
 
   const vehicleLabel = [formData.marque, formData.modele, formData.annee].filter(Boolean).join(" ")
+
+  if (!authSessionReady) {
+    return (
+      <div className="flex min-h-[240px] w-full max-w-2xl mx-auto items-center justify-center py-20">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+      </div>
+    )
+  }
 
   return (
     <>
@@ -1646,221 +1532,6 @@ export function VehicleForm() {
         </form>
 
         {authError && <p className="mt-3 text-sm text-destructive">{authError}</p>}
-
-        <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
-          <DialogContent>
-            {/* ── Utilisateur connecté ── */}
-            {authUser ? (
-              <>
-                <DialogHeader>
-                  <DialogTitle>Lancer votre diagnostic</DialogTitle>
-                  <DialogDescription>
-                    Bonjour {authUser.name} ! Voici votre solde de crédits PitStop.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="py-2 space-y-4">
-                  {/* Badge crédits */}
-                  <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
-                    <span className="text-sm font-medium text-foreground">Crédits disponibles</span>
-                    <span className={`text-2xl font-bold ${authUser.diagnosticCredits > 0 ? "text-orange-500" : "text-destructive"}`}>
-                      {authUser.diagnosticCredits}
-                    </span>
-                  </div>
-
-                  {authUser.diagnosticCredits > 0 ? (
-                    <Button
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
-                      onClick={() => runDiagnostic("account")}
-                      disabled={isLoading}
-                    >
-                      Utiliser 1 crédit pour mon diagnostic
-                    </Button>
-                  ) : CREDIT_PURCHASES_ENABLED ? (
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground text-center">
-                        Vous n&apos;avez plus de crédits. Payez un diagnostic unique ou rechargez votre compte.
-                      </p>
-                      <Button
-                        className="w-full"
-                        onClick={() => startCreditPayment("1", "credit_purchase")}
-                        disabled={creditCheckoutLoading}
-                      >
-                        {creditCheckoutLoading ? "Préparation…" : `Payer 1 diagnostic : ${singleDiagPrice}`}
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center">
-                      Vous n&apos;avez plus de crédits. L&apos;achat de crédits est temporairement indisponible.
-                    </p>
-                  )}
-
-                  {CREDIT_PURCHASES_ENABLED && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        setAuthDialogOpen(false)
-                        router.push("/credits")
-                      }}
-                    >
-                      Recharger mes crédits
-                    </Button>
-                  )}
-                </div>
-
-                <DialogFooter>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    1 crédit = 1 diagnostic complet. Les questions de suivi sont incluses.
-                  </p>
-                </DialogFooter>
-              </>
-            ) : (
-              /* ── Invité ── */
-              <>
-                <DialogHeader>
-                  <DialogTitle>
-                    {guestAlreadyUsed
-                      ? "Votre diagnostic gratuit a été utilisé"
-                      : "Créer un compte ou continuer en tant qu\u2019invité"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {guestAlreadyUsed
-                      ? CREDIT_PURCHASES_ENABLED
-                        ? "Connectez-vous, créez un compte ou payez un diagnostic unique pour continuer."
-                        : "Connectez-vous ou créez un compte pour continuer. L'achat en ligne n'est pas disponible pour le moment."
-                      : "Créez un compte pour des diagnostics illimités, ou continuez en invité pour un diagnostic gratuit."}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
-                  {/* Colonne gauche : connexion / inscription (toujours présente) */}
-                  <div className="border border-border/60 rounded-lg p-4 space-y-2">
-                    <h3 className="text-sm font-semibold text-foreground">Se connecter / Créer un compte</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {CREDIT_PURCHASES_ENABLED
-                        ? "Retrouvez vos diagnostics et rechargez vos crédits depuis votre espace personnel."
-                        : "Retrouvez vos diagnostics et votre solde depuis votre espace personnel."}
-                    </p>
-                    <div className="space-y-2">
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          setAuthDialogOpen(false)
-                          router.push("/inscription")
-                        }}
-                      >
-                        Créer un compte
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => {
-                          setAuthDialogOpen(false)
-                          router.push("/connexion")
-                        }}
-                      >
-                        Se connecter
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Colonne droite : invité gratuit OU paiement unique */}
-                  {guestAlreadyUsed ? (
-                    <div className="border border-orange-400/60 rounded-lg p-4 space-y-2 bg-orange-50/10">
-                      <h3 className="text-sm font-semibold text-foreground">Diagnostic unique</h3>
-                      {CREDIT_PURCHASES_ENABLED ? (
-                        <>
-                          <p className="text-xs text-muted-foreground">
-                            Payez un diagnostic unique sans créer de compte. Valable une fois depuis ce navigateur.
-                          </p>
-                          <Button
-                            size="sm"
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                            onClick={() => startCreditPayment("1", "guest_diagnostic")}
-                            disabled={creditCheckoutLoading}
-                          >
-                            {creditCheckoutLoading ? "Préparation…" : `Payer mon diagnostic : ${singleDiagPrice}`}
-                          </Button>
-                        </>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">
-                          L&apos;achat en ligne n&apos;est pas disponible pour le moment. Utilisez les boutons ci-contre pour créer un compte ou vous connecter.
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="border border-primary/50 rounded-lg p-4 space-y-2 bg-primary/5">
-                      <h3 className="text-sm font-semibold text-foreground">Continuer en tant qu&apos;invité</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Réalisez un diagnostic gratuit en mode invité. Un seul par navigateur.
-                      </p>
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        variant="secondary"
-                        onClick={() => runDiagnostic("guest")}
-                        disabled={isLoading}
-                      >
-                        Continuer en tant qu&apos;invité
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                <DialogFooter>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    En continuant, vous acceptez que vos informations soient traitées pour générer un diagnostic automobile personnalisé.
-                  </p>
-                </DialogFooter>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Modal Stripe Elements pour paiement de crédits */}
-        {CREDIT_PURCHASES_ENABLED && creditClientSecret && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => { setCreditClientSecret(null); setCreditPaymentType(null) }}
-            />
-            <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>
-                    {creditPaymentType === "guest_diagnostic" ? "Paiement du diagnostic" : "Achat de crédit"}
-                  </p>
-                  <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-                    1 diagnostic : {singleDiagPrice}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setCreditClientSecret(null); setCreditPaymentType(null) }}
-                  className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
-                  style={{ color: "#1a2d5a" }}
-                  aria-label="Fermer"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                  </svg>
-                </button>
-              </div>
-              <StripePaymentForm
-                clientSecret={creditClientSecret}
-                returnUrl={
-                  typeof window !== "undefined"
-                    ? `${window.location.origin}/diagnostic?intent=${creditPaymentType}`
-                    : ""
-                }
-                buttonLabel={`Payer ${singleDiagPrice}`}
-              />
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
     </>

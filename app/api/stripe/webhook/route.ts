@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
 import { createCalendarEvent, getBusyIntervals } from "@/lib/google-calendar"
 import { addCredits } from "@/lib/accounts-db"
-import { registerPaidGuestSession } from "@/lib/guest-credits-db"
 
 export const runtime = "nodejs"
 
@@ -153,9 +152,6 @@ export async function POST(req: Request) {
         if (userId && credits > 0) {
           await addCredits(userId, credits)
         }
-      } else if (intent === "guest_diagnostic") {
-        // Paiement d'un diagnostic invité : enregistrement préventif en DB
-        await registerPaidGuestSession(session.id)
       } else {
         // Flux réservation existant
         const reservationId = session.metadata?.reservationId
@@ -179,8 +175,6 @@ export async function POST(req: Request) {
         if (userId && credits > 0) {
           await addCredits(userId, credits)
         }
-      } else if (intent === "guest_diagnostic") {
-        await registerPaidGuestSession(paymentIntent.id)
       } else {
         // Flux réservation existant
         const reservationId = paymentIntent.metadata?.reservationId

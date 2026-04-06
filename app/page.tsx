@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -10,17 +11,22 @@ import { marketingFeatures } from "@/lib/marketing-content"
 import { MarketingSteps } from "@/components/marketing-steps"
 import { PartnerContactForm } from "@/components/partner-contact-form"
 import { LandingStaggerRoot, LandingStaggerItem } from "@/components/landing-stagger"
+import { SignupWelcomeOverlay } from "@/components/signup-welcome-overlay"
 
 export const metadata: Metadata = {
   title: "PitStop : Diagnostic et estimation auto",
   description:
-    "Estimez vos réparations et la valeur de revente de votre véhicule. Transparent, rapide, sans inscription.",
+    "Estimez vos réparations et la valeur de revente de votre véhicule. Compte requis pour le diagnostic automobile.",
 }
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
+
+      <Suspense fallback={null}>
+        <SignupWelcomeOverlay />
+      </Suspense>
 
       <LandingStaggerRoot>
       <main className="flex-1 pb-24 md:pb-0">
@@ -118,7 +124,7 @@ export default function LandingPage() {
             <ul className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-12 text-sm text-muted-foreground list-none p-0 m-0">
               <li className="flex items-center justify-center gap-2 text-center">
                 <CheckCircle className="h-4 w-4 text-primary shrink-0" aria-hidden />
-                1er diagnostic offert
+                Compte requis pour le diagnostic
               </li>
               <li className="flex items-center justify-center gap-2 text-center">
                 <CheckCircle className="h-4 w-4 text-primary shrink-0" aria-hidden />

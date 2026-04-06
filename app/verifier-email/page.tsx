@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { TEST_PHASE_SIGNUP_BONUS_ENABLED } from "@/lib/feature-flags"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -33,9 +34,9 @@ function VerifierEmailContent() {
         const data = await res.json().catch(() => null)
         if (res.ok && data?.ok) {
           setState("success")
-          // Rediriger vers l'accueil après 2 s
           setTimeout(() => {
-            router.push("/diagnostic")
+            const dest = TEST_PHASE_SIGNUP_BONUS_ENABLED ? "/?welcome_test=1" : "/"
+            router.push(dest)
             router.refresh()
           }, 2000)
         } else {

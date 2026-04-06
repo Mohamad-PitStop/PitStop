@@ -138,7 +138,7 @@ export async function createAccount(input: {
   const id = randomUUID()
   const role: UserRole = input.role ?? "user"
   await prisma.$executeRawUnsafe(
-    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role") VALUES (?, ?, ?, ?, ?)`,
+    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role", "diagnosticCredits") VALUES (?, ?, ?, ?, ?, 0)`,
     id,
     input.name,
     input.email,

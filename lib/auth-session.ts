@@ -2,8 +2,6 @@ import { createHash, randomBytes } from "node:crypto"
 import { createSession, deleteSessionByTokenHash, findAccountById, findSessionByTokenHash } from "@/lib/accounts-db"
 
 export const AUTH_COOKIE_NAME = "pitstop_auth"
-export const GUEST_USED_COOKIE_NAME = "pitstop_guest_used"
-export const GUEST_PAID_SESSION_COOKIE_NAME = "pitstop_guest_paid_session"
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30 // 30 jours
 
 function hashToken(token: string): string {

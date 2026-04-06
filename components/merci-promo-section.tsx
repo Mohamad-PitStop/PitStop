@@ -7,7 +7,7 @@ import Link from "next/link"
 
 type MerciPromoState =
   | { phase: "loading" }
-  | { phase: "guest" }
+  | { phase: "signedOut" }
   | { phase: "ready"; code: string; exhausted: boolean }
   | { phase: "error" }
 
@@ -22,7 +22,7 @@ export function MerciPromoSection() {
         const data = await r.json().catch(() => null)
         if (cancelled) return
         if (r.status === 401) {
-          setState({ phase: "guest" })
+          setState({ phase: "signedOut" })
           return
         }
         if (data?.ok && data.code) {
@@ -62,7 +62,7 @@ export function MerciPromoSection() {
     )
   }
 
-  if (state.phase === "guest") {
+  if (state.phase === "signedOut") {
     return (
       <div className="rounded-xl border border-primary/25 bg-primary/5 px-6 py-5 text-left space-y-3">
         <div className="flex items-center gap-2 text-primary font-semibold text-sm">
