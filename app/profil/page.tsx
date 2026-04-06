@@ -134,7 +134,7 @@ export default function ProfilPage() {
   const [giftSuccess, setGiftSuccess] = useState<string | null>(null)
 
   const refreshUser = () => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (!data?.user) {
@@ -188,7 +188,7 @@ export default function ProfilPage() {
 
     // Load user + diagnostics + reservations in parallel
     Promise.all([
-      fetch("/api/auth/me").then((r) => r.json()).catch(() => null),
+      fetch("/api/auth/me", { credentials: "include" }).then((r) => r.json()).catch(() => null),
       fetch("/api/mes-diagnostics").then((r) => r.ok ? r.json() : null).catch(() => null),
       fetch("/api/mes-reservations").then((r) => r.ok ? r.json() : null).catch(() => null),
     ]).then(([userData, diagData, resData]) => {

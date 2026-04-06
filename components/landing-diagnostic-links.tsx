@@ -35,6 +35,7 @@ export function LandingDiagnosticTabMobile() {
   return (
     <Link
       href={href}
+      prefetch={false}
       className="inline-flex min-h-[2.25rem] min-w-[6.5rem] items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:text-foreground/90"
     >
       Diagnostic
@@ -50,7 +51,7 @@ export function LandingDiagnosticHeroButton() {
       size="lg"
       className="h-12 w-full px-8 text-base gap-2 shadow-lg shadow-primary/20 sm:w-auto sm:min-w-[220px]"
     >
-      <Link href={href} className="inline-flex items-center justify-center">
+      <Link href={href} prefetch={false} className="inline-flex items-center justify-center">
         <Wrench className="h-5 w-5 shrink-0" />
         <span className="text-center">Diagnostic & réparation</span>
         <ArrowRight className="h-4 w-4 shrink-0 opacity-80" />
@@ -68,7 +69,7 @@ export function LandingDiagnosticCardLink({
 }) {
   const href = useDiagnosticEntryHrefFromSession()
   return (
-    <Link href={href} className={cn(className)}>
+    <Link href={href} prefetch={false} className={cn(className)}>
       {children}
     </Link>
   )

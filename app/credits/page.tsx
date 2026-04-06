@@ -40,7 +40,7 @@ export default function CreditsPage() {
   const [giftSuccess, setGiftSuccess] = useState<string | null>(null)
 
   const refreshUser = () => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (data?.user) {

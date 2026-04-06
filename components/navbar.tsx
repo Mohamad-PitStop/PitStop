@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
@@ -45,6 +45,7 @@ function TabNav({
     >
       <Link
         href={diagnosticHref}
+        prefetch={false}
         className={cn(tabBase, isDiagnostic ? tabActive : tabInactive)}
         aria-current={isDiagnostic ? "page" : undefined}
       >
@@ -74,7 +75,6 @@ function TabNav({
 
 export function Navbar() {
   const pathname = usePathname()
-  const router = useRouter()
   const isHome = pathname === "/"
   const isConnexionPage = pathname.startsWith("/connexion")
   const isDiagnostic = pathname.startsWith("/diagnostic")
@@ -106,11 +106,11 @@ export function Navbar() {
   }, [pathname])
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" })
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" })
     setUser(null)
     dispatchAuthSessionChanged()
-    router.push("/")
-    router.refresh()
+    // Rechargement complet : évite état client / cache Next incohérent avec le cookie supprimé.
+    window.location.href = "/"
   }
 
   const firstName = user?.name?.split(" ")[0] ?? ""

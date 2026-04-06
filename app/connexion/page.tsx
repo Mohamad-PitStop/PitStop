@@ -1,8 +1,8 @@
 "use client"
 
-import { FormEvent, Suspense, useState } from "react"
+import { FormEvent, Suspense, useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,12 +25,13 @@ function sanitizePostLoginTarget(p: string | null): string | null {
 }
 
 function ConnexionForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"))
   const redirectParam = safeInternalPath(searchParams.get("redirect"))
   /** `callbackUrl` (liens internes) ou `redirect` (anciens liens navbar / crédits / profil). */
   const returnTo = sanitizePostLoginTarget(callbackUrl ?? redirectParam)
+  /** Tant qu’on n’a pas vérifié la session, on n’affiche pas le formulaire (évite flash + doubles soumissions). */
+  const [sessionReady, setSessionReady] = useState(false)
   const fromDiagnosticFlow =
     searchParams.get("reason") === "diagnostic" ||
     returnTo === "/diagnostic" ||
@@ -43,6 +44,28 @@ function ConnexionForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    let cancelled = false
+    setSessionReady(false)
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        if (data?.user) {
+          // Déjà connecté : navigation complète pour que le proxy et le client voient le cookie.
+          window.location.replace(returnTo ?? "/")
+          return
+        }
+        setSessionReady(true)
+      })
+      .catch(() => {
+        if (!cancelled) setSessionReady(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [searchParams, returnTo])
+
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
@@ -51,20 +74,34 @@ function ConnexionForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || "Impossible de se connecter.")
       dispatchAuthSessionChanged()
       const dest = returnTo ?? "/"
-      // Ne pas appeler router.refresh() avant la navigation : sur la route /connexion,
-      // ça peut empêcher router.push/replace d’aller vers l’accueil (Next.js App Router).
-      router.replace(dest)
+      // Navigation document complète : le cookie HttpOnly est bien appliqué avant la prochaine requête
+      // (évite de rester sur /connexion ou que le proxy ne voie pas encore la session sur /diagnostic).
+      window.location.assign(dest)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue.")
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (!sessionReady) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-14">
+          <div className="container mx-auto max-w-xl px-4 flex justify-center py-16">
+            <span className="text-sm text-muted-foreground">Vérification de la session…</span>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
