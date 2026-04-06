@@ -6,7 +6,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Shield, UserCheck, Users, Heart, Clock, Plus, Trash2, CalendarDays, FlaskConical, Coins, Tag, ToggleLeft, ToggleRight } from "lucide-react"
+import {
+  Shield,
+  UserCheck,
+  Users,
+  Heart,
+  Clock,
+  Plus,
+  Trash2,
+  CalendarDays,
+  FlaskConical,
+  Coins,
+  Tag,
+  ToggleLeft,
+  ToggleRight,
+  MapPin,
+  RefreshCw,
+} from "lucide-react"
 import Link from "next/link"
 
 type UserRole = "admin" | "tester" | "user_friend" | "user"
@@ -103,6 +119,36 @@ export default function AdminUsersPage() {
   const [promoSuccess, setPromoSuccess] = useState<string | null>(null)
   const [promoTogglingId, setPromoTogglingId] = useState<string | null>(null)
 
+  const [locationStats, setLocationStats] = useState<{
+    rows: Array<{ postalCode: string; city: string; count: number }>
+    accountsWithoutLocation: number
+    totalAccounts: number
+    note?: string
+  } | null>(null)
+  const [locationLoading, setLocationLoading] = useState(true)
+
+  async function fetchLocationStats() {
+    setLocationLoading(true)
+    try {
+      const res = await fetch("/api/admin/signup-locations")
+      if (res.status === 403) {
+        router.replace("/")
+        return
+      }
+      const data = await res.json().catch(() => null)
+      if (data?.ok) {
+        setLocationStats({
+          rows: data.rows ?? [],
+          accountsWithoutLocation: data.accountsWithoutLocation ?? 0,
+          totalAccounts: data.totalAccounts ?? 0,
+          note: data.note,
+        })
+      }
+    } finally {
+      setLocationLoading(false)
+    }
+  }
+
   async function fetchData() {
     const res = await fetch("/api/admin/users")
     if (res.status === 403) { router.replace("/"); return }
@@ -119,6 +165,7 @@ export default function AdminUsersPage() {
         setCurrentUserId(data.user.id)
         await fetchData()
         await fetchPromoCodes()
+        await fetchLocationStats()
       })
       .finally(() => setLoading(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -335,6 +382,83 @@ export default function AdminUsersPage() {
           </Card>
         ))}
       </div>
+
+      {/* Localisation des inscriptions (agrégats) */}
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-primary shrink-0" />
+            Localisation des inscriptions
+          </h2>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => fetchLocationStats()}
+            disabled={locationLoading}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${locationLoading ? "animate-spin" : ""}`} />
+            {locationLoading ? "Chargement…" : "Actualiser"}
+          </Button>
+        </div>
+        <Card className="border-border/50">
+          <CardContent className="pt-4 pb-4 space-y-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Répartition des comptes créés selon le code postal et la commune indiqués à l&apos;inscription (statistiques
+              agrégées — aucun nom ni e-mail n&apos;apparaît ici). Utile pour prioriser les garages partenaires par zone.
+            </p>
+            {locationLoading && !locationStats && (
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin shrink-0" />
+                Chargement des statistiques…
+              </p>
+            )}
+            {locationStats && (
+              <>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <span className="text-muted-foreground">
+                    Comptes total :{" "}
+                    <strong className="text-foreground">{locationStats.totalAccounts}</strong>
+                  </span>
+                  <span className="text-muted-foreground">
+                    Sans localisation renseignée :{" "}
+                    <strong className="text-foreground">{locationStats.accountsWithoutLocation}</strong>
+                    <span className="text-xs ml-1">(comptes créés avant cette fonction ou incomplets)</span>
+                  </span>
+                </div>
+                {locationStats.rows.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucune donnée de localisation pour l&apos;instant.</p>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-border/60">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border/60 bg-muted/30 text-left">
+                          <th className="px-3 py-2 font-semibold text-foreground">Code postal</th>
+                          <th className="px-3 py-2 font-semibold text-foreground">Commune / ville</th>
+                          <th className="px-3 py-2 font-semibold text-foreground text-right">Comptes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {locationStats.rows.map((row) => (
+                          <tr key={`${row.postalCode}-${row.city}`} className="border-b border-border/40 last:border-0">
+                            <td className="px-3 py-2 font-mono tabular-nums">{row.postalCode}</td>
+                            <td className="px-3 py-2">{row.city}</td>
+                            <td className="px-3 py-2 text-right font-medium">{row.count}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {locationStats.note && (
+                  <p className="text-xs text-muted-foreground italic">{locationStats.note}</p>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Crédits offerts */}
       <section className="space-y-3">

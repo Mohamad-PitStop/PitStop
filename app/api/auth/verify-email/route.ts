@@ -86,6 +86,8 @@ export async function POST(req: Request) {
       email: pending.email,
       passwordHash: pending.passwordHash,
       role,
+      signupPostalCode: pending.postalCode || null,
+      signupCity: pending.city || null,
     })
 
     // Consommer la pré-assignation de rôle si elle existait

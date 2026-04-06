@@ -30,6 +30,8 @@ export async function GET(req: Request) {
         email: account.email,
         role: account.role,
         diagnosticCredits: account.diagnosticCredits,
+        inscriptionCodePostal: account.signupPostalCode ?? null,
+        inscriptionCommune: account.signupCity ?? null,
       },
       diagnostics: diagnostics.map((d) => ({
         id: d.id,

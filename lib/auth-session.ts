@@ -1,5 +1,11 @@
 import { createHash, randomBytes } from "node:crypto"
-import { createSession, deleteSessionByTokenHash, findAccountById, findSessionByTokenHash } from "@/lib/accounts-db"
+import {
+  createSession,
+  deleteSessionByTokenHash,
+  findAccountById,
+  findSessionByTokenHash,
+  type UserRole,
+} from "@/lib/accounts-db"
 
 export const AUTH_COOKIE_NAME = "pitstop_auth"
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30 // 30 jours
@@ -36,7 +42,16 @@ export async function createAuthSession(userId: string): Promise<string> {
   return token
 }
 
-export async function getUserFromAuthCookie(cookieHeader: string | null) {
+/** Données compte exposées au client (sans localisation d’inscription). */
+export type SessionUser = {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  diagnosticCredits: number
+}
+
+export async function getUserFromAuthCookie(cookieHeader: string | null): Promise<SessionUser | null> {
   const token = extractCookieValue(cookieHeader, AUTH_COOKIE_NAME)
   if (!token) return null
   const tokenHash = hashToken(token)
@@ -46,7 +61,15 @@ export async function getUserFromAuthCookie(cookieHeader: string | null) {
     await deleteSessionByTokenHash(tokenHash)
     return null
   }
-  return findAccountById(session.userId)
+  const row = await findAccountById(session.userId)
+  if (!row) return null
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    diagnosticCredits: row.diagnosticCredits,
+  }
 }
 
 export async function clearAuthSession(cookieHeader: string | null): Promise<void> {

@@ -66,6 +66,16 @@ async function ensureAccountsTable() {
       `ALTER TABLE "UserAccount" ADD COLUMN "diagnosticCredits" INTEGER NOT NULL DEFAULT 0`
     )
   }
+  const signupLoc = await prisma.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM pragma_table_info('UserAccount') WHERE name IN ('signupPostalCode', 'signupCity')`
+  )
+  const signupCols = new Set(signupLoc.map((c) => c.name))
+  if (!signupCols.has("signupPostalCode")) {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "UserAccount" ADD COLUMN "signupPostalCode" TEXT`)
+  }
+  if (!signupCols.has("signupCity")) {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "UserAccount" ADD COLUMN "signupCity" TEXT`)
+  }
   // Table anti-abus : crédit de bienvenue par IP (hash SHA-256)
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "WelcomeCreditGrant" (
@@ -133,30 +143,93 @@ export async function createAccount(input: {
   email: string
   passwordHash: string
   role?: UserRole
+  signupPostalCode?: string | null
+  signupCity?: string | null
 }): Promise<{ id: string; name: string; email: string; role: UserRole }> {
   await ensureAccountsTable()
   const id = randomUUID()
   const role: UserRole = input.role ?? "user"
+  const pc = input.signupPostalCode?.trim() ?? null
+  const city = input.signupCity?.trim() ?? null
   await prisma.$executeRawUnsafe(
-    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role", "diagnosticCredits") VALUES (?, ?, ?, ?, ?, 0)`,
+    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role", "diagnosticCredits", "signupPostalCode", "signupCity") VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
     id,
     input.name,
     input.email,
     input.passwordHash,
-    role
+    role,
+    pc,
+    city
   )
   return { id, name: input.name, email: input.email, role }
 }
 
-export async function findAccountById(id: string): Promise<{ id: string; name: string; email: string; role: UserRole; diagnosticCredits: number } | null> {
+export async function findAccountById(id: string): Promise<{
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  diagnosticCredits: number
+  signupPostalCode: string | null
+  signupCity: string | null
+} | null> {
   await ensureAccountsTable()
-  const rows = await prisma.$queryRawUnsafe<Array<{ id: string; name: string; email: string; role: string; diagnosticCredits: number }>>(
-    `SELECT "id", "name", "email", "role", "diagnosticCredits" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
+  const rows = await prisma.$queryRawUnsafe<
+    Array<{
+      id: string
+      name: string
+      email: string
+      role: string
+      diagnosticCredits: number
+      signupPostalCode: string | null
+      signupCity: string | null
+    }>
+  >(
+    `SELECT "id", "name", "email", "role", "diagnosticCredits", "signupPostalCode", "signupCity" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
     id
   )
   const row = rows[0]
   if (!row) return null
-  return { ...row, role: toRole(row.role), diagnosticCredits: Number(row.diagnosticCredits ?? 0) }
+  return {
+    ...row,
+    role: toRole(row.role),
+    diagnosticCredits: Number(row.diagnosticCredits ?? 0),
+    signupPostalCode: row.signupPostalCode ?? null,
+    signupCity: row.signupCity ?? null,
+  }
+}
+
+/** Agrégats anonymisés : nombre de comptes par code postal + ville (inscription). */
+export async function getSignupLocationAggregates(): Promise<{
+  rows: Array<{ postalCode: string; city: string; count: number }>
+  accountsWithoutLocation: number
+  totalAccounts: number
+}> {
+  await ensureAccountsTable()
+  const totalRows = await prisma.$queryRawUnsafe<Array<{ n: number }>>(
+    `SELECT COUNT(*) AS n FROM "UserAccount"`
+  )
+  const totalAccounts = Number(totalRows[0]?.n ?? 0)
+  const withoutRows = await prisma.$queryRawUnsafe<Array<{ n: number }>>(
+    `SELECT COUNT(*) AS n FROM "UserAccount" WHERE "signupPostalCode" IS NULL OR TRIM("signupPostalCode") = ''`
+  )
+  const accountsWithoutLocation = Number(withoutRows[0]?.n ?? 0)
+  const rows = await prisma.$queryRawUnsafe<Array<{ postalCode: string; city: string; count: number }>>(
+    `SELECT TRIM("signupPostalCode") AS "postalCode", TRIM("signupCity") AS "city", COUNT(*) AS "count"
+     FROM "UserAccount"
+     WHERE "signupPostalCode" IS NOT NULL AND TRIM("signupPostalCode") != ''
+     GROUP BY TRIM("signupPostalCode"), TRIM("signupCity")
+     ORDER BY "count" DESC, "postalCode" ASC, "city" ASC`
+  )
+  return {
+    rows: rows.map((r) => ({
+      postalCode: r.postalCode,
+      city: r.city || "—",
+      count: Number(r.count),
+    })),
+    accountsWithoutLocation,
+    totalAccounts,
+  }
 }
 
 // ── Crédits diagnostic ───────────────────────────────────────────────────────

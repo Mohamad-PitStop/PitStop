@@ -44,6 +44,8 @@ export async function POST(req: Request) {
       passwordHash: pending.passwordHash,
       tokenHash,
       expiresAt,
+      postalCode: pending.postalCode,
+      city: pending.city,
     })
 
     const smtpHost = process.env.SMTP_HOST?.trim()

@@ -16,6 +16,20 @@ async function ensureTable() {
       "expiresAt"    DATETIME NOT NULL
     )
   `)
+  const locCols = await prisma.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM pragma_table_info('PendingEmailVerification') WHERE name IN ('postalCode', 'city')`
+  )
+  const have = new Set(locCols.map((c) => c.name))
+  if (!have.has("postalCode")) {
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "PendingEmailVerification" ADD COLUMN "postalCode" TEXT NOT NULL DEFAULT ''`
+    )
+  }
+  if (!have.has("city")) {
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "PendingEmailVerification" ADD COLUMN "city" TEXT NOT NULL DEFAULT ''`
+    )
+  }
   ensuredEV = true
 }
 
@@ -26,6 +40,8 @@ export type PendingVerification = {
   passwordHash: string
   tokenHash: string
   expiresAt: string
+  postalCode: string
+  city: string
 }
 
 /**
@@ -38,18 +54,21 @@ export async function upsertPendingVerification(input: {
   passwordHash: string
   tokenHash: string
   expiresAt: Date
+  postalCode: string
+  city: string
 }): Promise<void> {
   await ensureTable()
-  // INSERT OR REPLACE gère l'unicité sur email ET tokenHash (SQLite)
   await prisma.$executeRawUnsafe(`
     INSERT INTO "PendingEmailVerification"
-      ("id", "email", "name", "passwordHash", "tokenHash", "expiresAt")
-    VALUES (?, ?, ?, ?, ?, ?)
+      ("id", "email", "name", "passwordHash", "tokenHash", "expiresAt", "postalCode", "city")
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT("email") DO UPDATE SET
       "name"         = excluded."name",
       "passwordHash" = excluded."passwordHash",
       "tokenHash"    = excluded."tokenHash",
       "expiresAt"    = excluded."expiresAt",
+      "postalCode"   = excluded."postalCode",
+      "city"         = excluded."city",
       "createdAt"    = CURRENT_TIMESTAMP
   `,
     randomUUID(),
@@ -57,7 +76,9 @@ export async function upsertPendingVerification(input: {
     input.name,
     input.passwordHash,
     input.tokenHash,
-    input.expiresAt.toISOString()
+    input.expiresAt.toISOString(),
+    input.postalCode,
+    input.city
   )
 }
 
@@ -66,14 +87,22 @@ export async function findPendingVerificationByTokenHash(
   tokenHash: string
 ): Promise<PendingVerification | null> {
   await ensureTable()
-  const rows = await prisma.$queryRawUnsafe<PendingVerification[]>(
-    `SELECT "id", "email", "name", "passwordHash", "tokenHash", "expiresAt"
+  const rows = await prisma.$queryRawUnsafe<
+    (Omit<PendingVerification, "postalCode" | "city"> & { postalCode: string | null; city: string | null })[]
+  >(
+    `SELECT "id", "email", "name", "passwordHash", "tokenHash", "expiresAt", "postalCode", "city"
      FROM "PendingEmailVerification"
      WHERE "tokenHash" = ?
      LIMIT 1`,
     tokenHash
   )
-  return rows[0] ?? null
+  const row = rows[0]
+  if (!row) return null
+  return {
+    ...row,
+    postalCode: row.postalCode ?? "",
+    city: row.city ?? "",
+  }
 }
 
 /** Trouve une vérification en attente par email (pour le renvoi). */
@@ -81,14 +110,22 @@ export async function findPendingVerificationByEmail(
   email: string
 ): Promise<PendingVerification | null> {
   await ensureTable()
-  const rows = await prisma.$queryRawUnsafe<PendingVerification[]>(
-    `SELECT "id", "email", "name", "passwordHash", "tokenHash", "expiresAt"
+  const rows = await prisma.$queryRawUnsafe<
+    (Omit<PendingVerification, "postalCode" | "city"> & { postalCode: string | null; city: string | null })[]
+  >(
+    `SELECT "id", "email", "name", "passwordHash", "tokenHash", "expiresAt", "postalCode", "city"
      FROM "PendingEmailVerification"
      WHERE "email" = ?
      LIMIT 1`,
     email
   )
-  return rows[0] ?? null
+  const row = rows[0]
+  if (!row) return null
+  return {
+    ...row,
+    postalCode: row.postalCode ?? "",
+    city: row.city ?? "",
+  }
 }
 
 /** Supprime la vérification en attente une fois consommée. */

@@ -19,6 +19,7 @@ import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
+import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 const MANUAL_PLACEHOLDER = "Saisir manuellement"
 const MODEL_MANUAL_PLACEHOLDER = "Ex : Continental GT, Macan, Stelvio..."
 
@@ -545,7 +546,11 @@ export function VehicleForm() {
         void runDiagnostic()
         return
       }
-      router.push("/merci")
+      if (CREDIT_PURCHASES_ENABLED) {
+        router.push("/credits")
+      } else {
+        router.push("/merci?from=diagnostic")
+      }
       return
     }
 

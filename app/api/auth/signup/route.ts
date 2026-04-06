@@ -7,6 +7,7 @@ import { hashPassword } from "@/lib/auth-password"
 import { upsertPendingVerification } from "@/lib/email-verification-db"
 import { buildVerificationEmail } from "@/app/api/auth/resend-verification/route"
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit"
+import { isValidBelgianPostalCode, isValidCity, normalizeCity, normalizePostalCode } from "@/lib/signup-location"
 
 export const runtime = "nodejs"
 
@@ -17,6 +18,8 @@ const SignupSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(160),
   password: z.string().min(8).max(128),
+  postalCode: z.string().trim().min(4).max(12),
+  city: z.string().trim().min(2).max(80),
 })
 
 function hashToken(token: string): string {
@@ -31,6 +34,20 @@ export async function POST(req: Request) {
 
     const body = SignupSchema.parse(await req.json())
     const email = body.email.toLowerCase()
+    const postalNorm = normalizePostalCode(body.postalCode)
+    const cityNorm = normalizeCity(body.city)
+    if (!isValidBelgianPostalCode(postalNorm)) {
+      return NextResponse.json(
+        { ok: false, error: "Indiquez un code postal belge valide (4 chiffres, ex. 6000 ou 1000)." },
+        { status: 400 }
+      )
+    }
+    if (!isValidCity(cityNorm)) {
+      return NextResponse.json(
+        { ok: false, error: "Indiquez une commune ou une ville valide (2 à 80 caractères)." },
+        { status: 400 }
+      )
+    }
 
     // Un compte vérifié existe déjà
     const exists = await findAccountByEmail(email)
@@ -53,6 +70,8 @@ export async function POST(req: Request) {
       passwordHash,
       tokenHash,
       expiresAt,
+      postalCode: postalNorm,
+      city: cityNorm,
     })
 
     // Envoyer l'email de vérification

@@ -16,6 +16,8 @@ function InscriptionForm() {
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [postalCode, setPostalCode] = useState("")
+  const [city, setCity] = useState("")
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null) // email en attente de vérification
@@ -30,7 +32,7 @@ function InscriptionForm() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, postalCode, city }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || "Impossible de créer le compte.")
@@ -161,6 +163,48 @@ function InscriptionForm() {
                         onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="postalCode" className="text-sm font-medium text-foreground">
+                          Code postal
+                        </label>
+                        <Input
+                          id="postalCode"
+                          inputMode="numeric"
+                          autoComplete="postal-code"
+                          placeholder="ex. 6000"
+                          required
+                          maxLength={4}
+                          pattern="[0-9]{4}"
+                          title="4 chiffres (Belgique)"
+                          value={postalCode}
+                          onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="city" className="text-sm font-medium text-foreground">
+                          Commune ou ville
+                        </label>
+                        <Input
+                          id="city"
+                          autoComplete="address-level2"
+                          placeholder="ex. Charleroi"
+                          required
+                          minLength={2}
+                          maxLength={80}
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
+                      Ces indications sont utilisées uniquement sous forme de statistiques globales pour adapter notre
+                      réseau de garages partenaires (voir notre{" "}
+                      <Link href="/confidentialite" className="text-primary hover:underline">
+                        politique de confidentialité
+                      </Link>
+                      ).
+                    </p>
                     <div className="space-y-2">
                       <label htmlFor="password" className="text-sm font-medium text-foreground">
                         Mot de passe
