@@ -266,17 +266,17 @@
 
 /* Mobile : halos et vignette remontés (hero + navbar en haut de l’écran) */
 :root[data-viewport="mobile"] .home-aurora-anchor--a {
-  top: 26% !important;
+  top: 19% !important;
 }
 
 :root[data-viewport="mobile"] .home-aurora-anchor--b {
-  top: 17% !important;
+  top: 10% !important;
 }
 
 :root[data-viewport="mobile"] .home-aurora-vignette {
   opacity: 0.48;
   background: radial-gradient(
-    ellipse 100% 92% at 50% 8%,
+    ellipse 100% 92% at 50% 2%,
     transparent 0%,
     transparent 48%,
     rgb(13 27 62 / 0.65) 90%
