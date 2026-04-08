@@ -28,6 +28,7 @@ import {
   X,
 } from "lucide-react"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 /** Rendu léger de markdown : **gras**, sauts de ligne, puces (• ou - en début de ligne) */
 function RichText({ text, className }: { text: string; className?: string }) {
@@ -217,6 +218,8 @@ const severityConfig = {
 }
 
 export function ResultsContent() {
+  const { t, locale } = useTranslation()
+  const numberLocale = locale === "en" ? "en-GB" : locale === "nl" ? "nl-BE" : "fr-BE"
   const router = useRouter()
   const searchParams = useSearchParams()
   const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(null)
@@ -273,7 +276,7 @@ export function ResultsContent() {
           })
           const data = await response.json().catch(() => null)
           if (!response.ok || !data?.diagnostic || !data?.vehicleInfo) {
-            throw new Error("Chargement impossible")
+            throw new Error(t("results.loadError"))
           }
           if (cancelled) return
           const diagStr = JSON.stringify(data.diagnostic)
@@ -301,7 +304,7 @@ export function ResultsContent() {
     return () => {
       cancelled = true
     }
-  }, [router, searchParams])
+  }, [router, searchParams, t])
 
   const submitFollowUpAnswer = async (answer: string) => {
     if (!vehicleInfo || !diagnostic?.missingInfo?.question) return
@@ -321,7 +324,7 @@ export function ResultsContent() {
       })
 
       if (!response.ok) {
-        throw new Error("Erreur lors de l'analyse")
+        throw new Error(t("results.analysisError"))
       }
 
       const nextDiagnostic = await response.json()
@@ -337,7 +340,7 @@ export function ResultsContent() {
       sessionStorage.setItem("followUps", JSON.stringify(nextFollowUps))
     } catch (error) {
       console.error("Erreur:", error)
-      alert("Une erreur est survenue. Veuillez réessayer.")
+      alert(t("results.alertError"))
     } finally {
       setIsFollowUpLoading(false)
       setIsTransitioningToFinal(false)
@@ -354,13 +357,21 @@ export function ResultsContent() {
     let answer: string
     if (hasChoiceOptions) {
       const uniq = Array.from(new Set(pendingChoices))
-      const choicesPart = uniq.length > 0 ? `Choix: ${uniq.join(", ")}` : "Choix: (non précisé)"
-      const detailsPart = pendingDetails.trim() ? `Détails: ${pendingDetails.trim()}` : "Détails: (aucun)"
+      const choicesPart = uniq.length > 0
+        ? `${t("results.followupChoicePrefix")} ${uniq.join(", ")}`
+        : `${t("results.followupChoicePrefix")} ${t("results.followupChoiceUnspecified")}`
+      const detailsPart = pendingDetails.trim()
+        ? `${t("results.followupDetailsPrefix")} ${pendingDetails.trim()}`
+        : `${t("results.followupDetailsPrefix")} ${t("results.followupDetailsNone")}`
       answer = `${choicesPart}\n${detailsPart}`
     } else {
       const yn = pendingChoices[0] ?? ""
-      const ynPart = yn ? `Réponse: ${yn}` : "Réponse: (non précisée)"
-      const detailsPart = pendingDetails.trim() ? `Détails: ${pendingDetails.trim()}` : "Détails: (aucun)"
+      const ynPart = yn
+        ? `${t("results.followupAnswerPrefix")} ${yn}`
+        : `${t("results.followupAnswerPrefix")} ${t("results.followupAnswerUnspecified")}`
+      const detailsPart = pendingDetails.trim()
+        ? `${t("results.followupDetailsPrefix")} ${pendingDetails.trim()}`
+        : `${t("results.followupDetailsPrefix")} ${t("results.followupDetailsNone")}`
       answer = `${ynPart}\n${detailsPart}`
     }
 
@@ -380,7 +391,7 @@ export function ResultsContent() {
       })
 
       if (!response.ok) {
-        throw new Error("Erreur lors de l'analyse")
+        throw new Error(t("results.analysisError"))
       }
 
       const nextDiagnostic = await response.json()
@@ -399,7 +410,7 @@ export function ResultsContent() {
       setPendingPhoto(null)
     } catch (error) {
       console.error("Erreur:", error)
-      alert("Une erreur est survenue. Veuillez réessayer.")
+      alert(t("results.alertError"))
     } finally {
       setIsFollowUpLoading(false)
       setIsTransitioningToFinal(false)
@@ -439,7 +450,7 @@ export function ResultsContent() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <p className="text-muted-foreground">Chargement des résultats...</p>
+          <p className="text-muted-foreground">{t("results.loading")}</p>
         </div>
       </div>
     )
@@ -465,7 +476,7 @@ export function ResultsContent() {
       <div className="flex items-center justify-between mb-6 gap-3 animate-in fade-in duration-300">
         <Link href="/diagnostic" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          Nouvelle analyse
+          {t("results.newAnalysis")}
         </Link>
         {diagnostic?.diagnosticRequestId && (
           <Button
@@ -476,7 +487,7 @@ export function ResultsContent() {
             disabled={isAbandoning}
           >
             <X className="h-3.5 w-3.5" />
-            {isAbandoning ? "Abandon…" : "Abandonner le diagnostic"}
+            {isAbandoning ? t("results.abandoning") : t("results.abandon")}
           </Button>
         )}
       </div>
@@ -486,13 +497,13 @@ export function ResultsContent() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-              Abandonner le diagnostic ?
+              {t("results.abandonTitle")}
             </DialogTitle>
             <DialogDescription className="pt-1 leading-relaxed">
-              Un crédit de diagnostic a été consommé pour cette analyse. En abandonnant maintenant, ce crédit{" "}
-              <span className="font-semibold text-foreground">ne sera pas remboursé</span>.
+              {t("results.abandonIntro")}{" "}
+              <span className="font-semibold text-foreground">{t("results.abandonNotRefunded")}</span>.
               <br /><br />
-              Êtes-vous sûr de vouloir abandonner ?
+              {t("results.abandonSure")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -502,7 +513,7 @@ export function ResultsContent() {
               onClick={() => setShowAbandonConfirm(false)}
               disabled={isAbandoning}
             >
-              Annuler
+              {t("results.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -510,7 +521,7 @@ export function ResultsContent() {
               onClick={() => { setShowAbandonConfirm(false); handleAbandon() }}
               disabled={isAbandoning}
             >
-              {isAbandoning ? "Abandon…" : "Oui, abandonner"}
+              {isAbandoning ? t("results.abandoning") : t("results.confirmAbandon")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -523,7 +534,7 @@ export function ResultsContent() {
           <span>•</span>
           <span>{vehicleInfo.annee}</span>
           <span>•</span>
-          <span>{parseInt(vehicleInfo.kilometrage).toLocaleString('fr-FR')} km</span>
+          <span>{parseInt(vehicleInfo.kilometrage, 10).toLocaleString(numberLocale)} km</span>
         </div>
         <p className="text-muted-foreground text-sm italic">&quot;{vehicleInfo.probleme}&quot;</p>
       </div>
@@ -550,7 +561,7 @@ export function ResultsContent() {
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              Concession {diagnostic.concessionOnly.brand} recommandée
+              {t("results.concessionTitle", { brand: diagnostic.concessionOnly.brand })}
             </CardTitle>
             <CardDescription>{diagnostic.concessionOnly.explanation}</CardDescription>
           </CardHeader>
@@ -576,10 +587,10 @@ export function ResultsContent() {
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
               <Info className="h-5 w-5 text-primary" />
-              Question pour affiner le diagnostic
+              {t("results.followupTitle")}
             </CardTitle>
             <CardDescription>
-              Répondez pour que PitStop ajuste la recommandation et les prix.
+              {t("results.followupDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -618,8 +629,8 @@ export function ResultsContent() {
                   {pendingPhoto ? (
                     <div className="flex flex-col items-center gap-2">
                       <CheckCircle className="h-8 w-8 text-green-400" />
-                      <p className="text-sm font-medium text-foreground">Photo reçue ✓</p>
-                      <p className="text-xs text-muted-foreground">Cliquez pour changer de photo</p>
+                      <p className="text-sm font-medium text-foreground">{t("results.photoOk")}</p>
+                      <p className="text-xs text-muted-foreground">{t("results.changePhoto")}</p>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2 text-center">
@@ -630,9 +641,9 @@ export function ResultsContent() {
                         </svg>
                       </div>
                       <p className="text-sm font-medium text-foreground">
-                        {isMobile ? "Prendre une photo" : "Uploader une photo"}
+                        {isMobile ? t("results.takePhoto") : t("results.uploadPhoto")}
                       </p>
-                      <p className="text-xs text-muted-foreground">Photographiez le levier de vitesses</p>
+                      <p className="text-xs text-muted-foreground">{t("results.gearboxHint")}</p>
                     </div>
                   )}
                 </label>
@@ -643,7 +654,7 @@ export function ResultsContent() {
                   disabled={isFollowUpLoading || !pendingPhoto}
                   onClick={submitFollowUp}
                 >
-                  {isFollowUpLoading ? "Analyse de la photo…" : "Envoyer la photo"}
+                  {isFollowUpLoading ? t("results.analyzingPhoto") : t("results.sendPhoto")}
                 </Button>
                 <Button
                   type="button"
@@ -656,7 +667,7 @@ export function ResultsContent() {
                     submitFollowUp()
                   }}
                 >
-                  Passer cette étape
+                  {t("results.skipStep")}
                 </Button>
               </div>
             ) : null}
@@ -686,7 +697,7 @@ export function ResultsContent() {
                     onClick={() => setPendingChoices(["Oui"])}
                     className="h-auto min-h-11 max-w-full min-w-0 shrink flex-[1_1_12rem] !whitespace-normal px-3 py-2.5"
                   >
-                    {isFollowUpLoading ? "..." : "Oui"}
+                    {isFollowUpLoading ? "..." : t("results.yes")}
                   </Button>
                   <Button
                     type="button"
@@ -695,7 +706,7 @@ export function ResultsContent() {
                     onClick={() => setPendingChoices(["Non"])}
                     className="h-auto min-h-11 max-w-full min-w-0 shrink flex-[1_1_12rem] !whitespace-normal px-3 py-2.5"
                   >
-                    {isFollowUpLoading ? "..." : "Non"}
+                    {isFollowUpLoading ? "..." : t("results.no")}
                   </Button>
                 </>
               )}
@@ -704,11 +715,11 @@ export function ResultsContent() {
             {!diagnostic.missingInfo.requestsGearboxPhoto && (
               <>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground">Détails (optionnel)</p>
+                  <p className="text-sm font-medium text-foreground">{t("results.detailsOptional")}</p>
                   <textarea
                     value={pendingDetails}
                     onChange={(e) => setPendingDetails(e.target.value)}
-                    placeholder="Ajoutez un détail utile (ex: ce que vous observez, depuis quand, si ça arrive souvent, et tout élément qui peut aider)."
+                    placeholder={t("results.detailsPlaceholder")}
                     className="min-h-[96px] w-full rounded-lg border border-border/50 bg-secondary/20 p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                     disabled={isFollowUpLoading}
                   />
@@ -721,7 +732,7 @@ export function ResultsContent() {
                   disabled={isFollowUpLoading || (pendingChoices.length === 0 && !pendingDetails.trim())}
                   onClick={submitFollowUp}
                 >
-                  {isFollowUpLoading ? "Analyse en cours…" : "Envoyer ma réponse"}
+                  {isFollowUpLoading ? t("results.analyzing") : t("results.sendAnswer")}
                 </Button>
               </>
             )}
@@ -735,40 +746,40 @@ export function ResultsContent() {
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              Scan OBD obligatoire en garage
+              {t("results.obdTitle")}
             </CardTitle>
             <CardDescription>
-              Un passage au garage est nécessaire pour réaliser un scan OBD avec un outil professionnel, afin d&apos;identifier précisément l&apos;origine du problème.{" "}
+              {t("results.obdIntro")}{" "}
               {diagnostic.obdScanFirst.explanation}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-border/50 bg-secondary/30 p-4 text-sm text-muted-foreground">
-              Deux scénarios sont possibles après le scan OBD : soit il s&apos;agit uniquement d&apos;un code défaut à effacer, soit le diagnostic met en évidence une cause nécessitant une intervention sur le véhicule.
+              {t("results.obdScenarios")}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="rounded-lg border border-border/50 bg-secondary/30 p-4">
-                <p className="text-sm font-medium text-foreground mb-1">Option A</p>
+                <p className="text-sm font-medium text-foreground mb-1">{t("results.optionA")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Le scan indique uniquement un code défaut à supprimer. Le garagiste efface le code.
+                  {t("results.optionADesc")}
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-foreground">
                   <Euro className="h-4 w-4 text-primary" />
                   <span className="font-semibold">{diagnostic.obdScanFirst.scanPrice}€</span>
-                  <span className="text-sm text-muted-foreground">• 10 min</span>
+                  <span className="text-sm text-muted-foreground">{t("results.obdTenMin")}</span>
                 </div>
               </div>
               <div className="rounded-lg border border-border/50 bg-secondary/30 p-4">
-                <p className="text-sm font-medium text-foreground mb-1">Option B</p>
+                <p className="text-sm font-medium text-foreground mb-1">{t("results.optionB")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Le scan identifie la cause du problème et une intervention est nécessaire. Le garagiste établit une estimation, propose un devis sur place et fixe un rendez-vous avec vous.
+                  {t("results.optionBDesc")}
                 </p>
               </div>
             </div>
 
             <Button asChild size="lg" className="w-full">
               <Link href={`/rendez-vous?type=obd-scan${diagnostic.obdScanFirst?.scanPrice ? `&priceMin=${diagnostic.obdScanFirst.scanPrice}` : ""}`}>
-                Planifier un rendez-vous pour le scan OBD
+                {t("results.planObd")}
               </Link>
             </Button>
           </CardContent>
@@ -786,17 +797,17 @@ export function ResultsContent() {
               <Sparkles className="h-9 w-9 text-emerald-400" strokeWidth={1.75} />
             </div>
             <h2 className="font-display text-xl font-semibold text-foreground md:text-2xl mb-2">
-              Tout roule !
+              {t("results.allGoodTitle")}
             </h2>
             <p className="mx-auto max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
-              D&apos;après cette analyse,{" "}
-              <span className="font-medium text-foreground">aucune intervention n&apos;est nécessaire</span> pour ce que
-              vous avez décrit (pas de devis ni de passage garage pour ça). Profitez de la route !
+              {t("results.allGoodLead")}{" "}
+              <span className="font-medium text-foreground">{t("results.allGoodMid")}</span> {t("results.allGoodTail")}
             </p>
             {diagnostic.creditRefunded && (
               <p className="mx-auto mt-5 max-w-lg rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm leading-relaxed text-foreground">
-                <span className="font-medium">🎁 Crédit remboursé !</span> Aucune intervention n&apos;étant nécessaire,{" "}
-                <span className="font-semibold">votre crédit de diagnostic vous a été restitué</span>. Vous pouvez relancer une analyse quand vous le souhaitez.
+                <span className="font-medium">{t("results.creditRefundedLead")}</span> {t("results.creditRefundedMid")}{" "}
+                <span className="font-semibold">{t("results.creditRefundedBold")}</span>
+                {t("results.creditRefundedTail")}
               </p>
             )}
           </CardContent>
@@ -809,16 +820,15 @@ export function ResultsContent() {
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              {diagnostic.serviceRecommendation?.title || "Lavage auto partenaire"}
+              {diagnostic.serviceRecommendation?.title || t("results.carWashDefaultTitle")}
             </CardTitle>
             <CardDescription>
-              {diagnostic.serviceRecommendation?.description ||
-                "Pour cette demande, vous pouvez réserver un créneau dans une station de lavage partenaire (intérieur, extérieur ou complet)."}
+              {diagnostic.serviceRecommendation?.description || t("results.carWashDefaultDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild size="lg" className="w-full">
-              <Link href="/rendez-vous?type=lavage-auto">Prendre rendez-vous en station partenaire</Link>
+              <Link href="/rendez-vous?type=lavage-auto">{t("results.bookWash")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -834,7 +844,7 @@ export function ResultsContent() {
                   <Euro className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Fourchette de prix estimée</p>
+                  <p className="text-sm text-muted-foreground">{t("results.priceRange")}</p>
                   <p className="text-2xl font-bold text-foreground">
                     {diagnostic.priceRange.min}€ - {diagnostic.priceRange.max}€
                   </p>
@@ -842,7 +852,7 @@ export function ResultsContent() {
               </div>
               <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
                 <Info className="h-4 w-4" />
-                <span>Prix indicatifs basés sur les tarifs du marché</span>
+                <span>{t("results.priceHint")}</span>
               </div>
             </div>
           </CardContent>
@@ -867,16 +877,16 @@ export function ResultsContent() {
                   <Wrench className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
-                  <CardTitle className="text-foreground">Faire soi-même (DIY)</CardTitle>
+                  <CardTitle className="text-foreground">{t("results.diyTitle")}</CardTitle>
                   <CardDescription>
-                    {diagnostic.diy.possible ? 'Option recommandée pour les bricoleurs' : 'Non recommandé sans expérience'}
+                    {diagnostic.diy.possible ? t("results.diyRec") : t("results.diyNoRec")}
                   </CardDescription>
                 </div>
               </div>
               {diagnostic.diy.possible && (
                 <div className="flex items-center gap-1 text-xs text-green-400">
                   <Star className="h-3 w-3 fill-current" />
-                  Économique
+                  {t("results.economic")}
                 </div>
               )}
             </div>
@@ -886,14 +896,14 @@ export function ResultsContent() {
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Temps estimé</p>
+                  <p className="text-sm text-muted-foreground">{t("results.estTime")}</p>
                   <p className="text-sm font-medium text-foreground">{diagnostic.diy.estimatedTime}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Euro className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Coût pièces</p>
+                  <p className="text-sm text-muted-foreground">{t("results.partsCost")}</p>
                   <p className="text-sm font-medium text-foreground">{diagnostic.diy.costRange.min}€ - {diagnostic.diy.costRange.max}€</p>
                 </div>
               </div>
@@ -902,12 +912,12 @@ export function ResultsContent() {
             <div>
               <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-400" />
-                Difficulté: {diagnostic.diy.difficulty}
+                {t("results.difficultyPrefix")} {diagnostic.diy.difficulty}
               </p>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Étapes principales:</p>
+              <p className="text-sm font-medium text-foreground">{t("results.mainSteps")}</p>
               <ul className="space-y-1">
                 {diagnostic.diy.steps.map((step, i) => (
                   <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -919,7 +929,7 @@ export function ResultsContent() {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-foreground mb-2">Outils nécessaires:</p>
+              <p className="text-sm font-medium text-foreground mb-2">{t("results.tools")}</p>
               <div className="flex flex-wrap gap-2">
                 {diagnostic.diy.tools.map((tool, i) => (
                   <span key={i} className="text-xs px-2 py-1 rounded-md bg-secondary/50 text-muted-foreground">
@@ -942,13 +952,13 @@ export function ResultsContent() {
                   <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-foreground">Confier à un garage</CardTitle>
-                  <CardDescription>Réparation professionnelle avec garantie</CardDescription>
+                  <CardTitle className="text-foreground">{t("results.garageTitle")}</CardTitle>
+                  <CardDescription>{t("results.garageSubtitle")}</CardDescription>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30">
                 <CheckCircle className="h-3 w-3" />
-                Recommandé
+                {t("results.recommended")}
               </div>
             </div>
           </CardHeader>
@@ -957,21 +967,21 @@ export function ResultsContent() {
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Temps estimé</p>
+                  <p className="text-sm text-muted-foreground">{t("results.estTime")}</p>
                   <p className="text-sm font-medium text-foreground">{diagnostic.garage.estimatedTime}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Euro className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Coût total</p>
+                  <p className="text-sm text-muted-foreground">{t("results.totalCost")}</p>
                   <p className="text-sm font-medium text-foreground">{diagnostic.garage.costRange.min}€ - {diagnostic.garage.costRange.max}€</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Le service inclut:</p>
+              <p className="text-sm font-medium text-foreground">{t("results.includes")}</p>
               <ul className="space-y-1">
                 {diagnostic.garage.includes.map((item, i) => (
                   <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
@@ -984,10 +994,10 @@ export function ResultsContent() {
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 font-semibold">
-                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>Prendre rendez-vous</Link>
+                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>{t("results.bookRdV")}</Link>
               </Button>
               <Button asChild variant="outline" className="flex-1 border-primary/40">
-                <Link href="/garages">Trouver un garage proche</Link>
+                <Link href="/garages">{t("results.findGarage")}</Link>
               </Button>
             </div>
           </CardContent>
@@ -1007,18 +1017,18 @@ export function ResultsContent() {
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />
-                Passer par un garage partenaire
+                {t("results.partnerCardTitle")}
               </CardTitle>
               <CardDescription>
-                Même pour une intervention à planifier dans les prochains mois, vous pouvez dès maintenant réserver un créneau ou trouver un garage près de chez vous.
+                {t("results.partnerCardDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row gap-3">
               <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>Prendre rendez-vous</Link>
+                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>{t("results.bookRdV")}</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="flex-1 border-primary/40">
-                <Link href="/garages">Trouver un garage proche</Link>
+                <Link href="/garages">{t("results.findGarage")}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -1028,17 +1038,14 @@ export function ResultsContent() {
       <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/30 border border-border/50 animate-in fade-in duration-500" style={{ animationDelay: "500ms", animationFillMode: "both" }}>
         <Info className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
         <div className="text-sm text-muted-foreground">
-          <p className="font-medium text-foreground mb-1">Avertissement</p>
+          <p className="font-medium text-foreground mb-1">{t("results.warningTitle")}</p>
           {noInterventionNeeded ? (
             <p>
-              Les analyses PitStop sont indicatives. En cas de doute, d&apos;un voyant ou d&apos;un bruit nouveau, procédez à une nouvelle analyse ou faites
-              contrôler le véhicule par un professionnel.
+              {t("results.warningNoIntervention")}
             </p>
           ) : (
             <p>
-              Ces estimations sont construites pour vous fournir un diagnostic fiable et un devis cohérent avec les
-              standards du marché belge. Les garages partenaires PitStop s&apos;engagent à s&apos;aligner sur les
-              montants annoncés, sauf découverte technique majeure lors du contrôle physique du véhicule.
+              {t("results.warningDefault")}
             </p>
           )}
         </div>

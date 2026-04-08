@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
+import { creditPackageLabel, creditPackageSaving } from "@/lib/credit-package-i18n"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 import { buildLoginUrl } from "@/lib/login-redirect"
@@ -29,6 +30,7 @@ import {
   Gift,
   Eye,
 } from "lucide-react"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 type AuthUser = {
   id: string
@@ -64,38 +66,25 @@ type Reservation = {
   cancelToken: string | null
 }
 
-function formatDate(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("fr-BE", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(iso))
-  } catch {
-    return iso
-  }
-}
-
 function truncate(text: string, max = 120) {
   return text.length > max ? text.slice(0, max).trimEnd() + "…" : text
 }
 
 function StatusBadge({ status }: { status: DiagnosticStatus }) {
+  const { t } = useTranslation()
   if (status === "completed") return null
   if (status === "in_progress") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-400 border border-amber-500/25">
         <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-        En cours
+        {t("profilePage.statusInProgress")}
       </span>
     )
   }
   if (status === "abandoned") {
     return (
       <span className="inline-flex items-center rounded-full bg-muted/60 px-2 py-0.5 text-[11px] font-medium text-muted-foreground border border-border/40">
-        Abandonné
+        {t("profilePage.statusAbandoned")}
       </span>
     )
   }
@@ -103,6 +92,22 @@ function StatusBadge({ status }: { status: DiagnosticStatus }) {
 }
 
 export default function ProfilPage() {
+  const { t, locale } = useTranslation()
+  const dateLocaleTag = locale === "en" ? "en-GB" : locale === "nl" ? "nl-BE" : "fr-BE"
+  const numberLocale = dateLocaleTag
+  function formatDate(iso: string) {
+    try {
+      return new Intl.DateTimeFormat(dateLocaleTag, {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date(iso))
+    } catch {
+      return iso
+    }
+  }
   const router = useRouter()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([])
@@ -151,7 +156,7 @@ export default function ProfilPage() {
     setGiftSuccess(null)
     const raw = giftCode.trim()
     if (raw.length < 4) {
-      setGiftError("Saisissez le code reçu (au moins 4 caractères).")
+      setGiftError(t("creditsPage.giftCodeShort"))
       return
     }
     setGiftRedeeming(true)
@@ -163,17 +168,15 @@ export default function ProfilPage() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "Impossible d’activer le code.")
+        throw new Error(data?.error || t("creditsPage.giftErrorGeneric"))
       }
       setUser((u) =>
         u ? { ...u, diagnosticCredits: data.newBalance ?? u.diagnosticCredits } : null
       )
-      setGiftSuccess(
-        `${data.creditsAdded} crédit${data.creditsAdded !== 1 ? "s" : ""} ajouté${data.creditsAdded !== 1 ? "s" : ""}. Nouveau solde : ${data.newBalance}.`
-      )
+      setGiftSuccess(t("creditsPage.giftSuccess", { count: data.creditsAdded, balance: data.newBalance }))
       setGiftCode("")
     } catch (e) {
-      setGiftError(e instanceof Error ? e.message : "Une erreur est survenue.")
+      setGiftError(e instanceof Error ? e.message : t("creditsPage.giftErrorUnknown"))
     } finally {
       setGiftRedeeming(false)
     }
@@ -202,11 +205,12 @@ export default function ProfilPage() {
     }).finally(() => setLoading(false))
   }, [router])
 
-  // Refresh balance after payment success
+  // Refresh balance after payment success (webhook peut suivre le redirect avec délai)
   useEffect(() => {
     if (!paySuccess) return
-    const timer = setTimeout(refreshUser, 2000)
-    return () => clearTimeout(timer)
+    const delaysMs = [0, 2500, 6000, 12000, 20000]
+    const timers = delaysMs.map((ms) => setTimeout(() => refreshUser(), ms))
+    return () => timers.forEach(clearTimeout)
   }, [paySuccess])
 
   useEffect(() => {
@@ -256,7 +260,7 @@ export default function ProfilPage() {
       else sessionStorage.removeItem("followUps")
       router.push(`/resultat?diagnosticId=${encodeURIComponent(d.id)}`)
     } catch {
-      setResumeError("Impossible d'afficher les résultats de ce diagnostic. Veuillez réessayer.")
+      setResumeError(t("profilePage.resumeError"))
     } finally {
       setResumingId(null)
     }
@@ -287,12 +291,12 @@ export default function ProfilPage() {
         body: JSON.stringify({ name: editName.trim(), email: editEmail.trim() }),
       })
       const data = await res.json().catch(() => null)
-      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "Erreur lors de la mise à jour.")
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? t("profilePage.updateError"))
       setEditSuccess(true)
       setEditMode(false)
       setUser((prev) => prev ? { ...prev, name: editName.trim(), email: editEmail.trim() } : prev)
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Erreur inconnue.")
+      setEditError(err instanceof Error ? err.message : t("common.errorUnknown"))
     } finally {
       setEditSubmitting(false)
     }
@@ -302,7 +306,7 @@ export default function ProfilPage() {
     setDownloadingData(true)
     try {
       const res = await fetch("/api/auth/data-export")
-      if (!res.ok) throw new Error("Export impossible")
+      if (!res.ok) throw new Error(t("profilePage.exportFailed"))
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
@@ -321,9 +325,7 @@ export default function ProfilPage() {
 
   const handleDeleteAccount = async () => {
     setDeleteError(null)
-    const confirmed = window.confirm(
-      "Voulez-vous vraiment supprimer définitivement votre compte ? Cette action est irréversible. Les crédits restants ne sont pas remboursables."
-    )
+    const confirmed = window.confirm(t("profilePage.deleteConfirm"))
     if (!confirmed) return
 
     setDeletingAccount(true)
@@ -331,12 +333,12 @@ export default function ProfilPage() {
       const res = await fetch("/api/auth/delete-account", { method: "POST" })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.error ?? "Suppression impossible pour le moment.")
+        throw new Error(data?.error ?? t("profilePage.deleteFailed"))
       }
       router.push("/")
       router.refresh()
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Suppression impossible pour le moment.")
+      setDeleteError(err instanceof Error ? err.message : t("profilePage.deleteFailed"))
       setDeletingAccount(false)
     }
   }
@@ -352,7 +354,7 @@ export default function ProfilPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Retour à l'accueil
+          {t("common.backHome")}
         </Link>
 
         {loading ? (
@@ -367,13 +369,13 @@ export default function ProfilPage() {
             {/* En-tête profil */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Mon profil</h1>
+                <h1 className="text-2xl font-bold tracking-tight">{t("profilePage.pageHeading")}</h1>
                 {user && <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>}
               </div>
               <Link href={user ? getDiagnosticEntryHref(user) : "/diagnostic"}>
                 <Button size="sm" className="gap-2">
                   <Search className="h-4 w-4" />
-                  Nouveau diagnostic
+                  {t("profilePage.newDiagnostic")}
                 </Button>
               </Link>
             </div>
@@ -383,7 +385,7 @@ export default function ProfilPage() {
               <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
                 <Check className="h-5 w-5 text-green-500 shrink-0" />
                 <p className="text-sm font-medium text-green-700 dark:text-green-400">
-                  Paiement confirmé ! Vos crédits ont bien été ajoutés à votre compte.
+                  {t("profilePage.paySuccessBanner")}
                 </p>
               </div>
             )}
@@ -392,36 +394,36 @@ export default function ProfilPage() {
             {user && (
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold">Mes informations</h2>
+                  <h2 className="text-base font-semibold">{t("profilePage.myInfo")}</h2>
                   {!editMode && (
                     <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={openEditMode}>
                       <Pencil className="h-3.5 w-3.5" />
-                      Modifier
+                      {t("profilePage.edit")}
                     </Button>
                   )}
                 </div>
 
                 {editSuccess && (
                   <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
-                    <Check className="h-4 w-4" /> Profil mis à jour.
+                    <Check className="h-4 w-4" /> {t("profilePage.updatedToast")}
                   </p>
                 )}
 
                 {!editMode ? (
                   <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Nom</span>
+                      <span className="text-muted-foreground">{t("profilePage.nameLabel")}</span>
                       <span className="font-medium">{user.name}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">E-mail</span>
+                      <span className="text-muted-foreground">{t("common.email")}</span>
                       <span className="font-medium">{user.email}</span>
                     </div>
                   </div>
                 ) : (
                   <form onSubmit={handleEditProfile} className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">Nom complet</label>
+                      <label className="text-xs font-medium text-muted-foreground">{t("profilePage.fullNameLabel")}</label>
                       <Input
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
@@ -431,7 +433,7 @@ export default function ProfilPage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">E-mail</label>
+                      <label className="text-xs font-medium text-muted-foreground">{t("common.email")}</label>
                       <Input
                         type="email"
                         value={editEmail}
@@ -443,7 +445,7 @@ export default function ProfilPage() {
                     {editError && <p className="text-xs text-destructive">{editError}</p>}
                     <div className="flex gap-2 pt-1">
                       <Button type="submit" size="sm" disabled={editSubmitting} className="h-7 text-xs">
-                        {editSubmitting ? "Enregistrement…" : "Enregistrer"}
+                        {editSubmitting ? t("profilePage.saving") : t("profilePage.save")}
                       </Button>
                       <Button
                         type="button"
@@ -454,7 +456,7 @@ export default function ProfilPage() {
                         disabled={editSubmitting}
                       >
                         <X className="h-3.5 w-3.5" />
-                        Annuler
+                        {t("results.cancel")}
                       </Button>
                     </div>
                   </form>
@@ -465,15 +467,15 @@ export default function ProfilPage() {
             {/* Solde crédits */}
             {user && (
               <section className="space-y-4">
-                <h2 className="text-base font-semibold">Crédits diagnostics</h2>
+                <h2 className="text-base font-semibold">{t("profilePage.creditsTitle")}</h2>
                 <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 px-5 py-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Solde disponible</p>
+                    <p className="text-sm text-muted-foreground">{t("profilePage.balanceAvailable")}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-orange-500">{user.diagnosticCredits}</p>
                     <p className="text-xs text-muted-foreground">
-                      crédit{user.diagnosticCredits !== 1 ? "s" : ""}
+                      {user.diagnosticCredits !== 1 ? t("creditsPage.creditPlural") : t("creditsPage.creditSingular")}
                     </p>
                   </div>
                 </div>
@@ -481,11 +483,10 @@ export default function ProfilPage() {
                 <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-4 space-y-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <Gift className="h-4 w-4 text-primary shrink-0" aria-hidden />
-                    Code cadeau
+                    {t("creditsPage.giftTitle")}
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Si vous avez reçu un code (partenaire, opération, test), saisissez-le ci-dessous pour ajouter des
-                    crédits diagnostics à votre compte.
+                    {t("creditsPage.giftHelp")}
                   </p>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                     <Input
@@ -495,7 +496,7 @@ export default function ProfilPage() {
                         setGiftError(null)
                         setGiftSuccess(null)
                       }}
-                      placeholder="Ex. PITSTOP-2026-ABCD"
+                      placeholder={t("creditsPage.giftPlaceholder")}
                       className="h-10 font-sans sm:flex-1"
                       maxLength={40}
                       autoComplete="off"
@@ -511,7 +512,7 @@ export default function ProfilPage() {
                       onClick={() => void redeemGiftCode()}
                       disabled={giftRedeeming}
                     >
-                      {giftRedeeming ? "…" : "Activer le code"}
+                      {giftRedeeming ? "…" : t("creditsPage.giftActivate")}
                     </Button>
                   </div>
                   {giftError && <p className="text-xs text-destructive">{giftError}</p>}
@@ -522,7 +523,9 @@ export default function ProfilPage() {
                 {CREDIT_PURCHASES_ENABLED ? (
                   <>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {CREDIT_PACKAGES.map((pkg) => (
+                      {CREDIT_PACKAGES.map((pkg) => {
+                        const savingLine = creditPackageSaving(t, pkg.id)
+                        return (
                         <div
                           key={pkg.id}
                           className={`relative flex flex-col rounded-xl border p-3 ${
@@ -534,20 +537,25 @@ export default function ProfilPage() {
                           <div className="h-5 flex items-center justify-center mb-2">
                             {pkg.highlight && (
                               <span className="bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                                Meilleure offre
+                                {t("creditsPage.bestCompromise")}
                               </span>
                             )}
                           </div>
 
                           <div className="flex items-center gap-1.5 mb-2">
                             <Zap className="h-3.5 w-3.5 text-orange-500 shrink-0" />
-                            <span className="text-xs font-medium">{pkg.label}</span>
+                            <span className="text-xs font-medium">{creditPackageLabel(t, pkg.id)}</span>
                           </div>
                           <div className="mb-3">
                             {pkg.originalPrice && (
                               <p className="text-[10px] text-muted-foreground line-through">{pkg.originalPrice}</p>
                             )}
                             <p className="text-lg font-bold leading-tight">{pkg.priceLabel}</p>
+                            {savingLine ? (
+                              <p className="text-[10px] font-medium text-green-600 dark:text-green-400 mt-0.5">
+                                {savingLine}
+                              </p>
+                            ) : null}
                             {pkg.badge && (
                               <span className="inline-block mt-0.5 bg-green-500/10 text-green-700 dark:text-green-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                                 {pkg.badge}
@@ -561,23 +569,20 @@ export default function ProfilPage() {
                             onClick={() => handleBuy(pkg.id)}
                             disabled={loadingPkg !== null}
                           >
-                            {loadingPkg === pkg.id ? "…" : "Acheter"}
+                            {loadingPkg === pkg.id ? "…" : t("creditsPage.buy")}
                           </Button>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Paiement sécurisé par Stripe. Les crédits sont crédités instantanément.
-                    </p>
-                    <p className="text-[11px] font-medium text-amber-300/90">
-                      Important : les crédits achetés et non utilisés ne sont pas remboursables.
-                    </p>
+                    <p className="text-[11px] text-muted-foreground">{t("profilePage.creditsStripeNote")}</p>
+                    <p className="text-[11px] font-medium text-amber-300/90">{t("creditsPage.footerNonRefundable")}</p>
                   </>
                 ) : (
                   <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-4 space-y-2">
-                    <p className="text-sm text-foreground font-medium">Achat de crédits indisponible</p>
+                    <p className="text-sm text-foreground font-medium">{t("profilePage.purchaseUnavailable")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      L&apos;achat de crédits n&apos;est pas proposé pour le moment. Vous pouvez utiliser les crédits déjà présents sur votre compte.
+                      {t("profilePage.purchaseDisabledBodyProfile")}
                     </p>
                   </div>
                 )}
@@ -587,11 +592,11 @@ export default function ProfilPage() {
             {/* Mes réservations */}
             {reservations.length > 0 && (
               <section className="space-y-4">
-                <h2 className="text-base font-semibold">Mes réservations</h2>
+                <h2 className="text-base font-semibold">{t("profilePage.reservationsTitle")}</h2>
                 <div className="space-y-3">
                   {reservations.map((r) => {
                     const startAt = new Date(r.startAt)
-                    const dateLabel = new Intl.DateTimeFormat("fr-BE", {
+                    const dateLabel = new Intl.DateTimeFormat(dateLocaleTag, {
                       weekday: "long", day: "2-digit", month: "long", year: "numeric",
                       hour: "2-digit", minute: "2-digit",
                     }).format(startAt)
@@ -608,8 +613,8 @@ export default function ProfilPage() {
                           <p className="text-sm font-medium text-foreground capitalize">{dateLabel}</p>
                           <p className="text-xs text-muted-foreground capitalize">
                             {r.type.replace(/-/g, " ")}
-                            {isCancelled && " · Annulé"}
-                            {!isCancelled && isPast && " · Passé"}
+                            {isCancelled && ` · ${t("profilePage.reservationCancelled")}`}
+                            {!isCancelled && isPast && ` · ${t("profilePage.reservationPast")}`}
                           </p>
                         </div>
                         {!isCancelled && !isPast && r.cancelToken && (
@@ -618,7 +623,7 @@ export default function ProfilPage() {
                             className="inline-flex items-center gap-1.5 shrink-0 text-xs text-destructive hover:underline"
                           >
                             <XOctagon className="h-3.5 w-3.5" />
-                            Annuler
+                            {t("profilePage.cancelReservation")}
                           </Link>
                         )}
                       </div>
@@ -631,7 +636,7 @@ export default function ProfilPage() {
             {/* Historique diagnostics */}
             <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">Historique des diagnostics</h2>
+                <h2 className="text-base font-semibold">{t("profilePage.historyTitle")}</h2>
               </div>
 
               {resumeError && (
@@ -643,9 +648,9 @@ export default function ProfilPage() {
               {diagnostics.length === 0 ? (
                 <div className="text-center py-12 space-y-4 rounded-xl border border-border/50">
                   <Car className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-                  <p className="text-sm text-muted-foreground">Aucun diagnostic enregistré.</p>
+                  <p className="text-sm text-muted-foreground">{t("profilePage.noDiagnostics")}</p>
                   <Link href={user ? getDiagnosticEntryHref(user) : "/diagnostic"}>
-                    <Button variant="outline" size="sm">Lancer mon premier diagnostic</Button>
+                    <Button variant="outline" size="sm">{t("profilePage.ctaFirstDiagnostic")}</Button>
                   </Link>
                 </div>
               ) : (
@@ -665,8 +670,8 @@ export default function ProfilPage() {
                       aria-label={
                         canOpenStoredResult(d)
                           ? d.status === "completed"
-                            ? "Voir les résultats de ce diagnostic"
-                            : "Reprendre ce diagnostic"
+                            ? t("profilePage.ariaSeeResults")
+                            : t("profilePage.ariaResume")
                           : undefined
                       }
                       onClick={
@@ -714,7 +719,7 @@ export default function ProfilPage() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <Gauge className="h-3.5 w-3.5" />
-                                {Number(d.kilometrage).toLocaleString("fr-BE")} km
+                                {Number(d.kilometrage).toLocaleString(numberLocale)} km
                               </span>
                             </div>
                             <p className="text-sm text-foreground/80 leading-relaxed">
@@ -744,7 +749,7 @@ export default function ProfilPage() {
                                 ) : (
                                   <Eye className="h-3 w-3" />
                                 )}
-                                {resumingId === d.id ? "Chargement…" : "Voir les résultats"}
+                                {resumingId === d.id ? t("profilePage.loadingShort") : t("profilePage.seeResults")}
                               </Button>
                             )}
                             {d.status === "in_progress" && (
@@ -766,7 +771,7 @@ export default function ProfilPage() {
                                 ) : (
                                   <RotateCcw className="h-3 w-3" />
                                 )}
-                                {resumingId === d.id ? "Chargement…" : "Reprendre"}
+                                {resumingId === d.id ? t("profilePage.loadingShort") : t("profilePage.resume")}
                               </Button>
                             )}
                           </div>
@@ -780,13 +785,12 @@ export default function ProfilPage() {
 
             {/* Mes données : Art. 20 RGPD (portabilité) */}
             <section className="space-y-3">
-              <h2 className="text-base font-semibold">Mes données</h2>
+              <h2 className="text-base font-semibold">{t("profilePage.dataTitle")}</h2>
               <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-3">
                 <div>
-                  <p className="text-sm font-medium text-foreground">Télécharger mes données</p>
+                  <p className="text-sm font-medium text-foreground">{t("profilePage.downloadTitle")}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Exportez l'ensemble de vos données personnelles (compte + historique des diagnostics) au format JSON,
-                    conformément à l'article 20 du RGPD.
+                    {t("profilePage.exportDesc")}
                   </p>
                 </div>
                 <Button
@@ -797,10 +801,10 @@ export default function ProfilPage() {
                   disabled={downloadingData}
                 >
                   <Download className="h-3.5 w-3.5" />
-                  {downloadingData ? "Préparation…" : "Télécharger (JSON)"}
+                  {downloadingData ? t("profilePage.preparingDownload") : t("profilePage.downloadJson")}
                 </Button>
                 <p className="text-[11px] text-muted-foreground">
-                  Pour toute autre demande relative à vos droits RGPD :{" "}
+                  {t("profilePage.rgpdContact")}{" "}
                   <a href="mailto:pitstopbelgique@gmail.com" className="text-primary hover:underline">
                     pitstopbelgique@gmail.com
                   </a>
@@ -811,12 +815,12 @@ export default function ProfilPage() {
             {/* Suppression de compte */}
             <section className="pt-2">
               <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 sm:p-5">
-                <h3 className="text-sm font-semibold text-foreground">Supprimer mon compte</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t("profilePage.deleteTitle")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Cette action est définitive : vos données de profil et votre historique seront supprimés.
+                  {t("profilePage.deleteWarning")}
                 </p>
                 <p className="mt-2 text-xs font-medium text-amber-300/90">
-                  Les crédits restants ne peuvent pas être remboursés.
+                  {t("profilePage.deleteCreditsWarning")}
                 </p>
                 {deleteError && (
                   <p className="mt-2 text-xs text-destructive">{deleteError}</p>
@@ -829,7 +833,7 @@ export default function ProfilPage() {
                   disabled={deletingAccount}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  {deletingAccount ? "Suppression..." : "Supprimer mon compte"}
+                  {deletingAccount ? t("profilePage.deleting") : t("profilePage.deleteButton")}
                 </Button>
               </div>
             </section>
@@ -847,9 +851,9 @@ export default function ProfilPage() {
           <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Achat de crédits</p>
+                <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>{t("profilePage.stripeModalTitle")}</p>
                 <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-                  {selectedPkg.label} : {selectedPkg.priceLabel}
+                  {creditPackageLabel(t, selectedPkg.id)} : {selectedPkg.priceLabel}
                 </p>
               </div>
               <button
@@ -857,7 +861,7 @@ export default function ProfilPage() {
                 onClick={() => { setClientSecret(null); setSelectedPkg(null) }}
                 className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
                 style={{ color: "#1a2d5a" }}
-                aria-label="Fermer"
+                aria-label={t("creditsPage.closeAria")}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 6 6 18" /><path d="m6 6 12 12" />
@@ -867,10 +871,10 @@ export default function ProfilPage() {
             <StripePaymentForm
               clientSecret={clientSecret}
               returnUrl={returnUrl}
-              buttonLabel={`Payer ${selectedPkg.priceLabel}`}
+              buttonLabel={t("creditsPage.payButton", { amount: selectedPkg.priceLabel })}
             />
             <p className="mt-3 text-xs font-medium" style={{ color: "#7a2e2e" }}>
-              Les crédits achetés et non utilisés ne peuvent pas être remboursés.
+              {t("creditsPage.nonRefundableNote")}
             </p>
           </div>
         </div>

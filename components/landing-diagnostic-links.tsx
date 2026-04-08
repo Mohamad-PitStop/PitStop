@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils"
 import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 import { AUTH_SESSION_CHANGED_EVENT } from "@/lib/auth-client-events"
-import { ArrowRight, Wrench, Car } from "lucide-react"
+import { ArrowRight, Wrench } from "lucide-react"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 function useDiagnosticEntryHrefFromSession() {
   const pathname = usePathname()
@@ -31,19 +32,21 @@ function useDiagnosticEntryHrefFromSession() {
 
 /** Liens accueil vers le diagnostic : cible /merci ou /credits si solde 0 (phase test). */
 export function LandingDiagnosticTabMobile() {
+  const { t } = useTranslation()
   const href = useDiagnosticEntryHrefFromSession()
   return (
     <Link
       href={href}
       prefetch={false}
-      className="inline-flex min-h-[2.25rem] min-w-[6.5rem] items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:text-foreground/90"
+      className="inline-flex min-h-[2.25rem] w-full min-w-0 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:text-foreground/90"
     >
-      Diagnostic
+      {t("navbar.diagnostic")}
     </Link>
   )
 }
 
 export function LandingDiagnosticHeroButton() {
+  const { t } = useTranslation()
   const href = useDiagnosticEntryHrefFromSession()
   return (
     <Button
@@ -53,7 +56,7 @@ export function LandingDiagnosticHeroButton() {
     >
       <Link href={href} prefetch={false} className="inline-flex items-center justify-center">
         <Wrench className="h-5 w-5 shrink-0" />
-        <span className="text-center">Diagnostic & réparation</span>
+        <span className="text-center">{t("home.ctaDiagnosticRepair")}</span>
         <ArrowRight className="h-4 w-4 shrink-0 opacity-80" />
       </Link>
     </Button>
@@ -82,11 +85,12 @@ export function LandingVenteLink({
   className?: string
   children: ReactNode
 }) {
+  const { t } = useTranslation()
   return (
     <Link
       href="/vente"
       className={cn(className)}
-      title={!VENTE_TAB_ENABLED ? "Fonctionnalité en cours de mise en production" : undefined}
+      title={!VENTE_TAB_ENABLED ? t("navbar.venteSoonTitle") : undefined}
     >
       {children}
     </Link>

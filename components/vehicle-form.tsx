@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useTranslation } from "@/lib/i18n/locale-context"
 import { flushSync } from "react-dom"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -14,15 +15,13 @@ import {
   getAvailableTransmissionTypesForSelection,
 } from "@/lib/vehicle-compatibility-catalog"
 import { useCarsApi } from "@/hooks/use-cars-api"
-import { isExceptionBrand, MESSAGE_MARQUE_EXCEPTION } from "@/lib/exception-brands"
+import { isExceptionBrand } from "@/lib/exception-brands"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { buildLoginUrl } from "@/lib/login-redirect"
-const MANUAL_PLACEHOLDER = "Saisir manuellement"
-const MODEL_MANUAL_PLACEHOLDER = "Ex : Continental GT, Macan, Stelvio..."
 
 function sortYearsDesc(years: string[]): string[] {
   return [...years].sort((a, b) => Number(b) - Number(a))
@@ -30,6 +29,7 @@ function sortYearsDesc(years: string[]): string[] {
 
 export function VehicleForm() {
   const router = useRouter()
+  const { t, locale } = useTranslation()
   const { makes: apiMakes, models: apiModels, loadingMakes, loadingModels, fetchModels } = useCarsApi()
 
   const [formData, setFormData] = useState({
@@ -91,7 +91,7 @@ export function VehicleForm() {
       recognitionRef.current = null
     }
     const recognition = new SpeechRecognition()
-    recognition.lang = "fr-FR"
+    recognition.lang = locale === "nl" ? "nl-BE" : locale === "en" ? "en-GB" : "fr-BE"
     recognition.continuous = true
     recognition.interimResults = true
     recognition.onresult = (event: any) => {
@@ -108,11 +108,11 @@ export function VehicleForm() {
     }
     recognition.onerror = (event: any) => {
       if (event.error === "not-allowed") {
-        setVoiceError("Accès au microphone refusé. Veuillez autoriser l'accès dans les paramètres du navigateur.")
+        setVoiceError(t("vehicleForm.voiceMicDenied"))
       } else if (event.error === "no-speech") {
-        setVoiceError("Aucune parole détectée. Réessayez.")
+        setVoiceError(t("vehicleForm.voiceNoSpeech"))
       } else {
-        setVoiceError(`Erreur : ${event.error}`)
+        setVoiceError(t("vehicleForm.voiceErrorPrefix", { error: String(event.error) }))
       }
       setIsListening(false)
     }
@@ -132,7 +132,7 @@ export function VehicleForm() {
     setIsListening(false)
 
     if (!SpeechRecognition) {
-      setVoiceError("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.")
+      setVoiceError(t("vehicleForm.voiceBrowserUnsupported"))
       return
     }
 
@@ -145,9 +145,9 @@ export function VehicleForm() {
       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
         setVoiceError("BLOCKED")
       } else if (name === "NotFoundError") {
-        setVoiceError("Aucun microphone détecté sur cet appareil.")
+        setVoiceError(t("vehicleForm.voiceNoMic"))
       } else {
-        setVoiceError("Impossible d'accéder au microphone.")
+        setVoiceError(t("vehicleForm.voiceMicGeneric"))
       }
       return
     }
@@ -465,7 +465,7 @@ export function VehicleForm() {
     if (manualModelEntry) {
       const v = modelDraft.trim()
       if (!v) {
-        setAuthError("Veuillez indiquer le modèle de votre véhicule ou revenir à la liste.")
+        setAuthError(t("vehicleForm.errModelOrList"))
         return
       }
       if (v !== (formData.modele || "").trim()) {
@@ -478,46 +478,46 @@ export function VehicleForm() {
 
     // ── Validation de tous les champs ───────────────────────────────────────
     if (!formData.marque.trim()) {
-      setAuthError("Veuillez sélectionner une marque.")
+      setAuthError(t("vehicleForm.errMarque"))
       return
     }
     if (!formData.modele.trim()) {
-      setAuthError("Veuillez sélectionner ou saisir le modèle de votre véhicule.")
+      setAuthError(t("vehicleForm.errModele"))
       return
     }
     if (!formData.annee.trim()) {
-      setAuthError("Veuillez indiquer l'année de votre véhicule.")
+      setAuthError(t("vehicleForm.errAnnee"))
       return
     }
     const anneeRaw = parseInt(formData.annee, 10)
     const currentYear = new Date().getFullYear()
     if (isNaN(anneeRaw) || anneeRaw < 1900 || anneeRaw > currentYear) {
-      setAuthError(`L'année doit être comprise entre 1900 et ${currentYear}.`)
+      setAuthError(t("vehicleForm.yearInvalid", { max: currentYear }))
       return
     }
     if (!fuelLocked && !formData.carburant.trim()) {
-      setAuthError("Veuillez sélectionner le type de carburant.")
+      setAuthError(t("vehicleForm.errFuel"))
       return
     }
     if (!transLocked && !formData.transmission.trim()) {
-      setAuthError("Veuillez sélectionner la transmission.")
+      setAuthError(t("vehicleForm.errTrans"))
       return
     }
     const kmRaw = parseInt(formData.kilometrage, 10)
     if (!formData.kilometrage.trim() || isNaN(kmRaw) || kmRaw < 0) {
-      setAuthError("Veuillez indiquer un kilométrage valide (ex : 85000).")
+      setAuthError(t("vehicleForm.errKm"))
       return
     }
     if (kmRaw > 2_000_000) {
-      setAuthError("Le kilométrage ne peut pas dépasser 2 000 000 km.")
+      setAuthError(t("vehicleForm.errKmMax"))
       return
     }
     if (!formData.probleme.trim()) {
-      setAuthError("Veuillez décrire le problème rencontré.")
+      setAuthError(t("vehicleForm.errProbleme"))
       return
     }
     if (formData.probleme.trim().length < 10) {
-      setAuthError("La description du problème doit contenir au moins 10 caractères.")
+      setAuthError(t("vehicleForm.errProblemeShort"))
       return
     }
 
@@ -529,14 +529,14 @@ export function VehicleForm() {
     const nombrePortes = trim(formData.nombrePortes)
     const typeCarrosserie = trim(formData.typeCarrosserie)
     if (cylindree.length > MAX_EXTRA || (puissanceVal && puissance.length > MAX_EXTRA) || nombrePortes.length > MAX_EXTRA || typeCarrosserie.length > MAX_EXTRA) {
-      setAuthError("Les informations complémentaires ne doivent pas dépasser 80 caractères par champ.")
+      setAuthError(t("vehicleForm.errExtraMax"))
       return
     }
     if (nombrePortes.length > 0) {
       const onlyNum = /^\d+$/.test(nombrePortes)
       const num = parseInt(nombrePortes, 10)
       if (onlyNum && (Number.isNaN(num) || num < 2 || num > 6)) {
-        setAuthError("Nombre de portes : indiquez un nombre entre 2 et 6 (ex. 3 ou 5).")
+        setAuthError(t("vehicleForm.errPortes"))
         return
       }
     }
@@ -610,6 +610,17 @@ export function VehicleForm() {
     const paymentIntentId = params.get("payment_intent")
     const creditsAdded = params.get("credits_added")
 
+    function refreshCreditsBalance() {
+      fetch("/api/credits/balance")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok) {
+            setAuthUser((prev) => (prev ? { ...prev, diagnosticCredits: data.credits } : null))
+          }
+        })
+        .catch(() => null)
+    }
+
     if (paymentIntentId && params.get("redirect_status") === "succeeded") {
       window.history.replaceState({}, "", "/diagnostic")
       const savedDataStr = sessionStorage.getItem("pendingFormData")
@@ -621,15 +632,10 @@ export function VehicleForm() {
         }
         sessionStorage.removeItem("pendingFormData")
       }
-      fetch("/api/credits/balance")
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.ok) {
-            setAuthUser((prev) => (prev ? { ...prev, diagnosticCredits: data.credits } : null))
-          }
-        })
-        .catch(() => null)
-      return
+      refreshCreditsBalance()
+      const delaysMs = [2500, 6000, 12000, 20000]
+      const timers = delaysMs.map((ms) => setTimeout(refreshCreditsBalance, ms))
+      return () => timers.forEach(clearTimeout)
     }
 
     if (creditsAdded) {
@@ -643,14 +649,10 @@ export function VehicleForm() {
         }
         sessionStorage.removeItem("pendingFormData")
       }
-      fetch("/api/credits/balance")
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.ok) {
-            setAuthUser((prev) => (prev ? { ...prev, diagnosticCredits: data.credits } : null))
-          }
-        })
-        .catch(() => null)
+      refreshCreditsBalance()
+      const delaysMs = [2500, 6000, 12000, 20000]
+      const timers = delaysMs.map((ms) => setTimeout(refreshCreditsBalance, ms))
+      return () => timers.forEach(clearTimeout)
     }
   }, [])
 
@@ -672,9 +674,7 @@ export function VehicleForm() {
       const data = await response.json().catch(() => null)
 
       if (!response.ok) {
-        const msg =
-          data?.error ||
-          "Une erreur est survenue lors de l'analyse. Veuillez réessayer ou réessayer plus tard."
+        const msg = data?.error || t("vehicleForm.analysisError")
         setAuthError(msg)
         return
       }
@@ -686,7 +686,7 @@ export function VehicleForm() {
       router.push("/resultat")
     } catch (error) {
       console.error("Erreur:", error)
-      setAuthError("Une erreur technique est survenue. Veuillez réessayer.")
+      setAuthError(t("vehicleForm.techError"))
     } finally {
       setIsLoading(false)
     }
@@ -724,33 +724,40 @@ export function VehicleForm() {
     setMarqueSearch("")
   }
 
-  const handleInvalid = (e: React.FormEvent<HTMLFormElement>) => {
-    const target = e.target
-    if (target instanceof HTMLSelectElement || target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-      if (target.name === "marque") {
-        target.setCustomValidity("Veuillez sélectionner une marque.")
-      } else if (target.name === "modele") {
-        target.setCustomValidity("Veuillez sélectionner un modèle.")
-      } else if (target.name === "carburant") {
-        target.setCustomValidity("Veuillez sélectionner le carburant.")
-      } else if (target.name === "transmission") {
-        target.setCustomValidity("Veuillez sélectionner la transmission.")
-      } else if (target.name === "annee") {
-        target.setCustomValidity("Veuillez indiquer l'année du véhicule.")
-      } else if (target.name === "kilometrage") {
-        const v = parseInt((target as HTMLInputElement).value, 10)
-        if (!isNaN(v) && v > 2_000_000) {
-          target.setCustomValidity("Le kilométrage ne peut pas dépasser 2 000 000 km.")
+  const handleInvalid = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      const target = e.target
+      if (
+        target instanceof HTMLSelectElement ||
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement
+      ) {
+        if (target.name === "marque") {
+          target.setCustomValidity(t("vehicleForm.validMarque"))
+        } else if (target.name === "modele") {
+          target.setCustomValidity(t("vehicleForm.validModele"))
+        } else if (target.name === "carburant") {
+          target.setCustomValidity(t("vehicleForm.validFuel"))
+        } else if (target.name === "transmission") {
+          target.setCustomValidity(t("vehicleForm.validTrans"))
+        } else if (target.name === "annee") {
+          target.setCustomValidity(t("vehicleForm.validAnnee"))
+        } else if (target.name === "kilometrage") {
+          const v = parseInt((target as HTMLInputElement).value, 10)
+          if (!isNaN(v) && v > 2_000_000) {
+            target.setCustomValidity(t("vehicleForm.validKmMax"))
+          } else {
+            target.setCustomValidity(t("vehicleForm.validKm"))
+          }
+        } else if (target.name === "probleme") {
+          target.setCustomValidity(t("vehicleForm.validProbleme"))
         } else {
-          target.setCustomValidity("Veuillez indiquer le kilométrage du véhicule.")
+          target.setCustomValidity(t("vehicleForm.validRequired"))
         }
-      } else if (target.name === "probleme") {
-        target.setCustomValidity("Veuillez décrire le problème rencontré.")
-      } else {
-        target.setCustomValidity("Ce champ est requis.")
       }
-    }
-  }
+    },
+    [t]
+  )
 
   const clearValidity = (
     e: React.FormEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -855,6 +862,7 @@ export function VehicleForm() {
     return (
       <div className="flex min-h-[240px] w-full max-w-2xl mx-auto items-center justify-center py-20">
         <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+        <span className="sr-only">{t("common.loading")}</span>
       </div>
     )
   }
@@ -865,12 +873,12 @@ export function VehicleForm() {
     <Card className="w-full max-w-2xl mx-auto border-border/50 bg-card shadow-xl pt-3">
       <CardContent className="pt-3">
         <form onSubmit={openAuthDialog} onInvalid={handleInvalid} className="space-y-5">
-          <p className="text-sm font-medium text-foreground text-left">Informations du véhicule</p>
+          <p className="text-sm font-medium text-foreground text-left">{t("vehicleForm.sectionTitle")}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="marque-btn" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Car className="h-4 w-4 text-primary" />
-                Marque
+                {t("vehicleForm.labelMarque")}
               </label>
 
               {/* Input caché pour la validation HTML5 du formulaire */}
@@ -883,7 +891,7 @@ export function VehicleForm() {
                 aria-hidden="true"
                 value={formData.marque}
                 className="sr-only"
-                onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("Veuillez sélectionner une marque.")}
+                onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity(t("vehicleForm.validMarque"))}
                 onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
               />
 
@@ -896,7 +904,7 @@ export function VehicleForm() {
                   className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 flex items-center justify-between gap-2"
                 >
                   <span className={formData.marque ? "text-foreground" : "text-muted-foreground"}>
-                    {formData.marque || (loadingMakes ? "Chargement…" : "Sélectionnez une marque")}
+                    {formData.marque || (loadingMakes ? t("common.loading") : t("vehicleForm.selectMarque"))}
                   </span>
                   {formData.marque ? (
                     <X
@@ -931,7 +939,7 @@ export function VehicleForm() {
                               setMarqueSearch("")
                             }
                           }}
-                          placeholder="Rechercher une marque…"
+                          placeholder={t("vehicleForm.searchMarquePlaceholder")}
                           className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
                         />
                       </div>
@@ -944,7 +952,7 @@ export function VehicleForm() {
                           b.toLowerCase().includes(marqueSearch.toLowerCase())
                         )
                         return filtered.length === 0 ? (
-                          <p className="px-3 py-2 text-sm text-muted-foreground">Aucun résultat</p>
+                          <p className="px-3 py-2 text-sm text-muted-foreground">{t("vehicleForm.noResults")}</p>
                         ) : (
                           filtered.map((brand) => (
                             <button
@@ -973,7 +981,7 @@ export function VehicleForm() {
               <div className="space-y-2">
                 <label htmlFor="modele" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />
-                  Modèle
+                  {t("vehicleForm.labelModele")}
                   {loadingModels && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                 </label>
                 {manualModelEntry ? (
@@ -994,7 +1002,7 @@ export function VehicleForm() {
                         }
                       }}
                       required
-                      placeholder={MODEL_MANUAL_PLACEHOLDER}
+                      placeholder={t("vehicleForm.modelManualPlaceholder")}
                       disabled={!isMarqueDone}
                       className="h-11 bg-background border-input focus:border-primary disabled:opacity-50"
                     />
@@ -1003,7 +1011,7 @@ export function VehicleForm() {
                       onClick={backToModelList}
                       className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground/80 text-left cursor-pointer bg-transparent border-0 p-0 font-inherit"
                     >
-                      Retour à la liste
+                      {t("vehicleForm.backToList")}
                     </button>
                   </div>
                 ) : (
@@ -1020,10 +1028,10 @@ export function VehicleForm() {
                     >
                       <option value="" className="bg-[#0a1628]">
                         {!isMarqueDone
-                          ? "Choisissez d'abord une marque"
+                          ? t("vehicleForm.chooseMarqueFirst")
                           : loadingModels
-                            ? "Chargement…"
-                            : "Sélectionnez un modèle"}
+                            ? t("common.loading")
+                            : t("vehicleForm.selectModele")}
                       </option>
                       {availableModels.map((model) => (
                         <option key={model} value={model} className="bg-[#0a1628]">
@@ -1040,7 +1048,7 @@ export function VehicleForm() {
                         }}
                         className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground/80 text-left cursor-pointer bg-transparent border-0 p-0 font-inherit"
                       >
-                        Mon modèle n&apos;apparaît pas ?
+                        {t("vehicleForm.modelNotListed")}
                       </button>
                     )}
                   </div>
@@ -1051,8 +1059,8 @@ export function VehicleForm() {
 
           {isException && (
             <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-foreground animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <p className="text-sm font-medium text-amber-200/90 mb-1">Concession spécialisée requise</p>
-              <p className="text-sm text-muted-foreground">{MESSAGE_MARQUE_EXCEPTION}</p>
+              <p className="text-sm font-medium text-amber-200/90 mb-1">{t("exceptionBrand.title")}</p>
+              <p className="text-sm text-muted-foreground">{t("exceptionBrand.message")}</p>
             </div>
           )}
 
@@ -1062,14 +1070,14 @@ export function VehicleForm() {
                 <div className="space-y-2">
                   <label htmlFor="variante" className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Settings2 className="h-4 w-4 text-primary" />
-                    Variante / Finition
-                    <span className="text-xs text-muted-foreground">(optionnel)</span>
+                    {t("vehicleForm.labelVariante")}
+                    <span className="text-xs text-muted-foreground">{t("vehicleForm.optional")}</span>
                     {loadingVariant && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   </label>
                   <Input
                     id="variante"
                     name="variante"
-                    placeholder={MANUAL_PLACEHOLDER}
+                    placeholder={t("vehicleForm.manualPlaceholder")}
                     value={formData.variante}
                     onChange={handleChange}
                     onInput={clearValidity}
@@ -1101,7 +1109,7 @@ export function VehicleForm() {
                 <div className="space-y-2">
                   <label htmlFor="annee" className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-primary" />
-                    Année
+                    {t("vehicleForm.labelAnnee")}
                     {(loadingVariant || loadingYear) && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   </label>
                   {showYearFallbackInput ? (
@@ -1109,7 +1117,7 @@ export function VehicleForm() {
                       id="annee"
                       name="annee"
                       type="number"
-                      placeholder={MANUAL_PLACEHOLDER}
+                      placeholder={t("vehicleForm.manualPlaceholder")}
                       min={1980}
                       max={new Date().getFullYear()}
                       value={formData.annee}
@@ -1132,10 +1140,10 @@ export function VehicleForm() {
                     >
                       <option value="" className="bg-[#0a1628]">
                         {loadingYear || loadingVariant
-                          ? "Chargement…"
+                          ? t("common.loading")
                           : yearOptionsForSelect.length > 0
-                            ? "Sélectionnez l'année"
-                            : "Aucune année disponible"}
+                            ? t("vehicleForm.selectYear")
+                            : t("vehicleForm.noYearAvailable")}
                       </option>
                       {yearOptionsForSelect.map((year) => (
                         <option key={year} value={year} className="bg-[#0a1628]">
@@ -1148,13 +1156,13 @@ export function VehicleForm() {
                 <div className="space-y-2">
                   <label htmlFor="kilometrage" className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Gauge className="h-4 w-4 text-primary" />
-                    Kilométrage
+                    {t("vehicleForm.labelKm")}
                   </label>
                   <Input
                     id="kilometrage"
                     name="kilometrage"
                     type="number"
-                    placeholder="Ex: 85000"
+                    placeholder={t("vehicleForm.kmPh")}
                     min="0"
                     max="2000000"
                     value={formData.kilometrage}
@@ -1171,7 +1179,7 @@ export function VehicleForm() {
                 <div className="space-y-2">
                   <label htmlFor="carburant" className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Fuel className="h-4 w-4 text-primary" />
-                    Carburant / Énergie
+                    {t("vehicleForm.labelFuel")}
                     {loadingFuel && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   </label>
                   {fuelLocked ? (
@@ -1179,7 +1187,7 @@ export function VehicleForm() {
                       readOnly
                       name="carburant"
                       id="carburant"
-                      value={formatCarburantOptionLabel(formData.carburant)}
+                      value={formatCarburantOptionLabel(formData.carburant, t)}
                       className="h-11 bg-muted/50 border-input text-foreground"
                     />
                   ) : fallbackFuel ? (
@@ -1190,7 +1198,7 @@ export function VehicleForm() {
                       onChange={handleChange}
                       onInput={clearValidity}
                       required
-                      placeholder={MANUAL_PLACEHOLDER}
+                      placeholder={t("vehicleForm.manualPlaceholder")}
                       disabled={!isAnneeDone || loadingFuel}
                       className="h-11 bg-background border-input focus:border-primary disabled:opacity-50"
                     />
@@ -1206,11 +1214,15 @@ export function VehicleForm() {
                       className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed [&>option]:bg-[#0a1628] [&>option]:text-foreground"
                     >
                       <option value="" className="bg-[#0a1628]">
-                        {isAnneeDone ? (loadingFuel ? "Chargement…" : "Sélectionnez le carburant") : "Choisissez d'abord l'année"}
+                        {isAnneeDone
+                          ? loadingFuel
+                            ? t("common.loading")
+                            : t("vehicleForm.selectFuel")
+                          : t("vehicleForm.chooseYearFirst")}
                       </option>
                       {fuelList.map((fuel) => (
                         <option key={fuel} value={fuel} className="bg-[#0a1628]">
-                          {formatCarburantOptionLabel(fuel)}
+                          {formatCarburantOptionLabel(fuel, t)}
                         </option>
                       ))}
                     </select>
@@ -1220,7 +1232,7 @@ export function VehicleForm() {
                 <div className="space-y-2">
                   <label htmlFor="transmission" className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Settings2 className="h-4 w-4 text-primary" />
-                    Transmission
+                    {t("vehicleForm.labelTrans")}
                     {loadingTrans && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   </label>
                   {transLocked ? (
@@ -1239,7 +1251,7 @@ export function VehicleForm() {
                       onChange={handleChange}
                       onInput={clearValidity}
                       required
-                      placeholder={MANUAL_PLACEHOLDER}
+                      placeholder={t("vehicleForm.manualPlaceholder")}
                       disabled={!isCarburantDone || loadingTrans}
                       className="h-11 bg-background border-input focus:border-primary disabled:opacity-50"
                     />
@@ -1255,7 +1267,11 @@ export function VehicleForm() {
                       className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed [&>option]:bg-[#0a1628] [&>option]:text-foreground"
                     >
                       <option value="" className="bg-[#0a1628]">
-                        {isCarburantDone ? (loadingTrans ? "Chargement…" : "Sélectionnez la transmission") : "Choisissez d'abord le carburant"}
+                        {isCarburantDone
+                          ? loadingTrans
+                            ? t("common.loading")
+                            : t("vehicleForm.selectTrans")
+                          : t("vehicleForm.chooseFuelFirst")}
                       </option>
                       {transList.map((trans) => (
                         <option key={trans} value={trans} className="bg-[#0a1628]">
@@ -1273,7 +1289,7 @@ export function VehicleForm() {
                   onClick={() => setExtraOpen((o) => !o)}
                   className="w-full flex items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/30 transition-colors"
                 >
-                  <span>Informations complémentaires</span>
+                  <span>{t("vehicleForm.extraTitle")}</span>
                   {extraOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </button>
                 {extraOpen && (
@@ -1282,32 +1298,30 @@ export function VehicleForm() {
                       <div className="md:col-span-2 space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-3 animate-in fade-in slide-in-from-top-1 duration-200">
                         <label htmlFor="typeBoiteAuto" className="text-xs font-medium text-foreground flex items-center gap-1.5">
                           <Settings2 className="h-3.5 w-3.5 text-primary" />
-                          Type de boîte automatique
-                          <span className="text-muted-foreground">(optionnel)</span>
+                          {t("vehicleForm.typeBoiteLabel")}
+                          <span className="text-muted-foreground">{t("vehicleForm.optional")}</span>
                         </label>
                         <Input
                           id="typeBoiteAuto"
                           name="typeBoiteAuto"
-                          placeholder="Ex: DSG, S tronic, PDK, CVT… (si vous le connaissez)"
+                          placeholder={t("vehicleForm.typeBoitePh")}
                           value={formData.typeBoiteAuto}
                           onChange={handleChange}
                           maxLength={100}
                           disabled={!isKilometrageDone}
                           className="h-10 bg-background text-sm"
                         />
-                        <p className="text-[11px] text-muted-foreground">
-                          Si vous ne savez pas, laissez vide : PitStop vous guidera.
-                        </p>
+                        <p className="text-[11px] text-muted-foreground">{t("vehicleForm.typeBoiteHint")}</p>
                       </div>
                     )}
                     <div className="space-y-2">
                       <label htmlFor="cylindree" className="text-xs font-medium text-muted-foreground">
-                        Cylindrée
+                        {t("vehicleForm.cylindree")}
                       </label>
                       <Input
                         id="cylindree"
                         name="cylindree"
-                        placeholder="Ex: 1.6, 2.0 TDI"
+                        placeholder={t("vehicleForm.cylindreePh")}
                         value={formData.cylindree}
                         onChange={handleChange}
                         maxLength={80}
@@ -1317,7 +1331,7 @@ export function VehicleForm() {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="puissance" className="text-xs font-medium text-muted-foreground">
-                        Puissance
+                        {t("vehicleForm.puissance")}
                       </label>
                       <div className="flex gap-2 items-center">
                         <Input
@@ -1325,7 +1339,7 @@ export function VehicleForm() {
                           name="puissance"
                           type="text"
                           inputMode="numeric"
-                          placeholder="Ex: 110"
+                          placeholder={t("vehicleForm.puissancePh")}
                           value={formData.puissance}
                           onChange={(e) => {
                             const v = e.target.value.replace(/\D/g, "")
@@ -1357,14 +1371,14 @@ export function VehicleForm() {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="nombrePortes" className="text-xs font-medium text-muted-foreground">
-                        Nombre de portes
+                        {t("vehicleForm.portes")}
                       </label>
                       <Input
                         id="nombrePortes"
                         name="nombrePortes"
                         type="text"
                         inputMode="numeric"
-                        placeholder="Ex: 3, 5"
+                        placeholder={t("vehicleForm.portesPh")}
                         value={formData.nombrePortes}
                         onChange={(e) => {
                           const v = e.target.value.replace(/\D/g, "")
@@ -1377,12 +1391,12 @@ export function VehicleForm() {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="typeCarrosserie" className="text-xs font-medium text-muted-foreground">
-                        Type de carrosserie
+                        {t("vehicleForm.carrosserie")}
                       </label>
                       <Input
                         id="typeCarrosserie"
                         name="typeCarrosserie"
-                        placeholder="Ex: Berline, SUV, Break"
+                        placeholder={t("vehicleForm.carrosseriePh")}
                         value={formData.typeCarrosserie}
                         onChange={handleChange}
                         maxLength={80}
@@ -1396,14 +1410,16 @@ export function VehicleForm() {
 
               <div className="flex items-center gap-3 pt-1">
                 <div className="h-px flex-1 bg-border/60" />
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Décrivez votre problème</span>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {t("vehicleForm.dividerProblem")}
+                </span>
                 <div className="h-px flex-1 bg-border/60" />
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="probleme" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Search className="h-4 w-4 text-primary" />
-                  Description du problème
+                  {t("vehicleForm.labelProbleme")}
                 </label>
 
                 {isVoiceActive ? (
@@ -1413,14 +1429,9 @@ export function VehicleForm() {
                       <div className="flex-1 min-w-0">
                         {voiceError === "BLOCKED" ? (
                           <div className="space-y-1.5">
-                            <p className="text-xs font-medium text-destructive">
-                              Microphone bloqué par le navigateur.
-                            </p>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                              Pour l'autoriser :<br />
-                              • Cliquez sur l'icône 🔒 ou 🦁 dans la barre d'adresse<br />
-                              • → <strong>Autorisations du site</strong> → <strong>Microphone</strong> → <strong>Autoriser</strong><br />
-                              • Rechargez la page puis réessayez
+                            <p className="text-xs font-medium text-destructive">{t("vehicleForm.voiceBlockedTitle")}</p>
+                            <p className="whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+                              {t("vehicleForm.voiceBlockedHelp")}
                             </p>
                           </div>
                         ) : voiceError ? (
@@ -1431,11 +1442,11 @@ export function VehicleForm() {
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-70" />
                               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
                             </span>
-                            Écoute en cours…
+                            {t("vehicleForm.listening")}
                           </span>
                         ) : (
                           <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                            <Mic className="h-3 w-3" /> En attente…
+                            <Mic className="h-3 w-3" /> {t("vehicleForm.waiting")}
                           </span>
                         )}
                       </div>
@@ -1443,7 +1454,7 @@ export function VehicleForm() {
                         type="button"
                         onClick={cancelVoiceRecording}
                         className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="Annuler"
+                        aria-label={t("vehicleForm.cancelAria")}
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -1454,7 +1465,7 @@ export function VehicleForm() {
                       <p className="text-sm text-foreground min-h-[2.5rem] leading-relaxed">
                         {voiceTranscript
                           ? voiceTranscript
-                          : <span className="text-muted-foreground italic">Parlez maintenant…</span>}
+                          : <span className="text-muted-foreground italic">{t("vehicleForm.speakNow")}</span>}
                       </p>
                     )}
 
@@ -1466,7 +1477,7 @@ export function VehicleForm() {
                         className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-sm hover:bg-accent transition-colors"
                       >
                         <RefreshCw className="h-3 w-3" />
-                        Réessayer
+                        {t("vehicleForm.retry")}
                       </button>
                       <button
                         type="button"
@@ -1475,7 +1486,7 @@ export function VehicleForm() {
                         className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Send className="h-3 w-3" />
-                        Envoyer
+                        {t("vehicleForm.send")}
                       </button>
                     </div>
                   </div>
@@ -1484,9 +1495,9 @@ export function VehicleForm() {
                     <textarea
                       id="probleme"
                       name="probleme"
-                      lang="fr"
+                      lang={locale === "nl" ? "nl" : locale === "en" ? "en" : "fr"}
                       spellCheck={true}
-                      placeholder="Décrivez le problème que vous rencontrez avec votre véhicule..."
+                      placeholder={t("vehicleForm.problemePlaceholder")}
                       value={formData.probleme}
                       onChange={handleChange}
                       onInput={clearValidity}
@@ -1499,7 +1510,7 @@ export function VehicleForm() {
                       type="button"
                       onClick={startVoiceRecording}
                       disabled={!isKilometrageDone}
-                      title="Décrire oralement"
+                      title={t("vehicleForm.describeOralTitle")}
                       className="absolute bottom-2.5 right-2.5 h-7 w-7 rounded-full border border-input bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Mic className="h-3.5 w-3.5" />
@@ -1524,12 +1535,12 @@ export function VehicleForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Analyse en cours...
+                    {t("vehicleForm.analyzing")}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <Search className="h-5 w-5" />
-                    Analyser mon véhicule
+                    {t("vehicleForm.analyzeCta")}
                   </span>
                 )}
               </Button>

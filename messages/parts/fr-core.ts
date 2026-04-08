@@ -1,0 +1,64 @@
+/** Textes FR : langue, commun, navbar, pied de page. */
+export const frCore = {
+  lang: {
+    aria: {
+      choose: "Choisir la langue du site",
+    },
+  },
+  common: {
+    yes: "Oui",
+    no: "Non",
+    loading: "Chargement…",
+    backHome: "Retour à l'accueil",
+    errorUnknown: "Erreur inconnue.",
+    email: "E-mail",
+    password: "Mot de passe",
+  },
+  navbar: {
+    mainNav: "Navigation principale",
+    diagnostic: "Diagnostic",
+    vente: "Vente",
+    venteSoonTitle: "Fonctionnalité en cours de mise en production",
+    soon: "Bientôt",
+    phaseTest: "Phase de test",
+    myProfile: "Mon profil",
+    hello: "Bonjour, {{name}}",
+    logout: "Déconnexion",
+    login: "Connexion",
+    credit: "crédit",
+    credits: "crédits",
+    buy: "Acheter",
+  },
+  cookies: {
+    banner:
+      "Nous utilisons des mesures d'audience pour améliorer PitStop. Vous pouvez accepter ou refuser ces cookies non essentiels.",
+    reject: "Refuser",
+    accept: "Accepter",
+  },
+  cookiesPrefs: {
+    manageTrigger: "Gérer mes préférences",
+    dialogTitle: "Préférences cookies et CGV",
+    dialogDesc:
+      "Gérez les cookies analytiques et votre accord aux conditions générales de vente.",
+    statusLabel: "Statut actuel :",
+    cgvCurrentLabel: "Accord CGV actuel :",
+    cgvConsultBefore: "Consulter les",
+    cgvConsultLink: "conditions générales de vente",
+    cgvConsultAfter: ".",
+    stateAccepted: "Accepté",
+    stateRejected: "Refusé",
+    stateUndefined: "Non défini",
+    withdrawCgv: "Je retire mon accord",
+    acceptCgv: "J'accepte les CGV",
+  },
+  footer: {
+    rights: "© {{year}} PitStop. Tous droits réservés.",
+    legal: "Mentions légales",
+    privacy: "Confidentialité",
+    cgv: "Conditions générales de vente",
+    aiPolicy: "Politique IA",
+    cgpGarages: "CGP garages",
+    sla: "SLA",
+    contact: "Contact",
+  },
+} as const

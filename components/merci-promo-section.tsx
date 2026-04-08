@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Tag, Copy, CheckCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { buildLoginUrl } from "@/lib/login-redirect"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 type MerciPromoState =
   | { phase: "loading" }
@@ -13,6 +14,7 @@ type MerciPromoState =
   | { phase: "error" }
 
 export function MerciPromoSection() {
+  const { t } = useTranslation()
   const [state, setState] = useState<MerciPromoState>({ phase: "loading" })
   const [copied, setCopied] = useState(false)
 
@@ -68,17 +70,15 @@ export function MerciPromoSection() {
       <div className="rounded-xl border border-primary/25 bg-primary/5 px-6 py-5 text-left space-y-3">
         <div className="flex items-center gap-2 text-primary font-semibold text-sm">
           <Tag className="h-4 w-4 shrink-0" />
-          Code promo de remerciement
+          {t("misc.merciPromoTitle")}
         </div>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Connectez-vous avec le compte utilisé pendant la phase de test pour générer et enregistrer votre code personnel (-30 % sur votre premier achat de crédits lorsqu&apos;il sera disponible).
-        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{t("misc.merciPromoSignedOut")}</p>
         <div className="flex flex-wrap gap-2 pt-1">
           <Button asChild size="sm">
-            <Link href={buildLoginUrl("/merci")}>Se connecter</Link>
+            <Link href={buildLoginUrl("/merci")}>{t("auth.signIn")}</Link>
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link href="/inscription">Créer un compte</Link>
+            <Link href="/inscription">{t("auth.createAccount")}</Link>
           </Button>
         </div>
       </div>
@@ -95,12 +95,10 @@ export function MerciPromoSection() {
     <div className="rounded-xl border border-green-500/25 bg-green-500/5 px-6 py-5 text-left space-y-3">
       <div className="flex items-center gap-2 text-green-400 font-semibold text-sm">
         <Tag className="h-4 w-4 shrink-0" />
-        Votre code promo personnel
+        {t("misc.merciPromoYourCode")}
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed">
-        {exhausted
-          ? "Vous avez déjà utilisé votre remise de bienvenue sur un achat de crédits. Merci encore pour votre confiance."
-          : "Conservez ce code : il vous donnera 30 % de réduction sur votre premier achat de crédits lorsque la boutique sera ouverte. Une seule utilisation, réservée à votre compte."}
+        {exhausted ? t("misc.merciPromoExhausted") : t("misc.merciPromoActive")}
       </p>
       {!exhausted && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -111,12 +109,12 @@ export function MerciPromoSection() {
             {copied ? (
               <>
                 <CheckCircle className="h-4 w-4 text-green-400" />
-                Copié
+                {t("misc.copied")}
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" />
-                Copier
+                {t("misc.copy")}
               </>
             )}
           </Button>

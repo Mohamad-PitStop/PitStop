@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { dispatchAuthSessionChanged } from "@/lib/auth-client-events"
+import { useTranslation } from "@/lib/i18n/locale-context"
+import { SuspenseLoadingScreen } from "@/components/suspense-loading-screen"
 
 function safeInternalPath(p: string | null): string | null {
   if (!p || !p.startsWith("/")) return null
@@ -25,6 +27,7 @@ function sanitizePostLoginTarget(p: string | null): string | null {
 }
 
 function ConnexionForm() {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"))
   const redirectParam = safeInternalPath(searchParams.get("redirect"))
@@ -78,14 +81,14 @@ function ConnexionForm() {
         body: JSON.stringify({ email, password }),
       })
       const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error || "Impossible de se connecter.")
+      if (!res.ok) throw new Error(data?.error || t("auth.loginFail"))
       dispatchAuthSessionChanged()
       const dest = returnTo ?? "/"
       // Navigation document complète : le cookie HttpOnly est bien appliqué avant la prochaine requête
       // (évite de rester sur /connexion ou que le proxy ne voie pas encore la session sur /diagnostic).
       window.location.assign(dest)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue.")
+      setError(err instanceof Error ? err.message : t("common.errorUnknown"))
     } finally {
       setIsSubmitting(false)
     }
@@ -97,7 +100,7 @@ function ConnexionForm() {
         <Navbar />
         <main className="py-14">
           <div className="container mx-auto max-w-xl px-4 flex justify-center py-16">
-            <span className="text-sm text-muted-foreground">Vérification de la session…</span>
+            <span className="text-sm text-muted-foreground">{t("auth.sessionCheck")}</span>
           </div>
         </main>
       </div>
@@ -111,36 +114,36 @@ function ConnexionForm() {
         <div className="container mx-auto max-w-xl px-4">
           <div className="mb-4">
             <Link href="/">
-              <Button variant="outline" size="sm">Retour à l&apos;accueil</Button>
+              <Button variant="outline" size="sm">
+                {t("common.backHome")}
+              </Button>
             </Link>
           </div>
           {fromDiagnosticFlow ? (
             <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground leading-relaxed">
-              Connectez-vous pour lancer un diagnostic ou consulter une analyse déjà enregistrée. Pas encore de compte ? Utilisez le lien ci-dessous.
+              {t("auth.diagnosticBanner")}
             </div>
           ) : null}
           <Card className="border-border/60 bg-card">
             <CardHeader>
-              <CardTitle>Connexion</CardTitle>
-              <CardDescription>
-                Connectez-vous pour accéder au diagnostic, à votre historique et à votre solde de crédits.
-              </CardDescription>
+              <CardTitle>{t("auth.connexionTitle")}</CardTitle>
+              <CardDescription>{t("auth.connexionDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-foreground">
-                    E-mail
+                    {t("common.email")}
                   </label>
                   <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label htmlFor="password" className="text-sm font-medium text-foreground">
-                      Mot de passe
+                      {t("common.password")}
                     </label>
                     <Link href="/mot-de-passe-oublie" className="text-xs text-muted-foreground hover:text-primary hover:underline">
-                      Mot de passe oublié ?
+                      {t("auth.forgotPassword")}
                     </Link>
                   </div>
                   <Input
@@ -154,12 +157,12 @@ function ConnexionForm() {
                 </div>
                 {error && <p className="text-sm text-red-400">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Connexion..." : "Se connecter"}
+                  {isSubmitting ? t("auth.signingIn") : t("auth.signIn")}
                 </Button>
               </form>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                Pas encore de compte ?{" "}
+                {t("auth.noAccount")}{" "}
                 <Link
                   href={
                     returnTo
@@ -168,7 +171,7 @@ function ConnexionForm() {
                   }
                   className="text-primary hover:underline"
                 >
-                  Créer un compte
+                  {t("auth.createAccount")}
                 </Link>
               </p>
             </CardContent>
@@ -181,13 +184,7 @@ function ConnexionForm() {
 
 export default function ConnexionPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <span className="text-sm text-muted-foreground">Chargement…</span>
-        </div>
-      }
-    >
+    <Suspense fallback={<SuspenseLoadingScreen />}>
       <ConnexionForm />
     </Suspense>
   )

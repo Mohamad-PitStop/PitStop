@@ -252,6 +252,54 @@ export async function addCredits(userId: string, amount: number): Promise<void> 
   )
 }
 
+let stripeCreditAppliedTableEnsured = false
+
+async function ensureStripeCreditAppliedTable() {
+  await ensureAccountsTable()
+  if (stripeCreditAppliedTableEnsured) return
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "StripeCreditApplied" (
+      "id" TEXT PRIMARY KEY,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "userId" TEXT NOT NULL,
+      "credits" INTEGER NOT NULL
+    )
+  `)
+  stripeCreditAppliedTableEnsured = true
+}
+
+/**
+ * Crédite le compte une seule fois par clé Stripe (PaymentIntent ou Checkout Session).
+ * Évite les doublons si le webhook est rejoué après un échec partiel ou livré en double.
+ * @returns true si des crédits viennent d’être ajoutés, false si ce paiement était déjà traité.
+ */
+export async function applyStripeCreditPurchaseOnce(
+  idempotencyKey: string,
+  userId: string,
+  credits: number
+): Promise<boolean> {
+  await ensureStripeCreditAppliedTable()
+  return await prisma.$transaction(async (tx) => {
+    const existing = await tx.$queryRawUnsafe<Array<{ id: string }>>(
+      `SELECT "id" FROM "StripeCreditApplied" WHERE "id" = ? LIMIT 1`,
+      idempotencyKey
+    )
+    if (existing.length > 0) return false
+    await tx.$executeRawUnsafe(
+      `UPDATE "UserAccount" SET "diagnosticCredits" = "diagnosticCredits" + ? WHERE "id" = ?`,
+      credits,
+      userId
+    )
+    await tx.$executeRawUnsafe(
+      `INSERT INTO "StripeCreditApplied" ("id", "userId", "credits") VALUES (?, ?, ?)`,
+      idempotencyKey,
+      userId,
+      credits
+    )
+    return true
+  })
+}
+
 /**
  * Déduit 1 crédit si l'utilisateur en a au moins un.
  * @returns true si le crédit a été déduit, false si le solde était 0.

@@ -29,8 +29,9 @@ import {
   getAvailableTransmissionTypesForSelection,
 } from "@/lib/vehicle-compatibility-catalog"
 import { useCarsApi } from "@/hooks/use-cars-api"
-import { isExceptionBrand, MESSAGE_MARQUE_EXCEPTION } from "@/lib/exception-brands"
+import { isExceptionBrand } from "@/lib/exception-brands"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
+import { useTranslation } from "@/lib/i18n/locale-context"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 
 type FormState = {
@@ -66,10 +67,33 @@ const entretienOptions = ["Complet (factures)", "Partiel", "Inconnu"]
 const MAX_PHOTOS = 4
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024 // 2 MB
 
+function saleLocaleTag(locale: string): string {
+  return locale === "nl" ? "nl-BE" : locale === "en" ? "en-GB" : "fr-BE"
+}
+
+function etatOptionLabel(opt: string, t: (key: string) => string): string {
+  const m: Record<string, string> = {
+    Excellent: "sale.etatExcellent",
+    Bon: "sale.etatBon",
+    Correct: "sale.etatCorrect",
+    "À prévoir": "sale.etatAPrevoir",
+  }
+  const key = m[opt]
+  return key ? t(key) : opt
+}
+
+function entretienOptionLabel(opt: string, t: (key: string) => string): string {
+  const m: Record<string, string> = {
+    "Complet (factures)": "sale.entretienComplet",
+    Partiel: "sale.entretienPartiel",
+    Inconnu: "sale.entretienInconnu",
+  }
+  const key = m[opt]
+  return key ? t(key) : opt
+}
+
 const selectClass =
   "h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed [&>option]:bg-[#0a1628] [&>option]:text-foreground"
-
-const MANUAL_PLACEHOLDER = "Saisir manuellement"
 
 function sortYearsDesc(years: string[]): string[] {
   return [...years].sort((a, b) => Number(b) - Number(a))
@@ -141,6 +165,8 @@ function estimateVehicleValue(form: FormState): Estimate {
 }
 
 export function SaleEstimator() {
+  const { t, locale } = useTranslation()
+  const saleLocale = saleLocaleTag(locale)
   const { makes: apiMakes, models: apiModels, loadingMakes, loadingModels, fetchModels } = useCarsApi()
   const [form, setForm] = useState<FormState>({
     marque: "",
@@ -450,7 +476,7 @@ export function SaleEstimator() {
       if (f.size <= MAX_PHOTO_BYTES) valid.push(f)
     }
     if (images.some((f) => f.size > MAX_PHOTO_BYTES))
-      setPhotoError(`Max ${MAX_PHOTOS} photos, 2 Mo chacune. Les trop volumineuses sont ignorées.`)
+      setPhotoError(t("sale.photoError", { max: MAX_PHOTOS, mb: 2 }))
     setPhotoFiles((prev) => [...prev, ...valid].slice(0, MAX_PHOTOS))
     e.target.value = ""
   }
@@ -506,14 +532,14 @@ export function SaleEstimator() {
     const nombrePortes = trim(form.nombrePortes)
     const typeCarrosserie = trim(form.typeCarrosserie)
     if (cylindree.length > MAX_EXTRA || (puissanceVal && puissance.length > MAX_EXTRA) || nombrePortes.length > MAX_EXTRA || typeCarrosserie.length > MAX_EXTRA) {
-      setAnalyzeError("Les informations complémentaires ne doivent pas dépasser 80 caractères par champ.")
+      setAnalyzeError(t("vehicleForm.errExtraMax"))
       return
     }
     if (nombrePortes.length > 0) {
       const onlyNum = /^\d+$/.test(nombrePortes)
       const num = parseInt(nombrePortes, 10)
       if (onlyNum && (Number.isNaN(num) || num < 2 || num > 6)) {
-        setAnalyzeError("Nombre de portes : indiquez un nombre entre 2 et 6 (ex. 3 ou 5).")
+        setAnalyzeError(t("vehicleForm.errPortes"))
         return
       }
     }
@@ -529,7 +555,7 @@ export function SaleEstimator() {
             const base64 = dataUrl.split(",")[1]
             resolve(base64 ?? "")
           }
-          r.onerror = () => reject(new Error("Lecture impossible"))
+          r.onerror = () => reject(new Error(t("sale.readError")))
           r.readAsDataURL(file)
         })
         if (b64) photosBase64.push(b64)
@@ -564,14 +590,14 @@ export function SaleEstimator() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
-        setAnalyzeError(data?.error ?? "Erreur lors de l'analyse.")
+        setAnalyzeError(data?.error ?? t("sale.analyzeErr"))
         return
       }
       if (data?.ok && typeof data.analysis === "string") {
         setAnalysis(data.analysis.replace(/\*\*/g, "").replace(/__/g, ""))
       }
     } catch {
-      setAnalyzeError("Erreur lors de l'analyse. Veuillez réessayer.")
+      setAnalyzeError(t("sale.analyzeRetry"))
     } finally {
       setAnalyzeLoading(false)
       setSubmitted(true)
@@ -583,12 +609,12 @@ export function SaleEstimator() {
       <Card className="w-full max-w-2xl mx-auto border-border/50 bg-card shadow-xl pt-3">
         <CardContent className="pt-3">
           <form onSubmit={onSubmit} className="space-y-5">
-            <p className="text-sm font-medium text-foreground text-left">Informations du véhicule</p>
+            <p className="text-sm font-medium text-foreground text-left">{t("vehicleForm.sectionTitle")}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="marque" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Car className="h-4 w-4 text-primary" />
-                  Marque
+                  {t("vehicleForm.labelMarque")}
                 </label>
                 <select
                   id="marque"
@@ -620,7 +646,9 @@ export function SaleEstimator() {
                   required
                   className={selectClass}
                 >
-                  <option value="" className="bg-[#0a1628]">{loadingMakes ? "Chargement…" : "Sélectionnez une marque"}</option>
+                  <option value="" className="bg-[#0a1628]">
+                    {loadingMakes ? t("common.loading") : t("vehicleForm.selectMarque")}
+                  </option>
                   {availableMakes.map((brand) => (
                     <option key={brand} value={brand} className="bg-[#0a1628]">{brand}</option>
                   ))}
@@ -630,7 +658,7 @@ export function SaleEstimator() {
               <div className="space-y-2">
                 <label htmlFor="modele" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />
-                  Modèle
+                  {t("vehicleForm.labelModele")}
                   {loadingModels && (
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
                   )}
@@ -657,10 +685,10 @@ export function SaleEstimator() {
                 >
                   <option value="" className="bg-[#0a1628]">
                     {!isMarqueDone
-                      ? "Choisissez d'abord une marque"
+                      ? t("vehicleForm.chooseMarqueFirst")
                       : loadingModels
-                        ? "Chargement…"
-                        : "Sélectionnez un modèle"}
+                        ? t("common.loading")
+                        : t("vehicleForm.selectModele")}
                   </option>
                   {availableModels.map((model) => (
                     <option key={model} value={model} className="bg-[#0a1628]">{model}</option>
@@ -672,8 +700,8 @@ export function SaleEstimator() {
 
             {isException && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-foreground">
-                <p className="text-sm font-medium text-amber-200/90 mb-1">Concession spécialisée requise</p>
-                <p className="text-sm text-muted-foreground">{MESSAGE_MARQUE_EXCEPTION}</p>
+                <p className="text-sm font-medium text-amber-200/90 mb-1">{t("exceptionBrand.title")}</p>
+                <p className="text-sm text-muted-foreground">{t("exceptionBrand.message")}</p>
               </div>
             )}
 
@@ -684,14 +712,14 @@ export function SaleEstimator() {
               <div className="space-y-2">
                 <label htmlFor="variante" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Settings2 className="h-4 w-4 text-primary" />
-                  Variante / Finition
-                  <span className="text-xs text-muted-foreground">(optionnel)</span>
+                  {t("vehicleForm.labelVariante")}
+                  <span className="text-xs text-muted-foreground">{t("vehicleForm.optional")}</span>
                   {loadingVariant && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />}
                 </label>
                 <Input
                   id="variante"
                   name="variante"
-                  placeholder={MANUAL_PLACEHOLDER}
+                  placeholder={t("vehicleForm.manualPlaceholder")}
                   value={form.variante}
                   onChange={(e) => {
                     cascadeGen.current += 1
@@ -735,7 +763,7 @@ export function SaleEstimator() {
               <div className="space-y-2">
                 <label htmlFor="annee" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-primary" />
-                  Année
+                  {t("vehicleForm.labelAnnee")}
                   {(loadingVariant || loadingYear) && (
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
                   )}
@@ -745,7 +773,7 @@ export function SaleEstimator() {
                     id="annee"
                     name="annee"
                     type="number"
-                    placeholder={MANUAL_PLACEHOLDER}
+                    placeholder={t("vehicleForm.manualPlaceholder")}
                     min={1980}
                     max={new Date().getFullYear()}
                     value={form.annee}
@@ -786,10 +814,10 @@ export function SaleEstimator() {
                   >
                     <option value="" className="bg-[#0a1628]">
                       {loadingYear || loadingVariant
-                        ? "Chargement…"
+                        ? t("common.loading")
                         : yearOptionsForSelect.length > 0
-                          ? "Sélectionnez l'année"
-                          : "Aucune année disponible"}
+                          ? t("vehicleForm.selectYear")
+                          : t("vehicleForm.noYearAvailable")}
                     </option>
                     {yearOptionsForSelect.map((year) => (
                       <option key={year} value={year} className="bg-[#0a1628]">
@@ -802,12 +830,12 @@ export function SaleEstimator() {
               <div className="space-y-2">
                 <label htmlFor="kilometrage" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Gauge className="h-4 w-4 text-primary" />
-                  Kilométrage
+                  {t("vehicleForm.labelKm")}
                 </label>
                 <Input
                   id="kilometrage"
                   type="number"
-                  placeholder="Ex: 85000"
+                  placeholder={t("vehicleForm.kmPh")}
                   min={0}
                   max={600000}
                   value={form.kilometrage}
@@ -824,7 +852,7 @@ export function SaleEstimator() {
               <div className="space-y-2">
                 <label htmlFor="carburant" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Fuel className="h-4 w-4 text-primary" />
-                  Carburant / Énergie
+                  {t("vehicleForm.labelFuel")}
                   {loadingFuel && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />}
                 </label>
                 {fuelLocked ? (
@@ -832,7 +860,7 @@ export function SaleEstimator() {
                     readOnly
                     name="carburant"
                     id="carburant"
-                    value={formatCarburantOptionLabel(form.carburant)}
+                    value={formatCarburantOptionLabel(form.carburant, t)}
                     className="h-11 bg-muted/50 border-input text-foreground"
                   />
                 ) : fallbackFuel ? (
@@ -850,7 +878,7 @@ export function SaleEstimator() {
                       setTransLocked(false)
                     }}
                     required
-                    placeholder={MANUAL_PLACEHOLDER}
+                    placeholder={t("vehicleForm.manualPlaceholder")}
                     disabled={!isAnneeDone || loadingFuel}
                     className="h-11 bg-background border-input focus:border-primary disabled:opacity-50"
                   />
@@ -873,11 +901,15 @@ export function SaleEstimator() {
                     className={selectClass}
                   >
                     <option value="" className="bg-[#0a1628]">
-                      {isAnneeDone ? (loadingFuel ? "Chargement…" : "Sélectionnez le carburant") : "Choisissez d'abord l'année"}
+                      {isAnneeDone
+                        ? loadingFuel
+                          ? t("common.loading")
+                          : t("vehicleForm.selectFuel")
+                        : t("vehicleForm.chooseYearFirst")}
                     </option>
                     {fuelList.map((fuel) => (
                       <option key={fuel} value={fuel} className="bg-[#0a1628]">
-                        {formatCarburantOptionLabel(fuel)}
+                        {formatCarburantOptionLabel(fuel, t)}
                       </option>
                     ))}
                   </select>
@@ -886,7 +918,7 @@ export function SaleEstimator() {
               <div className="space-y-2">
                 <label htmlFor="transmission" className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Settings2 className="h-4 w-4 text-primary" />
-                  Transmission
+                  {t("vehicleForm.labelTrans")}
                   {loadingTrans && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />}
                 </label>
                 {transLocked ? (
@@ -904,7 +936,7 @@ export function SaleEstimator() {
                     value={form.transmission}
                     onChange={(e) => updateField("transmission", e.target.value)}
                     required
-                    placeholder={MANUAL_PLACEHOLDER}
+                    placeholder={t("vehicleForm.manualPlaceholder")}
                     disabled={!isCarburantDone || loadingTrans}
                     className="h-11 bg-background border-input focus:border-primary disabled:opacity-50"
                   />
@@ -919,7 +951,11 @@ export function SaleEstimator() {
                     className={selectClass}
                   >
                     <option value="" className="bg-[#0a1628]">
-                      {isCarburantDone ? (loadingTrans ? "Chargement…" : "Sélectionnez la transmission") : "Choisissez d'abord le carburant"}
+                      {isCarburantDone
+                        ? loadingTrans
+                          ? t("common.loading")
+                          : t("vehicleForm.selectTrans")
+                        : t("vehicleForm.chooseFuelFirst")}
                     </option>
                     {transList.map((trans) => (
                       <option key={trans} value={trans} className="bg-[#0a1628]">
@@ -934,7 +970,9 @@ export function SaleEstimator() {
             {/* Champs spécifiques Vente */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="etat" className="text-sm font-medium text-foreground">État général</label>
+                <label htmlFor="etat" className="text-sm font-medium text-foreground">
+                  {t("sale.labelEtat")}
+                </label>
                 <select
                   id="etat"
                   value={form.etat}
@@ -942,14 +980,20 @@ export function SaleEstimator() {
                   required
                   className={selectClass}
                 >
-                  <option value="" className="bg-[#0a1628]">Sélectionnez</option>
+                  <option value="" className="bg-[#0a1628]">
+                    {t("sale.select")}
+                  </option>
                   {etatOptions.map((opt) => (
-                    <option key={opt} value={opt} className="bg-[#0a1628]">{opt}</option>
+                    <option key={opt} value={opt} className="bg-[#0a1628]">
+                      {etatOptionLabel(opt, t)}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-2">
-                <label htmlFor="entretien" className="text-sm font-medium text-foreground">Historique d'entretien</label>
+                <label htmlFor="entretien" className="text-sm font-medium text-foreground">
+                  {t("sale.labelEntretien")}
+                </label>
                 <select
                   id="entretien"
                   value={form.entretien}
@@ -957,9 +1001,13 @@ export function SaleEstimator() {
                   required
                   className={selectClass}
                 >
-                  <option value="" className="bg-[#0a1628]">Sélectionnez</option>
+                  <option value="" className="bg-[#0a1628]">
+                    {t("sale.select")}
+                  </option>
                   {entretienOptions.map((opt) => (
-                    <option key={opt} value={opt} className="bg-[#0a1628]">{opt}</option>
+                    <option key={opt} value={opt} className="bg-[#0a1628]">
+                      {entretienOptionLabel(opt, t)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -967,7 +1015,9 @@ export function SaleEstimator() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="proprietaires" className="text-sm font-medium text-foreground">Nombre de propriétaires</label>
+                <label htmlFor="proprietaires" className="text-sm font-medium text-foreground">
+                  {t("sale.labelOwners")}
+                </label>
                 <Input
                   id="proprietaires"
                   type="number"
@@ -979,7 +1029,9 @@ export function SaleEstimator() {
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="prixNeuf" className="text-sm font-medium text-foreground">Prix neuf (optionnel)</label>
+                <label htmlFor="prixNeuf" className="text-sm font-medium text-foreground">
+                  {t("sale.labelPrixNeuf")}
+                </label>
                 <Input
                   id="prixNeuf"
                   type="number"
@@ -987,7 +1039,7 @@ export function SaleEstimator() {
                   max={500000}
                   value={form.prixNeuf}
                   onChange={(e) => updateField("prixNeuf", e.target.value)}
-                  placeholder="Ex: 32900"
+                  placeholder={t("sale.prixNeufPh")}
                   className="h-11 bg-background border-input"
                 />
               </div>
@@ -995,7 +1047,7 @@ export function SaleEstimator() {
 
             {/* Photos du véhicule */}
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground text-left">Photos du véhicule</p>
+              <p className="text-sm font-medium text-foreground text-left">{t("sale.photosTitle")}</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1015,13 +1067,11 @@ export function SaleEstimator() {
                   className="gap-2"
                 >
                   <ImagePlus className="h-4 w-4" />
-                  {photoFiles.length >= MAX_PHOTOS
-                    ? "Maximum atteint"
-                    : "Ajouter des photos ou prendre une photo"}
+                  {photoFiles.length >= MAX_PHOTOS ? t("sale.maxPhotosReached") : t("sale.addPhotos")}
                 </Button>
                 {photoFiles.length > 0 && (
                   <span className="text-xs text-muted-foreground">
-                    {photoFiles.length} / {MAX_PHOTOS} photo(s)
+                    {t("sale.photoCount", { count: photoFiles.length, max: MAX_PHOTOS })}
                   </span>
                 )}
               </div>
@@ -1049,7 +1099,7 @@ export function SaleEstimator() {
                         type="button"
                         onClick={() => removePhoto(i)}
                         className="absolute top-1 right-1 rounded-full bg-background/80 p-1 text-muted-foreground hover:text-foreground hover:bg-background"
-                        aria-label="Supprimer la photo"
+                        aria-label={t("sale.removePhotoAria")}
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -1063,21 +1113,21 @@ export function SaleEstimator() {
             {/* Le véhicule démarre / accidenté / CT */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-foreground">Le véhicule démarre</p>
+                <p className="text-sm font-medium text-foreground">{t("sale.startsTitle")}</p>
                 <div className="flex rounded-lg border border-input overflow-hidden">
                   <button
                     type="button"
                     onClick={() => updateField("demarre", true)}
                     className={`flex-1 px-3 py-2.5 text-sm font-medium transition-colors ${form.demarre ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
                   >
-                    Oui
+                    {t("common.yes")}
                   </button>
                   <button
                     type="button"
                     onClick={() => updateField("demarre", false)}
                     className={`flex-1 px-3 py-2.5 text-sm font-medium transition-colors ${!form.demarre ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
                   >
-                    Non
+                    {t("common.no")}
                   </button>
                 </div>
               </div>
@@ -1088,7 +1138,7 @@ export function SaleEstimator() {
                   onChange={(e) => updateField("accidente", e.target.checked)}
                   className="h-4 w-4 accent-primary"
                 />
-                Le véhicule est (ou a été) accidenté
+                {t("sale.accidentLabel")}
               </label>
               <label className="flex items-center gap-3 rounded-lg border border-input bg-secondary/30 px-3 py-3 text-sm text-foreground">
                 <input
@@ -1097,7 +1147,7 @@ export function SaleEstimator() {
                   onChange={(e) => updateField("controleTechnique", e.target.checked)}
                   className="h-4 w-4 accent-primary"
                 />
-                Contrôle technique récent OK
+                {t("sale.ctLabel")}
               </label>
             </div>
 
@@ -1107,16 +1157,18 @@ export function SaleEstimator() {
                 onClick={() => setExtraOpen((o) => !o)}
                 className="w-full flex items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/30 transition-colors"
               >
-                <span>Informations complémentaires</span>
+                <span>{t("vehicleForm.extraTitle")}</span>
                 {extraOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
               {extraOpen && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 pb-4 pt-1">
                   <div className="space-y-2">
-                    <label htmlFor="cylindree-vente" className="text-xs font-medium text-muted-foreground">Cylindrée</label>
+                    <label htmlFor="cylindree-vente" className="text-xs font-medium text-muted-foreground">
+                      {t("vehicleForm.cylindree")}
+                    </label>
                     <Input
                       id="cylindree-vente"
-                      placeholder="Ex: 1.6, 2.0 TDI"
+                      placeholder={t("vehicleForm.cylindreePh")}
                       value={form.cylindree}
                       onChange={(e) => updateField("cylindree", e.target.value)}
                       maxLength={80}
@@ -1124,13 +1176,15 @@ export function SaleEstimator() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="puissance-vente" className="text-xs font-medium text-muted-foreground">Puissance</label>
+                    <label htmlFor="puissance-vente" className="text-xs font-medium text-muted-foreground">
+                      {t("vehicleForm.puissance")}
+                    </label>
                     <div className="flex gap-2 items-center">
                       <Input
                         id="puissance-vente"
                         type="text"
                         inputMode="numeric"
-                        placeholder="Ex: 110"
+                        placeholder={t("vehicleForm.puissancePh")}
                         value={form.puissance}
                         onChange={(e) => updateField("puissance", e.target.value.replace(/\D/g, ""))}
                         maxLength={6}
@@ -1155,12 +1209,14 @@ export function SaleEstimator() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="nombrePortes-vente" className="text-xs font-medium text-muted-foreground">Nombre de portes</label>
+                    <label htmlFor="nombrePortes-vente" className="text-xs font-medium text-muted-foreground">
+                      {t("vehicleForm.portes")}
+                    </label>
                     <Input
                       id="nombrePortes-vente"
                       type="text"
                       inputMode="numeric"
-                      placeholder="Ex: 3, 5"
+                      placeholder={t("vehicleForm.portesPh")}
                       value={form.nombrePortes}
                       onChange={(e) => updateField("nombrePortes", e.target.value.replace(/\D/g, ""))}
                       maxLength={2}
@@ -1168,10 +1224,12 @@ export function SaleEstimator() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="typeCarrosserie-vente" className="text-xs font-medium text-muted-foreground">Type de carrosserie</label>
+                    <label htmlFor="typeCarrosserie-vente" className="text-xs font-medium text-muted-foreground">
+                      {t("vehicleForm.carrosserie")}
+                    </label>
                     <Input
                       id="typeCarrosserie-vente"
-                      placeholder="Ex: Berline, SUV, Break"
+                      placeholder={t("vehicleForm.carrosseriePh")}
                       value={form.typeCarrosserie}
                       onChange={(e) => updateField("typeCarrosserie", e.target.value)}
                       maxLength={80}
@@ -1186,14 +1244,14 @@ export function SaleEstimator() {
             <div className="space-y-2">
               <label htmlFor="description" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Search className="h-4 w-4 text-primary" />
-                Description détaillée du véhicule
-                <span className="text-xs text-muted-foreground">(optionnel)</span>
+                {t("sale.descriptionLabel")}
+                <span className="text-xs text-muted-foreground">{t("vehicleForm.optional")}</span>
               </label>
               <textarea
                 id="description"
-                lang="fr"
+                lang={locale === "nl" ? "nl" : locale === "en" ? "en" : "fr"}
                 spellCheck
-                placeholder="Décrivez les options, les éventuels défauts, l'état intérieur et extérieur, l'historique... Tout ce qui peut influencer la valeur de revente."
+                placeholder={t("sale.descriptionPh")}
                 value={form.description}
                 onChange={(e) => updateField("description", e.target.value)}
                 rows={4}
@@ -1213,12 +1271,12 @@ export function SaleEstimator() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Analyse en cours...
+                  {t("vehicleForm.analyzing")}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <Search className="h-5 w-5" />
-                  Obtenir une estimation
+                  {t("sale.estimateCta")}
                 </span>
               )}
             </Button>
@@ -1237,25 +1295,23 @@ export function SaleEstimator() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Prix de rachat (garage partenaire)
+              {t("sale.resultTitle")}
             </CardTitle>
-            <CardDescription>
-              Fourchette indicative de reprise par un garage partenaire (en dessous du marché, marge garage comprise).
-            </CardDescription>
+            <CardDescription>{t("sale.resultSubtitle")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="rounded-lg border border-border/50 bg-secondary/20 p-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Prix bas (rachat)</p>
-                <p className="text-2xl font-bold text-foreground">{estimate.low.toLocaleString("fr-BE")} €</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("sale.priceLow")}</p>
+                <p className="text-2xl font-bold text-foreground">{estimate.low.toLocaleString(saleLocale)} €</p>
               </div>
               <div className="rounded-lg border border-primary/40 bg-primary/10 p-4">
-                <p className="text-xs uppercase tracking-wide text-primary">Prix conseillé (rachat)</p>
-                <p className="text-3xl font-bold text-foreground">{estimate.mid.toLocaleString("fr-BE")} €</p>
+                <p className="text-xs uppercase tracking-wide text-primary">{t("sale.priceMid")}</p>
+                <p className="text-3xl font-bold text-foreground">{estimate.mid.toLocaleString(saleLocale)} €</p>
               </div>
               <div className="rounded-lg border border-border/50 bg-secondary/20 p-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Prix haut (rachat)</p>
-                <p className="text-2xl font-bold text-foreground">{estimate.high.toLocaleString("fr-BE")} €</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("sale.priceHigh")}</p>
+                <p className="text-2xl font-bold text-foreground">{estimate.high.toLocaleString(saleLocale)} €</p>
               </div>
             </div>
 
@@ -1263,7 +1319,7 @@ export function SaleEstimator() {
               <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 text-sm text-muted-foreground space-y-2">
                 <p className="flex items-center gap-2 text-foreground font-medium">
                   <Search className="h-4 w-4 text-primary" />
-                  Analyse pour la reprise (garage partenaire)
+                  {t("sale.analysisBlockTitle")}
                 </p>
                 <div className="whitespace-pre-wrap text-foreground/90">{analysis}</div>
               </div>
@@ -1272,14 +1328,18 @@ export function SaleEstimator() {
             <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 text-sm text-muted-foreground space-y-2">
               <p className="flex items-center gap-2 text-foreground font-medium">
                 <CircleDollarSign className="h-4 w-4 text-primary" />
-                Rachat par un garage partenaire
+                {t("sale.partnerBlockTitle")}
               </p>
               <p>
-                Un garage partenaire peut proposer une reprise entre <span className="text-foreground font-semibold">{estimate.low.toLocaleString("fr-BE")} €</span> et <span className="text-foreground font-semibold">{estimate.high.toLocaleString("fr-BE")} €</span>, avec un prix cible autour de <span className="text-foreground font-semibold">{estimate.mid.toLocaleString("fr-BE")} €</span> (marge du garage incluse).
+                {t("sale.partnerBlockP1", {
+                  low: `${estimate.low.toLocaleString(saleLocale)} €`,
+                  high: `${estimate.high.toLocaleString(saleLocale)} €`,
+                  mid: `${estimate.mid.toLocaleString(saleLocale)} €`,
+                })}
               </p>
               <p className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
-                Estimation indicative; une expertise physique du véhicule peut ajuster l’offre.
+                {t("sale.partnerDisclaimer")}
               </p>
             </div>
           </CardContent>

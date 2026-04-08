@@ -9,12 +9,11 @@ export const VENTE_TAB_ENABLED = false
  * Achat de crédits diagnostics (Stripe) : page `/credits`, packs sur `/profil`, bouton « Acheter »
  * dans la navbar, API `/api/credits/create-payment-intent` et `/api/credits/checkout`.
  *
- * Mettre à `true` pour réactiver la vente de crédits (Stripe) lorsque tu es prêt côté exploitation. Les garde-fous UI
- * et API sont conditionnés à ce seul booléen ; le code de paiement (Stripe, CGV, promos) reste en place.
+ * Mettre à `false` pour désactiver temporairement la boutique (UI, API paiement, redirections vers `/credits`).
  *
- * À `false` (phase de test sans boutique), un utilisateur à 0 crédit est orienté vers `/merci` au lieu de `/credits`.
+ * À `true` : utilisateur à 0 crédit orienté vers `/credits` ; achat via Stripe soumis aux CGV.
  */
-export const CREDIT_PURCHASES_ENABLED = false
+export const CREDIT_PURCHASES_ENABLED = true
 
 /**
  * Phase de test : à la vérification d’email, attribution systématique d’1 crédit diagnostic + modale de remerciement

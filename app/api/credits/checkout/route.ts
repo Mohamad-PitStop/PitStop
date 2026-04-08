@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     const productDescription =
       pkg.credits === 1
         ? "1 diagnostic automobile complet par IA"
-        : `${pkg.credits} diagnostics automobiles complets par IA${pkg.saving ? ` : ${pkg.saving}` : ""}`
+        : `${pkg.credits} diagnostics automobiles complets par IA`
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",

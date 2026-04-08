@@ -6,7 +6,7 @@ import { buildLoginUrl } from "@/lib/login-redirect"
 
 /**
  * À appeler en tête de `app/diagnostic/page.tsx` : empêche d’afficher le formulaire
- * si l’utilisateur n’a pas le droit d’y accéder (0 crédit en phase test → /merci, etc.).
+ * si l’utilisateur n’a pas le droit d’y accéder (0 crédit → /credits si achat activé, sinon /merci).
  */
 export async function ensureDiagnosticPageAccess(): Promise<void> {
   const h = await headers()

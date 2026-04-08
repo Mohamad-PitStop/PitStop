@@ -13,9 +13,15 @@ import {
   AUTH_SESSION_CHANGED_EVENT,
   dispatchAuthSessionChanged,
 } from "@/lib/auth-client-events"
+import { useTranslation } from "@/lib/i18n/locale-context"
+import { LanguageSwitcher } from "@/components/language-switcher"
+
+/** Largeur fixe du groupe d’onglets : évite tout déplacement au changement de langue (libellés de longueurs différentes). */
+const tabNavWidthClass =
+  "w-[min(100%,18rem)] sm:w-[20rem] min-[1100px]:w-[22rem] xl:w-[26rem]"
 
 const tabBase =
-  "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 min-w-0 sm:min-w-[7.5rem]"
+  "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] w-full min-w-0 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 
 const tabInactive =
   "text-foreground dark:text-muted-foreground hover:text-foreground/90"
@@ -35,13 +41,15 @@ function TabNav({
   diagnosticHref: string
   className?: string
 }) {
+  const { t } = useTranslation()
   return (
     <nav
       className={cn(
-        "bg-muted text-muted-foreground inline-flex h-auto min-h-9 w-fit shrink-0 items-stretch rounded-lg p-[3px]",
+        "bg-muted text-muted-foreground grid shrink-0 grid-cols-2 items-stretch gap-0 rounded-lg p-[3px] text-center",
+        tabNavWidthClass,
         className
       )}
-      aria-label="Navigation principale"
+      aria-label={t("navbar.mainNav")}
     >
       <Link
         href={diagnosticHref}
@@ -49,7 +57,7 @@ function TabNav({
         className={cn(tabBase, isDiagnostic ? tabActive : tabInactive)}
         aria-current={isDiagnostic ? "page" : undefined}
       >
-        Diagnostic
+        {t("navbar.diagnostic")}
       </Link>
       <Link
         href="/vente"
@@ -59,13 +67,13 @@ function TabNav({
           !VENTE_TAB_ENABLED && "opacity-75"
         )}
         aria-current={isVente ? "page" : undefined}
-        title={!VENTE_TAB_ENABLED ? "Fonctionnalité en cours de mise en production" : undefined}
+        title={!VENTE_TAB_ENABLED ? t("navbar.venteSoonTitle") : undefined}
       >
         <Wrench className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
-        Vente
+        {t("navbar.vente")}
         {!VENTE_TAB_ENABLED && (
           <span className="ml-0.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400 leading-none">
-            Bientôt
+            {t("navbar.soon")}
           </span>
         )}
       </Link>
@@ -74,6 +82,7 @@ function TabNav({
 }
 
 export function Navbar() {
+  const { t } = useTranslation()
   const pathname = usePathname()
   const isHome = pathname === "/"
   const isConnexionPage = pathname.startsWith("/connexion")
@@ -124,41 +133,45 @@ export function Navbar() {
         {user.role === "admin" && (
           <Link
             href="/admin/users"
-            className="shrink-0 text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors sm:text-xs"
+            className="hidden shrink-0 text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors min-[1200px]:inline sm:text-xs"
           >
             ⚙ Admin
           </Link>
         )}
         <Link
           href="/profil"
-          className="hidden text-xs text-muted-foreground hover:text-foreground transition-colors sm:inline"
+          className="hidden text-xs text-muted-foreground hover:text-foreground transition-colors min-[1080px]:inline"
         >
-          Mon profil
+          {t("navbar.myProfile")}
         </Link>
         {/* Mobile : prénom cliquable → Mon profil */}
         <Link
           href="/profil"
           className="min-w-0 max-w-[7.5rem] truncate text-xs text-foreground hover:text-foreground/80 transition-colors sm:hidden"
         >
-          Bonjour, {firstName}
+          {t("navbar.hello", { name: firstName })}
         </Link>
-        {/* Desktop : prénom non cliquable */}
-        <span className="hidden min-w-0 sm:inline sm:max-w-none sm:text-sm text-foreground">
-          Bonjour, {firstName}
+        {/* Desktop : prénom non cliquable (masqué si fenêtre étroite pour éviter le chevauchement) */}
+        <span className="hidden min-w-0 min-[1024px]:inline min-[1024px]:max-w-none min-[1024px]:text-sm text-foreground">
+          {t("navbar.hello", { name: firstName })}
         </span>
         <Button
           size="sm"
           variant="outline"
           onClick={handleLogout}
-          className="h-7 shrink-0 px-2 text-[11px] sm:h-8 sm:px-3 sm:text-xs"
+          className="h-7 min-w-[6.25rem] shrink-0 px-2 text-[11px] min-[1024px]:min-w-[8.5rem] sm:h-8 min-[1280px]:min-w-[9rem] sm:px-3 sm:text-xs"
         >
-          Déconnexion
+          {t("navbar.logout")}
         </Button>
       </div>
     ) : (
       <Link href="/connexion" className={cn(isConnexionPage && "hidden")}>
-        <Button size="sm" variant="outline" className="h-8 px-3 text-xs">
-          Connexion
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 min-w-[6rem] px-2.5 text-xs min-[1024px]:min-w-[7.5rem] min-[1024px]:px-3"
+        >
+          {t("navbar.login")}
         </Button>
       </Link>
     ))
@@ -166,15 +179,19 @@ export function Navbar() {
   // Indicateur crédits pour la page d'accueil et la page diagnostic (desktop)
   const creditsIndicator =
     user && (isHome || isDiagnostic) ? (
-      <div className="hidden sm:flex items-center gap-2">
+      <div className="hidden min-[1280px]:flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400">
           <Zap className="h-3.5 w-3.5" />
-          {user.diagnosticCredits ?? 0} crédit{(user.diagnosticCredits ?? 0) !== 1 ? "s" : ""}
+          {user.diagnosticCredits ?? 0}{" "}
+          {(user.diagnosticCredits ?? 0) === 1 ? t("navbar.credit") : t("navbar.credits")}
         </div>
         {CREDIT_PURCHASES_ENABLED ? (
           <Link href="/credits">
-            <Button size="sm" className="h-7 px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white">
-              Acheter
+            <Button
+              size="sm"
+              className="h-7 min-w-[4.5rem] px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {t("navbar.buy")}
             </Button>
           </Link>
         ) : null}
@@ -205,8 +222,8 @@ export function Navbar() {
               </div>
               {/* Ligne 2 : infos connexion */}
               <div className="flex w-full min-w-0 items-center justify-between">
-                <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 shrink-0">
-                  Phase de test
+                <span className="inline-flex min-w-[8.25rem] shrink-0 justify-center whitespace-nowrap rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300">
+                  {t("navbar.phaseTest")}
                 </span>
                 {authBlock}
               </div>
@@ -215,8 +232,8 @@ export function Navbar() {
             <>
               {/* Ligne 1 : Phase de test + connexion */}
               <div className="flex w-full min-w-0 items-center justify-between">
-                <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 shrink-0">
-                  Phase de test
+                <span className="inline-flex min-w-[8.25rem] shrink-0 justify-center whitespace-nowrap rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300">
+                  {t("navbar.phaseTest")}
                 </span>
                 {authBlock}
               </div>
@@ -256,9 +273,10 @@ export function Navbar() {
               />
             </Link>
           )}
-          <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300 shrink-0">
-            Phase de test
+          <span className="inline-flex min-w-0 shrink-0 justify-center whitespace-nowrap rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 min-[1100px]:min-w-[9.5rem] min-[1100px]:px-3 min-[1100px]:text-xs">
+            {t("navbar.phaseTest")}
           </span>
+          <LanguageSwitcher variant="header" className="shrink-0" />
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
             {creditsIndicator}
             {authBlock}

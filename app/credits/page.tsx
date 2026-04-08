@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
+import { creditPackageLabel, creditPackageSaving } from "@/lib/credit-package-i18n"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
 import { PromoInput, type PromoResult } from "@/components/promo-input"
@@ -14,10 +15,12 @@ import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { buildLoginUrl } from "@/lib/login-redirect"
 import { Input } from "@/components/ui/input"
 import { Zap, Check, ArrowLeft, Gift } from "lucide-react"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 type AuthUser = { id: string; name: string; email: string; role: string; diagnosticCredits: number }
 
 export default function CreditsPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loadingPkg, setLoadingPkg] = useState<string | null>(null)
@@ -55,7 +58,7 @@ export default function CreditsPage() {
     setGiftSuccess(null)
     const raw = giftCode.trim()
     if (raw.length < 4) {
-      setGiftError("Saisissez le code reçu (au moins 4 caractères).")
+      setGiftError(t("creditsPage.giftCodeShort"))
       return
     }
     setGiftRedeeming(true)
@@ -67,17 +70,17 @@ export default function CreditsPage() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "Impossible d’activer le code.")
+        throw new Error(data?.error || t("creditsPage.giftErrorGeneric"))
       }
       setUser((u) =>
         u ? { ...u, diagnosticCredits: data.newBalance ?? u.diagnosticCredits } : null
       )
       setGiftSuccess(
-        `${data.creditsAdded} crédit${data.creditsAdded !== 1 ? "s" : ""} ajouté${data.creditsAdded !== 1 ? "s" : ""}. Nouveau solde : ${data.newBalance}.`
+        t("creditsPage.giftSuccess", { count: data.creditsAdded, balance: data.newBalance })
       )
       setGiftCode("")
     } catch (e) {
-      setGiftError(e instanceof Error ? e.message : "Une erreur est survenue.")
+      setGiftError(e instanceof Error ? e.message : t("creditsPage.giftErrorUnknown"))
     } finally {
       setGiftRedeeming(false)
     }
@@ -106,12 +109,12 @@ export default function CreditsPage() {
     }
   }, [])
 
-  // Rafraîchir le solde après affichage du succès
+  // Rafraîchir le solde après retour Stripe (webhook souvent quelques secondes après le redirect)
   useEffect(() => {
     if (!success) return
-    // Petit délai pour laisser le webhook traiter le paiement
-    const timer = setTimeout(refreshUser, 2000)
-    return () => clearTimeout(timer)
+    const delaysMs = [0, 2500, 6000, 12000, 20000]
+    const timers = delaysMs.map((ms) => setTimeout(() => refreshUser(), ms))
+    return () => timers.forEach(clearTimeout)
   }, [success])
 
   /** Code promo page Merci (-30 % premier achat) : appliqué une fois si encore valide. */
@@ -171,7 +174,7 @@ export default function CreditsPage() {
         if (data.finalAmount) setFinalAmount(data.finalAmount)
         if (data.appliedDiscountLabel) setDiscountLabel(data.appliedDiscountLabel)
       } else {
-        alert(data?.error ?? "Erreur lors du paiement.")
+        alert(data?.error ?? t("creditsPage.paymentAlertError"))
         setLoadingPkg(null)
       }
     } catch {
@@ -209,9 +212,9 @@ export default function CreditsPage() {
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Achat de crédits</p>
+            <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>{t("creditsPage.purchaseTitle")}</p>
             <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-              {selectedPkg.label} : {modalPriceLabel()}
+              {creditPackageLabel(t, selectedPkg.id)} : {modalPriceLabel()}
             </p>
           </div>
           <button
@@ -219,7 +222,7 @@ export default function CreditsPage() {
             onClick={closeModal}
             className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
             style={{ color: "#1a2d5a" }}
-            aria-label="Fermer"
+            aria-label={t("creditsPage.closeAria")}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
@@ -230,11 +233,16 @@ export default function CreditsPage() {
           <StripePaymentForm
             clientSecret={clientSecret}
             returnUrl={returnUrl}
-            buttonLabel={`Payer ${finalAmount != null ? `${(finalAmount / 100).toFixed(2).replace(".", ",")} €` : selectedPkg.priceLabel}`}
+            buttonLabel={t("creditsPage.payButton", {
+              amount:
+                finalAmount != null
+                  ? `${(finalAmount / 100).toFixed(2).replace(".", ",")} €`
+                  : selectedPkg.priceLabel,
+            })}
           />
         ) : (
           <div className="rounded-lg border border-[#c8d8f0] bg-white/60 p-3 text-xs" style={{ color: "#1a2d5a" }}>
-            Veuillez accepter les CGV pour continuer le paiement.
+            {t("creditsPage.cgvRequired")}
           </div>
         )}
         {!cgvAccepted && (
@@ -253,16 +261,16 @@ export default function CreditsPage() {
               }}
             />
             <span>
-              En cochant cette case, vous acceptez nos{" "}
+              {t("creditsPage.cgvCheckbox")}{" "}
               <Link href="/conditions-generales-vente" className="text-primary underline" target="_blank">
-                conditions générales de vente
+                {t("creditsPage.cgvLink")}
               </Link>
               .
             </span>
           </label>
         )}
         <p className="mt-3 text-xs font-medium" style={{ color: "#7a2e2e" }}>
-          Les crédits achetés et non utilisés ne peuvent pas être remboursés.
+          {t("creditsPage.nonRefundableNote")}
         </p>
       </div>
     </div>
@@ -277,11 +285,11 @@ export default function CreditsPage() {
         <div className="space-y-2">
           <Link href="/diagnostic" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            Retour au diagnostic
+            {t("creditsPage.backToDiagnostic")}
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight">Crédits PitStop</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("creditsPage.pageTitle")}</h1>
           <p className="text-muted-foreground">
-            1 crédit = 1 diagnostic automobile complet par IA. Les questions de suivi sont incluses.
+            {t("creditsPage.intro")}
           </p>
         </div>
 
@@ -290,7 +298,7 @@ export default function CreditsPage() {
           <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
             <Check className="h-5 w-5 text-green-500 shrink-0" />
             <p className="text-sm font-medium text-green-700 dark:text-green-400">
-              Paiement confirmé ! Vos crédits ont bien été ajoutés à votre compte.
+              {t("creditsPage.paymentSuccess")}
             </p>
           </div>
         )}
@@ -299,11 +307,13 @@ export default function CreditsPage() {
         {user && (
           <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 px-5 py-4">
             <div>
-              <p className="text-sm text-muted-foreground">Solde actuel</p>
+              <p className="text-sm text-muted-foreground">{t("creditsPage.balanceLabel")}</p>
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold text-orange-500">{user.diagnosticCredits}</p>
-              <p className="text-xs text-muted-foreground">crédit{user.diagnosticCredits !== 1 ? "s" : ""}</p>
+              <p className="text-xs text-muted-foreground">
+                {user.diagnosticCredits !== 1 ? t("creditsPage.creditPlural") : t("creditsPage.creditSingular")}
+              </p>
             </div>
           </div>
         )}
@@ -312,11 +322,10 @@ export default function CreditsPage() {
           <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-4 space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Gift className="h-4 w-4 text-primary shrink-0" aria-hidden />
-              Code cadeau
+              {t("creditsPage.giftTitle")}
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Si vous avez reçu un code (partenaire, opération, test), saisissez-le ci-dessous pour ajouter des crédits
-              diagnostics à votre compte.
+              {t("creditsPage.giftHelp")}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
               <Input
@@ -326,7 +335,7 @@ export default function CreditsPage() {
                   setGiftError(null)
                   setGiftSuccess(null)
                 }}
-                placeholder="Ex. PITSTOP-2026-ABCD"
+                placeholder={t("creditsPage.giftPlaceholder")}
                 className="h-10 font-sans sm:flex-1"
                 maxLength={40}
                 autoComplete="off"
@@ -342,7 +351,7 @@ export default function CreditsPage() {
                 onClick={() => void redeemGiftCode()}
                 disabled={giftRedeeming}
               >
-                {giftRedeeming ? "…" : "Activer le code"}
+                {giftRedeeming ? "…" : t("creditsPage.giftActivate")}
               </Button>
             </div>
             {giftError && <p className="text-xs text-destructive">{giftError}</p>}
@@ -354,12 +363,12 @@ export default function CreditsPage() {
           <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 text-center space-y-3">
             <p className="text-sm text-muted-foreground">
               {CREDIT_PURCHASES_ENABLED
-                ? "Connectez-vous pour acheter des crédits et retrouver votre solde."
-                : "Connectez-vous pour consulter votre solde de crédits."}
+                ? t("creditsPage.loginPromptPurchase")
+                : t("creditsPage.loginPromptBalance")}
             </p>
             <div className="flex justify-center gap-3">
-              <Button onClick={() => router.push(buildLoginUrl("/credits"))}>Se connecter</Button>
-              <Button variant="outline" onClick={() => router.push("/inscription")}>Créer un compte</Button>
+              <Button onClick={() => router.push(buildLoginUrl("/credits"))}>{t("creditsPage.signIn")}</Button>
+              <Button variant="outline" onClick={() => router.push("/inscription")}>{t("creditsPage.createAccount")}</Button>
             </div>
           </div>
         )}
@@ -368,9 +377,11 @@ export default function CreditsPage() {
         {CREDIT_PURCHASES_ENABLED ? (
           <>
             {user && (
-              <div className="max-w-xs">
+              <div className="max-w-md">
                 <PromoInput
                   applied={promoApplied}
+                  dismissible={false}
+                  showInputWhenApplied
                   onApply={(result) => {
                     setPromoApplied(result)
                     setPromoCodeStr(result.code)
@@ -384,7 +395,9 @@ export default function CreditsPage() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-              {CREDIT_PACKAGES.map((pkg) => (
+              {CREDIT_PACKAGES.map((pkg) => {
+                const savingLine = creditPackageSaving(t, pkg.id)
+                return (
                 <Card
                   key={pkg.id}
                   className={`flex flex-col ${
@@ -396,7 +409,7 @@ export default function CreditsPage() {
                   <div className="flex h-6 items-center justify-center">
                     {pkg.highlight && (
                       <span className="-mt-3 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                        Meilleure offre
+                        {t("creditsPage.bestCompromise")}
                       </span>
                     )}
                   </div>
@@ -404,7 +417,9 @@ export default function CreditsPage() {
                   <CardHeader className="pb-2 pt-2">
                     <div className="flex items-center gap-2">
                       <Zap className="h-4 w-4 text-orange-500 shrink-0" />
-                      <CardTitle className="text-base font-semibold">{pkg.label}</CardTitle>
+                      <CardTitle className="text-base font-semibold">
+                        {creditPackageLabel(t, pkg.id)}
+                      </CardTitle>
                     </div>
                   </CardHeader>
 
@@ -414,9 +429,11 @@ export default function CreditsPage() {
                         <p className="text-xs text-muted-foreground line-through">{pkg.originalPrice}</p>
                       )}
                       <p className="text-2xl font-bold">{pkg.priceLabel}</p>
-                      {pkg.saving && (
-                        <p className="text-xs font-medium text-green-600 dark:text-green-400">{pkg.saving}</p>
-                      )}
+                      {savingLine ? (
+                        <p className="text-xs font-medium text-green-600 dark:text-green-400">
+                          {savingLine}
+                        </p>
+                      ) : null}
                       {pkg.badge && (
                         <span className="inline-block mt-1 bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
                           {pkg.badge}
@@ -425,7 +442,9 @@ export default function CreditsPage() {
                     </div>
 
                     <p className="text-xs text-muted-foreground flex-1">
-                      {(pkg.amountCents / pkg.credits / 100).toFixed(2).replace(".", ",")} € / diagnostic
+                      {t("creditsPage.perDiagnostic", {
+                        price: (pkg.amountCents / pkg.credits / 100).toFixed(2).replace(".", ","),
+                      })}
                     </p>
 
                     <Button
@@ -434,33 +453,33 @@ export default function CreditsPage() {
                       onClick={() => handleBuy(pkg.id)}
                       disabled={loadingPkg !== null || !user}
                     >
-                      {loadingPkg === pkg.id ? "Préparation…" : "Acheter"}
+                      {loadingPkg === pkg.id ? t("creditsPage.preparing") : t("creditsPage.buy")}
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
+                )
+              })}
             </div>
 
             <p className="text-[11px] text-muted-foreground text-center">
-              Paiement sécurisé par Stripe. Les crédits sont crédités instantanément après paiement.
-              Pas d&apos;abonnement : achetez uniquement ce dont vous avez besoin.
+              {t("creditsPage.footerStripe")}
             </p>
             <p className="text-[11px] font-medium text-amber-300/90 text-center">
-              Important : les crédits achetés et non utilisés ne sont pas remboursables.
+              {t("creditsPage.footerNonRefundable")}
             </p>
           </>
         ) : (
           <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-5 py-5 space-y-3">
-            <p className="text-sm font-semibold text-foreground">Achat de crédits temporairement indisponible</p>
+            <p className="text-sm font-semibold text-foreground">{t("creditsPage.purchaseDisabledTitle")}</p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              L&apos;achat de crédits n&apos;est pas disponible pour le moment. Vous pouvez continuer à utiliser les crédits déjà présents sur votre compte.
+              {t("creditsPage.purchaseDisabledBody")}
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Button asChild variant="outline" size="sm">
-                <Link href="/diagnostic">Retour au diagnostic</Link>
+                <Link href="/diagnostic">{t("creditsPage.backToDiagnostic")}</Link>
               </Button>
               <Button asChild variant="outline" size="sm">
-                <Link href="/profil">Mon profil</Link>
+                <Link href="/profil">{t("creditsPage.myProfile")}</Link>
               </Button>
             </div>
           </div>

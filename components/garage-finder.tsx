@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { DirectionsLink } from "@/components/directions-link"
 import { partnerGarages, type PartnerGarage } from "@/lib/partners"
 import { haversineKm } from "@/lib/distance"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 type Coords = { lat: number; lng: number; label?: string }
 
@@ -18,20 +19,19 @@ async function geocode(q: string): Promise<Coords | null> {
 }
 
 function mapsDirectionsEmbed(origin: string, destination: string) {
-  // Embed without API key. This shows a route/directions between origin and destination.
   const o = encodeURIComponent(origin)
   const d = encodeURIComponent(destination)
   return `https://www.google.com/maps?output=embed&saddr=${o}&daddr=${d}`
 }
 
 export function GarageFinder() {
+  const { t } = useTranslation()
   const [postalCode, setPostalCode] = useState("")
   const [originCoords, setOriginCoords] = useState<Coords | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [garageCoords, setGarageCoords] = useState<Record<string, Coords>>({})
 
-  // Pre-geocode partner garages (once per session) to compute distance.
   useEffect(() => {
     let cancelled = false
     async function run() {
@@ -61,7 +61,6 @@ export function GarageFinder() {
         setError(null)
         return
       }
-      // Basic debounce by waiting a bit.
       setIsLocating(true)
       setError(null)
       try {
@@ -70,7 +69,7 @@ export function GarageFinder() {
         const c = await geocode(`${raw}, Belgique`)
         if (!c) {
           setOriginCoords(null)
-          setError("Impossible de trouver ce code postal. Essayez un autre format (ex: 1420).")
+          setError(t("garageFinder.postalNotFound"))
           return
         }
         setOriginCoords(c)
@@ -82,7 +81,7 @@ export function GarageFinder() {
     return () => {
       cancelled = true
     }
-  }, [postalCode])
+  }, [postalCode, t])
 
   const garagesWithDistance = useMemo(() => {
     const origin = originCoords
@@ -114,28 +113,28 @@ export function GarageFinder() {
     <div className="space-y-6">
       <Card className="border-primary/30 bg-card">
         <CardHeader>
-          <CardTitle className="text-foreground">Garage partenaire (référence)</CardTitle>
-          <CardDescription>
-            Voici le garage partenaire principal. Vous pouvez aussi chercher les garages partenaires les plus proches selon votre code postal.
-          </CardDescription>
+          <CardTitle className="text-foreground">{t("garageFinder.referenceTitle")}</CardTitle>
+          <CardDescription>{t("garageFinder.referenceDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="rounded-lg border border-border/50 bg-secondary/30 p-4">
             <p className="text-sm font-medium text-foreground">{partnerGarages[0].name}</p>
             <p className="text-sm text-muted-foreground">{partnerGarages[0].address}</p>
-            <p className="text-sm text-muted-foreground">Tél: {partnerGarages[0].phoneDisplay}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("garageFinder.tel")} {partnerGarages[0].phoneDisplay}
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Button asChild size="lg" className="w-full sm:w-auto">
-              <a href={`tel:${partnerGarages[0].phoneTel}`}>Appeler</a>
+              <a href={`tel:${partnerGarages[0].phoneTel}`}>{t("garageFinder.call")}</a>
             </Button>
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
               <DirectionsLink address={partnerGarages[0].address} origin={originLabel}>
-                Itinéraire
+                {t("rdvPage.directions")}
               </DirectionsLink>
             </Button>
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
-              <a href={`/rendez-vous?type=obd-scan`}>Planifier un rendez-vous</a>
+              <a href={`/rendez-vous?type=obd-scan`}>{t("garageFinder.scheduleRdv")}</a>
             </Button>
           </div>
         </CardContent>
@@ -143,24 +142,24 @@ export function GarageFinder() {
 
       <Card className="border-border/50 bg-card">
         <CardHeader>
-          <CardTitle className="text-foreground">Trouver un garage partenaire proche</CardTitle>
-          <CardDescription>Indiquez votre code postal pour estimer la distance et afficher l’itinéraire.</CardDescription>
+          <CardTitle className="text-foreground">{t("garageFinder.findNearTitle")}</CardTitle>
+          <CardDescription>{t("garageFinder.findNearDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Votre code postal</label>
+            <label className="text-sm font-medium text-foreground">{t("garageFinder.yourPostal")}</label>
             <Input
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
-              placeholder="Ex: 1420"
+              placeholder={t("garageFinder.postalPh")}
               inputMode="numeric"
             />
-            {isLocating ? <p className="text-xs text-muted-foreground">Recherche de votre zone…</p> : null}
+            {isLocating ? <p className="text-xs text-muted-foreground">{t("garageFinder.searchingZone")}</p> : null}
             {error ? <p className="text-sm text-red-400">{error}</p> : null}
           </div>
 
           <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-2">
-            <p className="text-sm font-medium text-foreground">Garages partenaires</p>
+            <p className="text-sm font-medium text-foreground">{t("garageFinder.partnersList")}</p>
             <div className="space-y-2">
               {garagesWithDistance.map(({ garage, km }) => (
                 <div key={garage.id} className="flex items-start justify-between gap-3">
@@ -169,7 +168,7 @@ export function GarageFinder() {
                     <p className="text-xs text-muted-foreground">{garage.address}</p>
                   </div>
                   <div className="text-sm text-muted-foreground whitespace-nowrap">
-                    {km == null ? ":" : `${km.toFixed(1)} km`}
+                    {km == null ? "—" : `${km.toFixed(1)} km`}
                   </div>
                 </div>
               ))}
@@ -180,7 +179,7 @@ export function GarageFinder() {
             <div className="rounded-lg overflow-hidden border border-border/50 bg-secondary/30">
               <div className="aspect-[16/9] w-full">
                 <iframe
-                  title="Carte - garages partenaires"
+                  title={t("garageFinder.mapIframeTitle")}
                   src={mapUrl}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -190,7 +189,7 @@ export function GarageFinder() {
             </div>
           ) : (
             <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 text-sm text-muted-foreground">
-              Entrez votre code postal pour afficher la carte et l’itinéraire vers le garage partenaire le plus proche.
+              {t("garageFinder.mapPlaceholder")}
             </div>
           )}
         </CardContent>
@@ -198,4 +197,3 @@ export function GarageFinder() {
     </div>
   )
 }
-

@@ -7,10 +7,12 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 type State = "loading" | "success" | "error"
 
 function VerifierEmailContent() {
+  const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [state, setState] = useState<State>("loading")
@@ -20,7 +22,7 @@ function VerifierEmailContent() {
     const token = searchParams.get("token")
     if (!token) {
       setState("error")
-      setErrorMessage("Lien de vérification invalide.")
+      setErrorMessage(t("verifyEmail.invalidToken"))
       return
     }
 
@@ -36,20 +38,19 @@ function VerifierEmailContent() {
           setState("success")
           setTimeout(() => {
             const dest = TEST_PHASE_SIGNUP_BONUS_ENABLED ? "/?welcome_test=1" : "/"
-            // replace : évite de revenir sur cette page via « retour » puis de rejouer la redirection
             router.replace(dest)
             router.refresh()
           }, 2000)
         } else {
           setState("error")
-          setErrorMessage(data?.error ?? "Lien invalide ou expiré.")
+          setErrorMessage(data?.error ?? t("verifyEmail.invalidOrExpired"))
         }
       } catch {
         setState("error")
-        setErrorMessage("Erreur réseau. Veuillez réessayer.")
+        setErrorMessage(t("verifyEmail.networkError"))
       }
     })()
-  }, [searchParams, router])
+  }, [searchParams, router, t])
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,8 +59,8 @@ function VerifierEmailContent() {
         <div className="container mx-auto max-w-md px-4">
           <Card className="border-border/60 bg-card">
             <CardHeader>
-              <CardTitle>Vérification de l'adresse email</CardTitle>
-              <CardDescription>Activation de votre compte PitStop</CardDescription>
+              <CardTitle>{t("verifyEmail.pageTitle")}</CardTitle>
+              <CardDescription>{t("verifyEmail.pageDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               {state === "loading" && (
@@ -68,7 +69,7 @@ function VerifierEmailContent() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  <p className="text-sm text-muted-foreground">Vérification en cours…</p>
+                  <p className="text-sm text-muted-foreground">{t("verifyEmail.verifying")}</p>
                 </div>
               )}
 
@@ -80,8 +81,8 @@ function VerifierEmailContent() {
                     </svg>
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="font-semibold text-foreground">Adresse email confirmée !</p>
-                    <p className="text-sm text-muted-foreground">Votre compte est actif. Redirection en cours…</p>
+                    <p className="font-semibold text-foreground">{t("verifyEmail.successTitle")}</p>
+                    <p className="text-sm text-muted-foreground">{t("verifyEmail.successRedirect")}</p>
                   </div>
                   <div className="w-40 h-1 rounded-full bg-muted overflow-hidden">
                     <div className="h-full bg-primary rounded-full animate-[progress_2s_linear_forwards]" />
@@ -97,15 +98,15 @@ function VerifierEmailContent() {
                     </svg>
                   </div>
                   <div className="text-center space-y-2">
-                    <p className="font-semibold text-foreground">Vérification échouée</p>
+                    <p className="font-semibold text-foreground">{t("verifyEmail.errorTitle")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{errorMessage}</p>
                   </div>
                   <div className="flex flex-col gap-2 w-full">
                     <Button asChild>
-                      <Link href="/inscription">Créer un nouveau compte</Link>
+                      <Link href="/inscription">{t("verifyEmail.createAccount")}</Link>
                     </Button>
                     <Button variant="outline" asChild>
-                      <Link href="/connexion">Se connecter</Link>
+                      <Link href="/connexion">{t("verifyEmail.signIn")}</Link>
                     </Button>
                   </div>
                 </div>
@@ -119,6 +120,7 @@ function VerifierEmailContent() {
 }
 
 function VerifyEmailFallback() {
+  const { t } = useTranslation()
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -126,8 +128,8 @@ function VerifyEmailFallback() {
         <div className="container mx-auto max-w-md px-4">
           <Card className="border-border/60 bg-card">
             <CardHeader>
-              <CardTitle>Vérification de l'adresse email</CardTitle>
-              <CardDescription>Activation de votre compte PitStop</CardDescription>
+              <CardTitle>{t("verifyEmail.pageTitle")}</CardTitle>
+              <CardDescription>{t("verifyEmail.pageDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center gap-4 py-8">
@@ -135,7 +137,7 @@ function VerifyEmailFallback() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                <p className="text-sm text-muted-foreground">Chargement…</p>
+                <p className="text-sm text-muted-foreground">{t("verifyEmail.fallbackLoading")}</p>
               </div>
             </CardContent>
           </Card>

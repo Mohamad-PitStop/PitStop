@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 type FormState = {
   garageName: string
@@ -27,6 +28,7 @@ const initialForm: FormState = {
 }
 
 export function PartnerContactForm() {
+  const { t } = useTranslation()
   const [form, setForm] = useState<FormState>(initialForm)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<null | { type: "success" | "error"; text: string }>(null)
@@ -49,21 +51,21 @@ export function PartnerContactForm() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => null)
-        throw new Error((body && body.error) || "Impossible d'envoyer la demande.")
+        throw new Error((body && body.error) || t("home.partnerForm.errSend"))
       }
 
       setForm(initialForm)
       setStatus({
         type: "success",
-        text: "Votre demande partenaire a bien été envoyée. Notre équipe reviendra vers vous rapidement.",
+        text: t("home.partnerForm.successBanner"),
       })
-      toast.success("Demande envoyée !", {
-        description: "Notre équipe reviendra vers vous rapidement.",
+      toast.success(t("home.partnerForm.toastSuccessTitle"), {
+        description: t("home.partnerForm.toastSuccessDesc"),
       })
     } catch (err) {
-      const text = err instanceof Error ? err.message : "Une erreur est survenue."
+      const text = err instanceof Error ? err.message : t("home.partnerForm.errGeneric")
       setStatus({ type: "error", text })
-      toast.error("Erreur d'envoi", { description: text })
+      toast.error(t("home.partnerForm.toastErrorTitle"), { description: text })
     } finally {
       setIsSubmitting(false)
     }
@@ -74,25 +76,25 @@ export function PartnerContactForm() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="garageName" className="text-sm text-foreground">
-            Nom du garage
+            {t("home.partnerForm.labelGarageName")}
           </label>
           <Input
             id="garageName"
             value={form.garageName}
             onChange={onChange("garageName")}
-            placeholder="Ex : Garage Dupont"
+            placeholder={t("home.partnerForm.phGarageName")}
             required
           />
         </div>
         <div className="space-y-2">
           <label htmlFor="contactName" className="text-sm text-foreground">
-            Personne de contact
+            {t("home.partnerForm.labelContactName")}
           </label>
           <Input
             id="contactName"
             value={form.contactName}
             onChange={onChange("contactName")}
-            placeholder="Ex : Marc Dupont"
+            placeholder={t("home.partnerForm.phContactName")}
             required
           />
         </div>
@@ -101,26 +103,26 @@ export function PartnerContactForm() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm text-foreground">
-            Email professionnel
+            {t("home.partnerForm.labelEmail")}
           </label>
           <Input
             id="email"
             type="email"
             value={form.email}
             onChange={onChange("email")}
-            placeholder="contact@votregarage.be"
+            placeholder={t("home.partnerForm.phEmail")}
             required
           />
         </div>
         <div className="space-y-2">
           <label htmlFor="phone" className="text-sm text-foreground">
-            Telephone
+            {t("home.partnerForm.labelPhone")}
           </label>
           <Input
             id="phone"
             value={form.phone}
             onChange={onChange("phone")}
-            placeholder="+32 ..."
+            placeholder={t("home.partnerForm.phPhone")}
             required
           />
         </div>
@@ -129,25 +131,25 @@ export function PartnerContactForm() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="city" className="text-sm text-foreground">
-            Ville
+            {t("home.partnerForm.labelCity")}
           </label>
           <Input
             id="city"
             value={form.city}
             onChange={onChange("city")}
-            placeholder="Ex : Braine l'alleud"
+            placeholder={t("home.partnerForm.phCity")}
             required
           />
         </div>
         <div className="space-y-2">
           <label htmlFor="services" className="text-sm text-foreground">
-            Services principaux
+            {t("home.partnerForm.labelServices")}
           </label>
           <Input
             id="services"
             value={form.services}
             onChange={onChange("services")}
-            placeholder="Ex : mécanique, carrosserie, pneus"
+            placeholder={t("home.partnerForm.phServices")}
             required
           />
         </div>
@@ -155,13 +157,13 @@ export function PartnerContactForm() {
 
       <div className="space-y-2">
         <label htmlFor="message" className="text-sm text-foreground">
-          Message
+          {t("home.partnerForm.labelMessage")}
         </label>
         <Textarea
           id="message"
           value={form.message}
           onChange={onChange("message")}
-          placeholder="Parlez-nous de votre garage, vos disponibilités et pourquoi vous souhaitez rejoindre le réseau PitStop."
+          placeholder={t("home.partnerForm.phMessage")}
           className="min-h-28"
           required
         />
@@ -178,7 +180,7 @@ export function PartnerContactForm() {
       )}
 
       <Button type="submit" size="lg" disabled={isSubmitting}>
-        {isSubmitting ? "Envoi en cours..." : "Envoyer ma demande partenaire"}
+        {isSubmitting ? t("home.partnerForm.submitting") : t("home.partnerForm.submit")}
       </Button>
     </form>
   )

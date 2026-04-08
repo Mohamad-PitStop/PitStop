@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { format, isBefore, startOfDay } from "date-fns"
-import { fr } from "date-fns/locale"
+import { fr, enGB, nl } from "date-fns/locale"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,28 +11,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { hasAcceptedCgv, saveCgvConsent } from "@/lib/cgv-consent"
 import { PromoInput, type PromoResult } from "@/components/promo-input"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 type Slot = { start: string; end: string }
 
 function toDateParam(d: Date) {
   return format(d, "yyyy-MM-dd")
-}
-
-function slotLabel(isoStart: string) {
-  const d = new Date(isoStart)
-  return format(d, "HH:mm", { locale: fr })
-}
-
-async function readJsonOrThrow(res: Response) {
-  const raw = await res.text()
-  try {
-    return JSON.parse(raw) as any
-  } catch {
-    if (!res.ok) {
-      throw new Error("Le serveur a renvoyé une erreur inattendue. Réessayez dans quelques instants.")
-    }
-    throw new Error("Réponse serveur invalide.")
-  }
 }
 
 function computeDepositEuros(_priceMin?: number): number {
@@ -52,6 +36,35 @@ export function BookingCheckout({
   priceMax?: number
   noCard?: boolean
 }) {
+  const { t, locale } = useTranslation()
+  const dateFnsLocale = useMemo(
+    () => (locale === "en" ? enGB : locale === "nl" ? nl : fr),
+    [locale]
+  )
+
+  const readJsonOrThrow = useCallback(
+    async (res: Response) => {
+      const raw = await res.text()
+      try {
+        return JSON.parse(raw) as { ok?: boolean; error?: string; slots?: Slot[]; clientSecret?: string }
+      } catch {
+        if (!res.ok) {
+          throw new Error(t("bookingFlow.serverErrorUnexpected"))
+        }
+        throw new Error(t("bookingFlow.serverInvalidResponse"))
+      }
+    },
+    [t]
+  )
+
+  const slotLabel = useCallback(
+    (isoStart: string) => {
+      const d = new Date(isoStart)
+      return format(d, "HH:mm", { locale: dateFnsLocale })
+    },
+    [dateFnsLocale]
+  )
+
   const depositEuros = computeDepositEuros(priceMin)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => new Date())
   const [slots, setSlots] = useState<Slot[]>([])
@@ -68,7 +81,6 @@ export function BookingCheckout({
   const [cgvAccepted, setCgvAccepted] = useState(true)
   const [cgvChecked, setCgvChecked] = useState(false)
 
-  // Promo code
   const [promoApplied, setPromoApplied] = useState<PromoResult | null>(null)
 
   const dateParam = useMemo(() => (selectedDate ? toDateParam(selectedDate) : null), [selectedDate])
@@ -95,16 +107,19 @@ export function BookingCheckout({
       setError(null)
       setSelectedSlot(null)
       try {
-        const res = await fetch(`/api/availability?date=${encodeURIComponent(dateParam)}&type=${encodeURIComponent(type)}`, {
-          cache: "no-store",
-        })
+        const res = await fetch(
+          `/api/availability?date=${encodeURIComponent(dateParam)}&type=${encodeURIComponent(type)}`,
+          {
+            cache: "no-store",
+          }
+        )
         const data = await readJsonOrThrow(res)
-        if (!res.ok || !data?.ok) throw new Error(data?.error || "Erreur")
+        if (!res.ok || !data?.ok) throw new Error(data?.error || t("bookingFlow.apiErrorGeneric"))
         if (!cancelled) setSlots(data.slots ?? [])
       } catch (e) {
         if (!cancelled) {
           setSlots([])
-          setError("Impossible de charger les disponibilités. Réessayez dans quelques instants.")
+          setError(t("bookingFlow.errorLoadSlots"))
         }
       } finally {
         if (!cancelled) setIsLoadingSlots(false)
@@ -114,7 +129,7 @@ export function BookingCheckout({
     return () => {
       cancelled = true
     }
-  }, [dateParam, type])
+  }, [dateParam, type, readJsonOrThrow, t])
 
   const canPickDate = (d: Date) => {
     const today = startOfDay(new Date())
@@ -147,15 +162,13 @@ export function BookingCheckout({
       })
       const data = await readJsonOrThrow(res)
       if (!res.ok || !data?.ok || !data?.clientSecret) {
-        throw new Error(data?.error || "Erreur")
+        throw new Error(data?.error || t("bookingFlow.apiErrorGeneric"))
       }
       setClientSecret(data.clientSecret)
       setCgvChecked(cgvAccepted)
     } catch (e) {
       setError(
-        e instanceof Error && e.message
-          ? e.message
-          : "Erreur lors du lancement du paiement. Réessayez."
+        e instanceof Error && e.message ? e.message : t("bookingFlow.errorPaymentStart")
       )
     } finally {
       setIsSubmitting(false)
@@ -163,24 +176,20 @@ export function BookingCheckout({
   }
 
   const returnUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/rendez-vous/success`
-      : ""
+    typeof window !== "undefined" ? `${window.location.origin}/rendez-vous/success` : ""
 
   const inner = (
     <>
       {!noCard && (
         <CardHeader>
-          <CardTitle className="text-foreground">Réserver un créneau (avec acompte)</CardTitle>
-          <CardDescription>
-            Choisissez un créneau disponible, puis payez un acompte pour confirmer la réservation. Après paiement, le rendez-vous est ajouté au calendrier du garage partenaire.
-          </CardDescription>
+          <CardTitle className="text-foreground">{t("bookingFlow.title")}</CardTitle>
+          <CardDescription>{t("bookingFlow.description")}</CardDescription>
         </CardHeader>
       )}
       {noCard && (
         <div className="mb-4">
-          <p className="text-sm font-semibold text-foreground">Réserver un créneau (avec acompte)</p>
-          <p className="text-sm text-muted-foreground mt-0.5">Choisissez un créneau disponible, puis payez un acompte pour confirmer la réservation. Après paiement, le rendez-vous est ajouté au calendrier du garage partenaire.</p>
+          <p className="text-sm font-semibold text-foreground">{t("bookingFlow.title")}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{t("bookingFlow.description")}</p>
         </div>
       )}
       <div className="space-y-5">
@@ -191,22 +200,24 @@ export function BookingCheckout({
               selected={selectedDate}
               onSelect={setSelectedDate}
               disabled={(d) => !canPickDate(d)}
-              locale={fr}
+              locale={dateFnsLocale}
               className="[--cell-size:--spacing(9)]"
             />
           </div>
 
           <div className="space-y-3">
             <div className="rounded-lg border border-border/50 bg-secondary/20 p-3">
-              <p className="text-sm font-medium text-foreground">Créneaux disponibles</p>
+              <p className="text-sm font-medium text-foreground">{t("bookingFlow.slotsLabel")}</p>
               <p className="text-xs text-muted-foreground">
-                {dateParam ? format(new Date(`${dateParam}T00:00:00`), "EEEE d MMMM", { locale: fr }) : ""}
+                {dateParam
+                  ? format(new Date(`${dateParam}T00:00:00`), "EEEE d MMMM", { locale: dateFnsLocale })
+                  : ""}
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2 min-h-[164px] content-start">
                 {isLoadingSlots ? (
-                  <p className="text-sm text-muted-foreground col-span-3">Chargement…</p>
+                  <p className="text-sm text-muted-foreground col-span-3">{t("bookingFlow.loading")}</p>
                 ) : slots.length === 0 ? (
-                  <p className="text-sm text-muted-foreground col-span-3">Aucun créneau disponible.</p>
+                  <p className="text-sm text-muted-foreground col-span-3">{t("bookingFlow.noSlots")}</p>
                 ) : (
                   slots.map((s) => {
                     const active = selectedSlot?.start === s.start
@@ -229,18 +240,30 @@ export function BookingCheckout({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Nom et prénom</label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Dupont Martin" />
+                <label className="text-sm font-medium text-foreground">{t("bookingFlow.nameLabel")}</label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t("bookingFlow.namePh")}
+                />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Téléphone</label>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Ex: +32 4xx xx xx xx" />
+                <label className="text-sm font-medium text-foreground">{t("bookingFlow.phoneLabel")}</label>
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={t("bookingFlow.phonePh")}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Email (optionnel)</label>
-              <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Ex: nom@domaine.com" />
+              <label className="text-sm font-medium text-foreground">{t("bookingFlow.emailOptional")}</label>
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("bookingFlow.emailPh")}
+              />
             </div>
 
             <PromoInput
@@ -258,11 +281,13 @@ export function BookingCheckout({
               disabled={!canPay || isSubmitting}
               onClick={startCheckout}
             >
-              {isSubmitting ? "Préparation du paiement…" : `Payer l’acompte (${depositEuros}€) et réserver`}
+              {isSubmitting
+                ? t("bookingFlow.preparingPayment")
+                : t("bookingFlow.depositPayReserve", { amount: depositEuros })}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center leading-snug">
-              Cet acompte sera intégralement déduit du montant total de votre facture : vous ne réglez que le solde directement au garage le jour de l’intervention.
+              {t("bookingFlow.depositDeductNote")}
             </p>
           </div>
         </div>
@@ -280,13 +305,14 @@ export function BookingCheckout({
         className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] shadow-2xl flex flex-col"
         style={{ backgroundColor: "#E8EEF8", maxHeight: "calc(100dvh - 2rem)" }}
       >
-        {/* Header : fixe */}
         <div className="shrink-0 px-6 pt-6 pb-4 flex items-center justify-between">
           <div>
-            <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>Paiement de l'acompte</p>
+            <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>
+              {t("bookingFlow.modalDepositTitle")}
+            </p>
             {selectedSlot && (
               <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-                {format(new Date(selectedSlot.start), "EEEE d MMMM 'à' HH:mm", { locale: fr })}
+                {format(new Date(selectedSlot.start), "PPPp", { locale: dateFnsLocale })}
               </p>
             )}
           </div>
@@ -295,18 +321,31 @@ export function BookingCheckout({
             onClick={() => setClientSecret(null)}
             className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0] shrink-0"
             style={{ color: "#1a2d5a" }}
-            aria-label="Fermer"
+            aria-label={t("creditsPage.closeAria")}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Corps scrollable */}
         <div className="overflow-y-auto px-6 pb-6 space-y-4">
-          <div className="rounded-lg px-3 py-2.5 text-xs leading-relaxed" style={{ backgroundColor: "#d4e2f4", color: "#1a2d5a" }}>
-            Conformément à la législation belge, cet acompte sera intégralement imputé sur le montant final de votre facture. Vous ne paierez que le solde restant directement au garage le jour de l'intervention.
+          <div
+            className="rounded-lg px-3 py-2.5 text-xs leading-relaxed"
+            style={{ backgroundColor: "#d4e2f4", color: "#1a2d5a" }}
+          >
+            {t("bookingFlow.modalDepositLegal")}
           </div>
           {!cgvAccepted && (
             <label className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "#1a2d5a" }}>
@@ -324,19 +363,25 @@ export function BookingCheckout({
                 }}
               />
               <span>
-                En cochant cette case, vous acceptez nos{" "}
+                {t("creditsPage.cgvCheckbox")}{" "}
                 <Link href="/conditions-generales-vente" className="text-primary underline" target="_blank">
-                  conditions générales de vente
+                  {t("creditsPage.cgvLink")}
                 </Link>
                 .
               </span>
             </label>
           )}
           {cgvAccepted ? (
-            <StripePaymentForm clientSecret={clientSecret} returnUrl={returnUrl} />
+            <StripePaymentForm
+              clientSecret={clientSecret}
+              returnUrl={returnUrl}
+              buttonLabel={t("creditsPage.payButton", {
+                amount: `${depositEuros.toFixed(2).replace(".", ",")} €`,
+              })}
+            />
           ) : (
             <div className="rounded-lg border border-[#c8d8f0] bg-white/60 p-3 text-xs" style={{ color: "#1a2d5a" }}>
-              Veuillez accepter les CGV pour confirmer le paiement de l&apos;acompte.
+              {t("bookingFlow.cgvDeposit")}
             </div>
           )}
         </div>
@@ -344,7 +389,13 @@ export function BookingCheckout({
     </div>
   )
 
-  if (noCard) return <>{inner}{paymentModal}</>
+  if (noCard)
+    return (
+      <>
+        {inner}
+        {paymentModal}
+      </>
+    )
 
   return (
     <>
@@ -355,4 +406,3 @@ export function BookingCheckout({
     </>
   )
 }
-

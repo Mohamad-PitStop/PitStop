@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { readCgvConsent, saveCgvConsent, type CgvConsentValue } from "@/lib/cgv-consent"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 const CONSENT_KEY = "pitstop-cookie-consent-v1"
 type ConsentValue = "accepted" | "rejected" | null
@@ -25,6 +26,7 @@ function readConsent(): ConsentValue {
 }
 
 export function CookiePreferencesDialog() {
+  const { t } = useTranslation()
   const pathname = usePathname()
   const [consent, setConsent] = useState<ConsentValue>(null)
   const [cgvConsent, setCgvConsent] = useState<CgvConsentValue>(null)
@@ -89,54 +91,60 @@ export function CookiePreferencesDialog() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button type="button" variant="outline" size="sm" className="bg-card/90 backdrop-blur">
-            Gérer mes préférences
+            {t("cookiesPrefs.manageTrigger")}
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Préférences cookies et CGV</DialogTitle>
-            <DialogDescription>
-              Gérez vos cookies analytics et votre accord aux conditions générales de vente.
-            </DialogDescription>
+            <DialogTitle>{t("cookiesPrefs.dialogTitle")}</DialogTitle>
+            <DialogDescription>{t("cookiesPrefs.dialogDesc")}</DialogDescription>
           </DialogHeader>
 
           <div className="rounded-md border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground">
-            Statut actuel:{" "}
+            {t("cookiesPrefs.statusLabel")}{" "}
             <span className="font-medium text-foreground">
-              {consent === "accepted" ? "Accepté" : consent === "rejected" ? "Refusé" : "Non défini"}
+              {consent === "accepted"
+                ? t("cookiesPrefs.stateAccepted")
+                : consent === "rejected"
+                  ? t("cookiesPrefs.stateRejected")
+                  : t("cookiesPrefs.stateUndefined")}
             </span>
           </div>
 
-          <div className="rounded-md border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground space-y-2">
+          <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground">
             <p>
-              Accord CGV actuel:{" "}
+              {t("cookiesPrefs.cgvCurrentLabel")}{" "}
               <span className="font-medium text-foreground">
-                {cgvConsent === "accepted" ? "Accepté" : cgvConsent === "rejected" ? "Refusé" : "Non défini"}
+                {cgvConsent === "accepted"
+                  ? t("cookiesPrefs.stateAccepted")
+                  : cgvConsent === "rejected"
+                    ? t("cookiesPrefs.stateRejected")
+                    : t("cookiesPrefs.stateUndefined")}
               </span>
             </p>
             <p>
-              Consulter les{" "}
+              {t("cookiesPrefs.cgvConsultBefore")}{" "}
               <Link href="/conditions-generales-vente" className="text-primary hover:underline">
-                conditions générales de vente
+                {t("cookiesPrefs.cgvConsultLink")}
               </Link>
-              .
+              {t("cookiesPrefs.cgvConsultAfter")}
             </p>
             <div className="flex gap-2">
               <Button type="button" size="sm" variant="outline" onClick={() => saveCgv("rejected")}>
-                Je retire mon accord
+                {t("cookiesPrefs.withdrawCgv")}
               </Button>
               <Button type="button" size="sm" onClick={() => saveCgv("accepted")}>
-                J&apos;accepte les CGV
+                {t("cookiesPrefs.acceptCgv")}
               </Button>
             </div>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => saveConsent("rejected")}>
-              Refuser
+              {t("cookies.reject")}
             </Button>
             <Button type="button" onClick={() => saveConsent("accepted")}>
-              Accepter
+              {t("cookies.accept")}
             </Button>
           </DialogFooter>
         </DialogContent>

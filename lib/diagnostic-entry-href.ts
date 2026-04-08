@@ -2,7 +2,7 @@ import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 
 /**
  * URL cible pour « entrer » dans le parcours diagnostic (onglets, CTA).
- * Compte sans crédit en phase sans achat → page remerciement, pas `/diagnostic`.
+ * Compte sans crédit : `/credits` si achat activé, sinon `/merci?from=diagnostic`.
  */
 export function getDiagnosticEntryHref(
   user: { role: string; diagnosticCredits?: number } | null | undefined

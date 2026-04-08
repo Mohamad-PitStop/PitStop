@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { buildLoginUrl } from "@/lib/login-redirect"
+import { useTranslation } from "@/lib/i18n/locale-context"
+import { SuspenseLoadingScreen } from "@/components/suspense-loading-screen"
 
 function InscriptionForm() {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl")
   const fromDiagnostic =
@@ -36,11 +39,11 @@ function InscriptionForm() {
         body: JSON.stringify({ name, email, password, postalCode, city }),
       })
       const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error || "Impossible de créer le compte.")
+      if (!res.ok) throw new Error(data?.error || t("auth.signupFail"))
       // Inscription réussie → afficher l'écran "vérifiez votre email"
       setPendingEmail(email.toLowerCase())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue.")
+      setError(err instanceof Error ? err.message : t("common.errorUnknown"))
     } finally {
       setIsSubmitting(false)
     }
@@ -68,16 +71,13 @@ function InscriptionForm() {
         <div className="container mx-auto max-w-xl px-4">
           {fromDiagnostic ? (
             <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground leading-relaxed">
-              Le diagnostic nécessite un compte PitStop. Inscrivez-vous, puis confirmez votre adresse e-mail depuis le
-              message que nous vous envoyons.
+              {t("auth.diagnosticNeedAccount")}
             </div>
           ) : null}
           <Card className="border-border/60 bg-card">
             <CardHeader>
-              <CardTitle>Créer un compte</CardTitle>
-              <CardDescription>
-                Créez votre compte PitStop pour retrouver vos diagnostics et accéder aux prochaines fonctionnalités.
-              </CardDescription>
+              <CardTitle>{t("auth.signupTitle")}</CardTitle>
+              <CardDescription>{t("auth.signupDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               {/* ── État : email de vérification envoyé ── */}
@@ -92,27 +92,21 @@ function InscriptionForm() {
                   </div>
 
                   <div className="text-center space-y-2">
-                    <p className="font-semibold text-foreground">Vérifiez votre boîte mail</p>
+                    <p className="font-semibold text-foreground">{t("auth.verifyEmailTitle")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Un email de confirmation a été envoyé à{" "}
-                      <span className="font-medium text-foreground">{pendingEmail}</span>.
-                      Cliquez sur le lien dans cet email pour activer votre compte.
+                      {t("auth.verifyEmailBody", { email: pendingEmail ?? "" })}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Le lien est valable 24 heures. Pensez à vérifier vos spams.
-                    </p>
+                    <p className="text-xs text-muted-foreground">{t("auth.verifyEmailHint")}</p>
                   </div>
 
                   {/* Renvoi de l'email */}
                   <div className="w-full space-y-2 pt-2">
                     {resendState === "sent" ? (
                       <p className="text-sm text-center text-green-600 dark:text-green-400">
-                        Email renvoyé ! Vérifiez votre boîte de réception.
+                        {t("auth.resendSent")}
                       </p>
                     ) : resendState === "error" ? (
-                      <p className="text-sm text-center text-red-400">
-                        Impossible d'envoyer l'email. Réessayez dans quelques instants.
-                      </p>
+                      <p className="text-sm text-center text-red-400">{t("auth.resendFail")}</p>
                     ) : null}
 
                     <Button
@@ -121,16 +115,16 @@ function InscriptionForm() {
                       onClick={handleResend}
                       disabled={resendState === "sending" || resendState === "sent"}
                     >
-                      {resendState === "sending" ? "Envoi en cours…" : "Renvoyer l'email de confirmation"}
+                      {resendState === "sending" ? t("auth.resending") : t("auth.resendButton")}
                     </Button>
 
                     <p className="text-xs text-muted-foreground text-center">
-                      Mauvais email ?{" "}
+                      {t("auth.wrongEmail")}{" "}
                       <button
                         className="text-primary hover:underline"
                         onClick={() => { setPendingEmail(null); setResendState("idle") }}
                       >
-                        Recommencer l'inscription
+                        {t("auth.restartSignup")}
                       </button>
                     </p>
                   </div>
@@ -141,11 +135,11 @@ function InscriptionForm() {
                   <form onSubmit={onSubmit} className="space-y-4">
                     <div className="space-y-2">
                       <label htmlFor="name" className="text-sm font-medium text-foreground">
-                        Nom complet
+                        {t("auth.fullName")}
                       </label>
                       <Input
                         id="name"
-                        placeholder="Ex : Marc Dupont"
+                        placeholder={t("auth.namePlaceholder")}
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -153,12 +147,12 @@ function InscriptionForm() {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="email" className="text-sm font-medium text-foreground">
-                        E-mail
+                        {t("common.email")}
                       </label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="vous@exemple.be"
+                        placeholder={t("auth.emailPlaceholder")}
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -167,7 +161,7 @@ function InscriptionForm() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label htmlFor="postalCode" className="text-sm font-medium text-foreground">
-                          Code postal
+                          {t("auth.postalCode")}
                         </label>
                         <Input
                           id="postalCode"
@@ -177,19 +171,19 @@ function InscriptionForm() {
                           required
                           maxLength={4}
                           pattern="[0-9]{4}"
-                          title="4 chiffres (Belgique)"
+                          title={t("auth.postalTitle")}
                           value={postalCode}
                           onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
                         />
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="city" className="text-sm font-medium text-foreground">
-                          Commune ou ville
+                          {t("auth.city")}
                         </label>
                         <Input
                           id="city"
                           autoComplete="address-level2"
-                          placeholder="ex. Charleroi"
+                          placeholder={t("auth.cityPlaceholder")}
                           required
                           minLength={2}
                           maxLength={80}
@@ -199,21 +193,20 @@ function InscriptionForm() {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
-                      Ces indications sont utilisées uniquement sous forme de statistiques globales pour adapter notre
-                      réseau de garages partenaires (voir notre{" "}
+                      {t("auth.signupStatsNote")}{" "}
                       <Link href="/confidentialite" className="text-primary hover:underline">
-                        politique de confidentialité
+                        {t("auth.privacyLink")}
                       </Link>
-                      ).
+                      {t("auth.signupStatsNoteEnd")}
                     </p>
                     <div className="space-y-2">
                       <label htmlFor="password" className="text-sm font-medium text-foreground">
-                        Mot de passe
+                        {t("common.password")}
                       </label>
                       <Input
                         id="password"
                         type="password"
-                        placeholder="8 caractères minimum"
+                        placeholder={t("auth.passwordPlaceholder")}
                         minLength={8}
                         required
                         value={password}
@@ -224,18 +217,18 @@ function InscriptionForm() {
                     {error && <p className="text-sm text-red-400">{error}</p>}
 
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? "Envoi en cours…" : "Créer mon compte"}
+                      {isSubmitting ? t("auth.creating") : t("auth.createMyAccount")}
                     </Button>
                   </form>
 
                   <p className="mt-4 text-xs text-muted-foreground">
-                    En créant un compte, vous acceptez nos{" "}
+                    {t("auth.acceptTerms")}{" "}
                     <Link href="/mentions-legales" className="text-primary hover:underline">
-                      mentions légales
+                      {t("auth.legalLink")}
                     </Link>{" "}
-                    et notre{" "}
+                    {t("auth.andOur")}{" "}
                     <Link href="/confidentialite" className="text-primary hover:underline">
-                      politique de confidentialité
+                      {t("auth.privacyLink")}
                     </Link>
                     .
                   </p>
@@ -245,12 +238,12 @@ function InscriptionForm() {
           </Card>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Déjà un compte ?{" "}
+            {t("auth.alreadyAccount")}{" "}
             <Link
               href={callbackUrl ? buildLoginUrl(callbackUrl) : "/connexion"}
               className="text-primary hover:underline font-medium"
             >
-              Se connecter
+              {t("auth.signIn")}
             </Link>
           </p>
         </div>
@@ -261,13 +254,7 @@ function InscriptionForm() {
 
 export default function InscriptionPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <span className="text-sm text-muted-foreground">Chargement…</span>
-        </div>
-      }
-    >
+    <Suspense fallback={<SuspenseLoadingScreen />}>
       <InscriptionForm />
     </Suspense>
   )

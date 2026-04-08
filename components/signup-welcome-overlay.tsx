@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { TEST_PHASE_SIGNUP_BONUS_ENABLED } from "@/lib/feature-flags"
 import { Sparkles } from "lucide-react"
+import { useTranslation } from "@/lib/i18n/locale-context"
 
 const PARAM = "welcome_test"
 /** Affichage en attente après redirection depuis la vérification email (URL nettoyée tout de suite). */
@@ -19,6 +20,7 @@ const ACK_KEY = "pitstop_welcome_test_ack"
  * (retour navigateur, restauration d’onglet). La modale ne s’affiche qu’une fois par flux de confirmation.
  */
 export function SignupWelcomeOverlay() {
+  const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
@@ -75,7 +77,7 @@ export function SignupWelcomeOverlay() {
         type="button"
         className="absolute inset-0 bg-background/70 backdrop-blur-md"
         onClick={dismiss}
-        aria-label="Fermer"
+        aria-label={t("signupWelcome.close")}
       />
       <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-primary/25 bg-card/95 p-6 shadow-2xl shadow-primary/10 animate-in fade-in zoom-in-95 duration-300">
         <div className="mb-4 flex justify-center">
@@ -84,27 +86,21 @@ export function SignupWelcomeOverlay() {
           </div>
         </div>
         <h2 id="welcome-test-title" className="font-display text-center text-xl font-bold text-foreground">
-          Merci d&apos;être des nôtres !
+          {t("signupWelcome.title")}
         </h2>
-        <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
-          Votre compte est confirmé. Pendant cette <strong className="text-foreground">phase de test</strong>, votre
-          participation nous aide à améliorer PitStop.
-        </p>
-        <p className="mt-2 text-center text-sm leading-relaxed text-muted-foreground">
-          Merci de tester le site avec nous.
-        </p>
+        <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">{t("signupWelcome.p1")}</p>
+        <p className="mt-2 text-center text-sm leading-relaxed text-muted-foreground">{t("signupWelcome.p2")}</p>
         <p className="mt-4 rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-center text-sm font-medium text-primary">
-          Pour vous remercier : <span className="font-bold">un crédit de diagnostic gratuit</span> a été ajouté à votre
-          solde.
+          {t("signupWelcome.gift")}
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button asChild className="w-full sm:w-auto">
             <Link href="/diagnostic" onClick={dismiss}>
-              Lancer un diagnostic
+              {t("signupWelcome.ctaDiagnostic")}
             </Link>
           </Button>
           <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={dismiss}>
-            Continuer sur l&apos;accueil
+            {t("signupWelcome.ctaHome")}
           </Button>
         </div>
       </div>

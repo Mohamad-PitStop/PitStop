@@ -3,7 +3,7 @@ import Stripe from "stripe"
 import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
 import { createCalendarEvent, getBusyIntervals } from "@/lib/google-calendar"
-import { addCredits } from "@/lib/accounts-db"
+import { applyStripeCreditPurchaseOnce } from "@/lib/accounts-db"
 
 export const runtime = "nodejs"
 
@@ -17,19 +17,23 @@ async function ensureWebhookEventTable() {
   `)
 }
 
-async function markWebhookEventAsNew(eventId: string, eventType: string): Promise<boolean> {
+async function isWebhookEventProcessed(eventId: string): Promise<boolean> {
   await ensureWebhookEventTable()
-  try {
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "StripeWebhookEvent" ("id", "type") VALUES (?, ?)`,
-      eventId,
-      eventType
-    )
-    return true
-  } catch {
-    // id déjà vu => retry/replay, ignorer
-    return false
-  }
+  const rows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(
+    `SELECT "id" FROM "StripeWebhookEvent" WHERE "id" = ? LIMIT 1`,
+    eventId
+  )
+  return rows.length > 0
+}
+
+/** À appeler uniquement après un traitement réussi (sinon Stripe retry ne recrédite pas). */
+async function markWebhookEventProcessed(eventId: string, eventType: string): Promise<void> {
+  await ensureWebhookEventTable()
+  await prisma.$executeRawUnsafe(
+    `INSERT INTO "StripeWebhookEvent" ("id", "type") VALUES (?, ?)`,
+    eventId,
+    eventType
+  )
 }
 
 function getWebhookSecret() {
@@ -136,8 +140,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const isNewEvent = await markWebhookEventAsNew(event.id, event.type)
-    if (!isNewEvent) {
+    if (await isWebhookEventProcessed(event.id)) {
       return Response.json({ ok: true, duplicate: true })
     }
 
@@ -146,11 +149,10 @@ export async function POST(req: Request) {
       const intent = session.metadata?.intent
 
       if (intent === "credit_purchase") {
-        // Achat de crédits par un utilisateur connecté
         const userId = session.metadata?.userId
         const credits = parseInt(session.metadata?.credits ?? "0", 10)
         if (userId && credits > 0) {
-          await addCredits(userId, credits)
+          await applyStripeCreditPurchaseOnce(`checkout_session:${session.id}`, userId, credits)
         }
       } else {
         // Flux réservation existant
@@ -173,7 +175,7 @@ export async function POST(req: Request) {
         const userId = paymentIntent.metadata?.userId
         const credits = parseInt(paymentIntent.metadata?.credits ?? "0", 10)
         if (userId && credits > 0) {
-          await addCredits(userId, credits)
+          await applyStripeCreditPurchaseOnce(`payment_intent:${paymentIntent.id}`, userId, credits)
         }
       } else {
         // Flux réservation existant
@@ -186,6 +188,7 @@ export async function POST(req: Request) {
       }
     }
 
+    await markWebhookEventProcessed(event.id, event.type)
     return Response.json({ ok: true })
   } catch (error) {
     console.error("Erreur traitement webhook:", error)
