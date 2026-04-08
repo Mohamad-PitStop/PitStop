@@ -46,10 +46,12 @@ model Reservation {
 
   cancelToken     String?           @unique
   userId          String?
+  garageId        String?
 
   @@index([status, startAt])
   @@index([cancelToken])
   @@index([userId])
+  @@index([garageId, startAt])
 }
 
 model DiagnosticRequest {
@@ -66,7 +68,257 @@ model DiagnosticRequest {
   probleme    String   // Texte libre saisi par le client
   followUps   String?  // JSON: tableau des Q/R complémentaires
   promptText  String   // Prompt complet envoyé à l’IA (pour consultation)
+  userId      String?
 
   @@index([createdAt])
+}
+
+// ── Tables historiquement créées en SQL brut ; déclarées ici pour éviter le drift Migrate ──
+
+model BlockedSlot {
+  id        String   @id
+  createdAt DateTime @default(now())
+  startAt   DateTime
+  endAt     DateTime
+  label     String?
+
+  @@index([startAt])
+}
+
+model CustomSlot {
+  id        String   @id
+  createdAt DateTime @default(now())
+  startAt   DateTime
+  endAt     DateTime
+  label     String?
+
+  @@index([startAt])
+}
+
+model UserAccount {
+  id                 String   @id
+  createdAt          DateTime @default(now())
+  name               String
+  email              String   @unique
+  passwordHash       String
+  role               String   @default("user")
+  diagnosticCredits  Int      @default(0)
+  signupPostalCode   String?
+  signupCity         String?
+  garageId           String?
+}
+
+model UserSession {
+  id        String   @id
+  createdAt DateTime @default(now())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+
+  @@index([userId])
+}
+
+model PendingRoleAssignment {
+  id        String   @id
+  createdAt DateTime @default(now())
+  email     String   @unique
+  role      String
+}
+
+model WelcomeCreditGrant {
+  id        String   @id
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash])
+}
+
+model StripeCreditApplied {
+  id        String   @id
+  createdAt DateTime @default(now())
+  userId    String
+  credits   Int
+}
+
+model AdminCreditGrant {
+  id           String   @id
+  createdAt    DateTime @default(now())
+  adminUserId  String
+  targetUserId String
+  targetEmail  String
+  credits      Int
+  reason       String?
+}
+
+model PasswordResetToken {
+  id        String   @id
+  createdAt DateTime @default(now())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  used      Int      @default(0)
+}
+
+model PendingEmailVerification {
+  id           String   @id
+  createdAt    DateTime @default(now())
+  email        String   @unique
+  name         String
+  passwordHash String
+  tokenHash    String   @unique
+  expiresAt    DateTime
+  postalCode   String   @default("")
+  city         String   @default("")
+}
+
+model PendingGarageRegistration {
+  id         String   @id
+  createdAt  DateTime @default(now())
+  email      String   @unique
+  type       String   @default("owner")
+  garageData String?
+  garageId   String?
+}
+
+model Garage {
+  id                  String    @id
+  createdAt           DateTime  @default(now())
+  garageCode          String    @unique
+  companyName         String
+  bceTvaNumber        String
+  street              String
+  postalCode          String
+  city                String
+  country             String    @default("BE")
+  iban                String
+  professionalPhone   String
+  professionalEmail   String
+  managerName         String
+  managerUserId       String?
+  specialties         String    @default("[]")
+  businessHours       String    @default("{}")
+  status              String    @default("pending")
+  approvedAt          DateTime?
+  suspendedAt         DateTime?
+  suspendedReason     String?
+
+  @@index([status])
+  @@index([postalCode])
+}
+
+model GarageEmployee {
+  id              String   @id
+  createdAt       DateTime @default(now())
+  garageId        String
+  email           String
+  userId          String?
+  invitedByUserId String
+  status          String   @default("invited")
+
+  @@unique([garageId, email])
+  @@index([email])
+}
+
+model GarageClosure {
+  id                String   @id
+  createdAt         DateTime @default(now())
+  garageId          String
+  date              String
+  reason            String?
+  createdByUserId   String
+
+  @@index([garageId, date])
+}
+
+model GarageBlockedSlot {
+  id                String   @id
+  createdAt         DateTime @default(now())
+  garageId          String
+  startAt           DateTime
+  endAt             DateTime
+  label             String?
+  createdByUserId   String
+
+  @@index([garageId, startAt])
+}
+
+model GarageHoursChangeRequest {
+  id                  String    @id
+  createdAt           DateTime  @default(now())
+  garageId            String
+  requestedByUserId   String
+  currentHours        String
+  proposedHours       String
+  status              String    @default("pending")
+  adminNote           String?
+  processedAt         DateTime?
+  processedByUserId   String?
+
+  @@index([garageId])
+  @@index([status])
+}
+
+model DepositPayout {
+  id                  String    @id
+  createdAt           DateTime  @default(now())
+  garageId            String
+  reservationId       String    @unique
+  amountCents         Int
+  status              String    @default("pending")
+  readyAt             DateTime?
+  requestedAt         DateTime?
+  transferredAt       DateTime?
+  transferReference   String?
+  processedByUserId   String?
+
+  @@index([garageId])
+  @@index([status])
+}
+
+model PromoCode {
+  id                  String   @id
+  code                String   @unique
+  discountType        String
+  discountValue       Int
+  maxUses             Int?
+  usedCount           Int      @default(0)
+  active              Int      @default(1)
+  createdAt           DateTime @default(now())
+  reservedForUserId   String?  @unique
+}
+
+model PromoCodeUsage {
+  id           String   @id
+  createdAt    DateTime @default(now())
+  promoCodeId  String
+  ipHash       String
+  userId       String?
+  context      String
+
+  @@index([promoCodeId])
+  @@index([ipHash])
+}
+
+model CreditGiftCode {
+  id        String   @id
+  createdAt DateTime @default(now())
+  code      String   @unique
+  credits   Int
+  maxUses   Int?
+  usedCount Int      @default(0)
+  active    Int      @default(1)
+  label     String?
+}
+
+model CreditGiftRedemption {
+  id             String   @id
+  createdAt      DateTime @default(now())
+  giftCodeId     String
+  userId         String
+  creditsGranted Int
+  ipHash         String
+
+  @@unique([giftCodeId, userId])
+  @@index([userId])
 }
 

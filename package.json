@@ -7,6 +7,8 @@
     "dev:http": "next dev",
     "dev:lan": "next dev --hostname 0.0.0.0",
     "build": "prisma generate && next build",
+    "db:migrate:remote": "node scripts/apply-prisma-migrations-libsql.mjs",
+    "db:ping": "node scripts/ping-turso.mjs",
     "start": "next start",
     "lint": "eslint .",
     "catalog:validate": "node scripts/validate-vehicle-year-catalog.mjs",

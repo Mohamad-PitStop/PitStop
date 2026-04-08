@@ -1,9 +1,10 @@
 import { PrismaClient } from "@/generated/prisma"
 import { PrismaLibSql } from "@prisma/adapter-libsql"
+import { getDatabaseUrl, getTursoAuthToken } from "@/lib/database-config"
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
-const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db"
-const authToken = process.env.TURSO_AUTH_TOKEN
+const databaseUrl = getDatabaseUrl()
+const authToken = getTursoAuthToken()
 const adapter = new PrismaLibSql({ url: databaseUrl, authToken })
 
 export const prisma =

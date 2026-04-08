@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
@@ -81,9 +81,58 @@ function TabNav({
   )
 }
 
+/** Onglets Diagnostic / Vente, ou lien unique vers l’espace garage pour les garagistes. */
+function DiagnosticVenteNavOrGarage({
+  isDiagnostic,
+  isVente,
+  diagnosticHref,
+  isGaragiste,
+  className,
+}: {
+  isDiagnostic: boolean
+  isVente: boolean
+  diagnosticHref: string
+  isGaragiste: boolean
+  className?: string
+}) {
+  const { t } = useTranslation()
+  const pathname = usePathname()
+  if (isGaragiste) {
+    const active = pathname.startsWith("/garage")
+    return (
+      <nav
+        className={cn(
+          "bg-muted text-muted-foreground grid shrink-0 grid-cols-1 items-stretch gap-0 rounded-lg p-[3px] text-center",
+          tabNavWidthClass,
+          className
+        )}
+        aria-label={t("navbar.mainNav")}
+      >
+        <Link
+          href="/garage/dashboard"
+          prefetch={false}
+          className={cn(tabBase, active ? tabActive : tabInactive)}
+          aria-current={active ? "page" : undefined}
+        >
+          {t("navbar.garageDashboard")}
+        </Link>
+      </nav>
+    )
+  }
+  return (
+    <TabNav
+      isDiagnostic={isDiagnostic}
+      isVente={isVente}
+      diagnosticHref={diagnosticHref}
+      className={className}
+    />
+  )
+}
+
 export function Navbar() {
   const { t } = useTranslation()
   const pathname = usePathname()
+  const router = useRouter()
   const isHome = pathname === "/"
   const isConnexionPage = pathname.startsWith("/connexion")
   const isDiagnostic = pathname.startsWith("/diagnostic")
@@ -114,6 +163,16 @@ export function Navbar() {
     return () => window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, loadSession)
   }, [pathname])
 
+  const isGaragiste = user?.role === "garagiste"
+
+  useEffect(() => {
+    if (!authReady || !isGaragiste) return
+    if (pathname.startsWith("/garage")) return
+    if (pathname === "/") {
+      router.replace("/garage/dashboard")
+    }
+  }, [authReady, isGaragiste, pathname, router])
+
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" })
     setUser(null)
@@ -131,11 +190,27 @@ export function Navbar() {
     (user ? (
       <div className="flex min-w-0 max-w-full flex-nowrap items-center justify-end gap-1.5 sm:gap-x-2">
         {user.role === "admin" && (
+          <>
+            <Link
+              href="/admin/users"
+              className="hidden shrink-0 text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors min-[1200px]:inline sm:text-xs"
+            >
+              ⚙ Admin
+            </Link>
+            <Link
+              href="/admin/garages"
+              className="hidden shrink-0 text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors min-[1200px]:inline sm:text-xs"
+            >
+              {t("navbar.adminGarages")}
+            </Link>
+          </>
+        )}
+        {user.role === "garagiste" && (
           <Link
-            href="/admin/users"
-            className="hidden shrink-0 text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors min-[1200px]:inline sm:text-xs"
+            href="/garage/dashboard"
+            className="hidden shrink-0 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors min-[1200px]:inline sm:text-xs"
           >
-            ⚙ Admin
+            {t("navbar.garageDashboard")}
           </Link>
         )}
         <Link
@@ -178,7 +253,7 @@ export function Navbar() {
 
   // Indicateur crédits pour la page d'accueil et la page diagnostic (desktop)
   const creditsIndicator =
-    user && (isHome || isDiagnostic) ? (
+    user && !isGaragiste && (isHome || isDiagnostic) ? (
       <div className="hidden min-[1280px]:flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400">
           <Zap className="h-3.5 w-3.5" />
@@ -218,7 +293,12 @@ export function Navbar() {
                     priority
                   />
                 </Link>
-                <TabNav isDiagnostic={isDiagnostic} isVente={isVente} diagnosticHref={diagnosticHref} />
+                <DiagnosticVenteNavOrGarage
+                  isDiagnostic={isDiagnostic}
+                  isVente={isVente}
+                  diagnosticHref={diagnosticHref}
+                  isGaragiste={isGaragiste}
+                />
               </div>
               {/* Ligne 2 : infos connexion */}
               <div className="flex w-full min-w-0 items-center justify-between">
@@ -251,7 +331,12 @@ export function Navbar() {
                       priority
                     />
                   </Link>
-                  <TabNav isDiagnostic={isDiagnostic} isVente={isVente} diagnosticHref={diagnosticHref} />
+                  <DiagnosticVenteNavOrGarage
+                    isDiagnostic={isDiagnostic}
+                    isVente={isVente}
+                    diagnosticHref={diagnosticHref}
+                    isGaragiste={isGaragiste}
+                  />
                 </div>
               )}
             </>
@@ -280,7 +365,12 @@ export function Navbar() {
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
             {creditsIndicator}
             {authBlock}
-            <TabNav isDiagnostic={isDiagnostic} isVente={isVente} diagnosticHref={diagnosticHref} />
+            <DiagnosticVenteNavOrGarage
+              isDiagnostic={isDiagnostic}
+              isVente={isVente}
+              diagnosticHref={diagnosticHref}
+              isGaragiste={isGaragiste}
+            />
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import {
   markReservationCancelled,
   getCancelWindow,
 } from "@/lib/reservation-db"
+import { cancelPayout } from "@/lib/deposit-payout-db"
 import { deleteCalendarEvent } from "@/lib/google-calendar"
 import nodemailer from "nodemailer"
 import { format } from "date-fns"
@@ -106,6 +107,7 @@ export async function POST(req: Request) {
     }
 
     await markReservationCancelled(reservation.id)
+    await cancelPayout(reservation.id)
 
     // ── Emails ───────────────────────────────────────────────────────────────
     try {

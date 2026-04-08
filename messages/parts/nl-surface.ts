@@ -86,7 +86,7 @@ export const nlSurface = {
     titleObd: "OBD-scan plannen",
     titleStandard: "Een afspraak plannen",
     description:
-      "Liever door een partnergarage gecontacteerd worden in plaats van ADI‑Cars rechtstreeks? Vul uw gegevens in en stel een concreet tijdslot voor om uw voertuig af te geven. Een partnergarage ontvangt uw aanvraag per e-mail en neemt contact met u op.",
+      "Liever door een partnergarage gecontacteerd worden? Vul uw gegevens in en stel een concreet tijdslot voor om uw voertuig af te geven. Een partnergarage ontvangt uw aanvraag per e-mail en neemt contact met u op.",
     nameLabel: "Voor- en achternaam",
     phoneLabel: "Telefoon",
     postalLabel: "Postcode",
@@ -128,12 +128,13 @@ export const nlSurface = {
     referenceDesc:
       "Dit is de hoofdpartnergarage. U kunt ook de dichtstbijzijnde partnergarages zoeken op basis van uw postcode.",
     findNearTitle: "Een partnergarage in de buurt zoeken",
-    findNearDesc: "Geef uw postcode op om de afstand te schatten en de route te tonen.",
+    findNearDesc: "Geef uw postcode op om garages op afstand te sorteren.",
     yourPostal: "Uw postcode",
     postalPh: "Bv. 1420",
     searchingZone: "Uw zone zoeken…",
     postalNotFound: "Deze postcode werd niet gevonden. Probeer een ander formaat (bv. 1420).",
     partnersList: "Partnergarages",
+    noGarages: "Geen partnergarages beschikbaar op dit moment.",
     mapIframeTitle: "Kaart — partnergarages",
     mapPlaceholder: "Voer uw postcode in om de kaart en route naar de dichtstbijzijnde partnergarage te tonen.",
     call: "Bellen",
@@ -166,6 +167,11 @@ export const nlSurface = {
     hoursByAppointment: "Op afspraak",
     callGarage: "Garage bellen",
     mapIframeTitle: "Kaart — {{name}}",
+    bookingWithPartnerGarage:
+      "De getoonde slots en de aanbetaling gelden voor de geselecteerde partnergarage.",
+    viewGaragePage: "Garagefiche bekijken",
+    loadingGarage: "Garage laden…",
+    garageNotFound: "Dit garage werd niet gevonden of is niet meer beschikbaar.",
   },
   profilePage: {
     updatedToast: "Profiel bijgewerkt.",

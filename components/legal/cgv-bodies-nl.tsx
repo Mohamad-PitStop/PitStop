@@ -8,7 +8,7 @@ export function CgvBodyNl() {
         <p className="text-muted-foreground">
           PitStop: Particuliere klanten (België)
           <br />
-          Versie 1.1: Laatst bijgewerkt: 5 april 2026
+          Versie 1.2: Laatst bijgewerkt: 5 april 2026
         </p>
       </header>
 
@@ -68,7 +68,13 @@ export function CgvBodyNl() {
           <li>Diagnose: schatting en oriëntatie door PitStop op basis van door de Klant verstrekte informatie;</li>
           <li>Credit: verbruikseenheid die toegang geeft tot één diagnose;</li>
           <li>Partnergarage: onafhankelijke professional op het platform vermeld;</li>
-          <li>Voorschot: bedrag van 25 EUR betaald bij het boeken van een afspraak.</li>
+          <li>Gekozen garage: de door de Klant bij de reservering aangewezen partnergarage;</li>
+          <li>Voorschot: bedrag van 25 EUR betaald bij het boeken van een afspraak;</li>
+          <li>
+            Bewaring van het voorschot: het voorschot wordt geïnd via een betalingsdienstverlener (Stripe) en aan de zijde van
+            PitStop opgevolgd voor manuele uitbetaling aan de Gekozen garage zoals hieronder beschreven, zonder Stripe Connect
+            voor rekening van de garage.
+          </li>
         </ul>
       </section>
 
@@ -135,6 +141,9 @@ export function CgvBodyNl() {
           <br />
           7.4 PitStop bewaart geen volledige kaartgegevens; die worden door de betaaldienstverlener volgens diens eigen voorwaarden
           verwerkt.
+          <br />
+          7.5 Bij betaling van het voorschot voor een reservering wordt de Klant geïnformeerd dat de regels voor annulering en
+          behoud van het voorschot die van artikel 10 van deze AV zijn (vensters 12 u / 1 u, no-show, enz.).
         </p>
       </section>
 
@@ -165,6 +174,17 @@ export function CgvBodyNl() {
           <br />
           9.4 De garage kan het voorschot behouden in de gevallen van artikelen 10.2 tot 10.5 en, indien van toepassing, wanneer
           gerechtvaardigde voorbereidingskosten zijn gemaakt.
+          <br />
+          9.5 Het voorschot is toegewezen aan de reservering en de Gekozen garage. Het wordt beheerd via een interne
+          bewaringsregistratie (opvolging in databank): PitStop overschrijft geen gelden automatisch naar de bankrekening van de
+          garage via Stripe Connect; uitbetaling aan de garage gebeurt door manuele bankoverschrijving naar de door de garage
+          opgegeven professionele IBAN, onder voorbehoud van verwerkingsstatussen en annuleringen/terugbetalingen onder deze AV.
+          <br />
+          9.6 Bij volledige terugbetaling aan de Klant in overeenstemming met artikel 10 (of een minnelijke beslissing) wordt de
+          overeenkomstige vordering van de Gekozen garage op dat voorschot geacht uitgedoofd of dienovereenkomstig aangepast.
+          <br />
+          9.7 De praktische termijnen voor terugbetaling op het oorspronkelijke betaalmiddel hangen af van de betaaldienstverlener
+          en de kaartuitgever; eventuele aan de Klant meegedeelde termijnen (bv. 5 tot 10 werkdagen) zijn indicatief.
         </p>
       </section>
 
@@ -189,6 +209,10 @@ export function CgvBodyNl() {
             <li>
               Gevolg: online annulering niet beschikbaar; de Klant moet rechtstreeks contact opnemen met de garage. Eventuele
               terugbetaling van het voorschot hangt af van de overeenkomst met de garage; PitStop kan bemiddeling vergemakkelijken.
+            </li>
+            <li>
+              Bovendien kan de Gekozen garage, vanuit zijn PitStop-professionele omgeving en met akkoord van de Klant, een
+              annulering registreren die leidt tot terugbetaling van het voorschot voor zover de betaaltools dit toelaten.
             </li>
           </ul>
         </div>

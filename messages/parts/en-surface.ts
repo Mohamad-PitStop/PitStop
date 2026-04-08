@@ -86,7 +86,7 @@ export const enSurface = {
     titleObd: "Schedule an OBD scan",
     titleStandard: "Schedule an appointment",
     description:
-      "Prefer to be contacted by a partner garage instead of contacting ADI‑Cars directly? Enter your details and suggest a specific slot to drop off your vehicle. A partner garage will receive your request by email and contact you.",
+      "Prefer to be contacted by a partner garage? Enter your details and suggest a specific slot to drop off your vehicle. A partner garage will receive your request by email and contact you.",
     nameLabel: "First and last name",
     phoneLabel: "Phone",
     postalLabel: "Postal code",
@@ -127,12 +127,13 @@ export const enSurface = {
     referenceDesc:
       "This is the main partner garage. You can also find the closest partner garages using your postal code.",
     findNearTitle: "Find a nearby partner garage",
-    findNearDesc: "Enter your postal code to estimate distance and show directions.",
+    findNearDesc: "Enter your postal code to sort garages by proximity.",
     yourPostal: "Your postal code",
     postalPh: "e.g. 1420",
     searchingZone: "Looking up your area…",
     postalNotFound: "Could not find this postal code. Try another format (e.g. 1420).",
     partnersList: "Partner garages",
+    noGarages: "No partner garages available at the moment.",
     mapIframeTitle: "Map — partner garages",
     mapPlaceholder: "Enter your postal code to show the map and route to the nearest partner garage.",
     call: "Call",
@@ -165,6 +166,11 @@ export const enSurface = {
     hoursByAppointment: "By appointment",
     callGarage: "Call the garage",
     mapIframeTitle: "Map — {{name}}",
+    bookingWithPartnerGarage:
+      "Available slots and the deposit apply to the selected partner garage.",
+    viewGaragePage: "View garage profile",
+    loadingGarage: "Loading garage…",
+    garageNotFound: "This garage could not be found or is no longer available.",
   },
   profilePage: {
     updatedToast: "Profile updated.",

@@ -10,7 +10,7 @@ export function CgvBodyFr() {
         <p className="text-muted-foreground">
           PitStop : Clients particuliers (Belgique)
           <br />
-          Version 1.1 : Dernière mise à jour : 5 avril 2026
+          Version 1.2 : Dernière mise à jour : 5 avril 2026
         </p>
       </header>
 
@@ -71,7 +71,13 @@ export function CgvBodyFr() {
           <li>Diagnostic : estimation et orientation fournies par PitStop sur base des informations déclarées par le Client ;</li>
           <li>Crédit : unité de consommation permettant l&apos;accès à un diagnostic ;</li>
           <li>Garage partenaire : professionnel indépendant référencé sur la plateforme ;</li>
-          <li>Acompte : somme de 25 EUR versée lors de la réservation d&apos;un rendez-vous.</li>
+          <li>Garage choisi : le garage partenaire désigné par le Client lors de la réservation ;</li>
+          <li>Acompte : somme de 25 EUR versée lors de la réservation d&apos;un rendez-vous ;</li>
+          <li>
+            Séquestre de l&apos;acompte : l&apos;acompte est encaissé via un prestataire de paiement (Stripe) et fait l&apos;objet
+            d&apos;un suivi comptable côté PitStop en vue d&apos;un reversement manuel au Garage choisi selon les règles ci-dessous,
+            sans recours à Stripe Connect pour le compte du garage.
+          </li>
         </ul>
       </section>
 
@@ -139,6 +145,9 @@ export function CgvBodyFr() {
           <br />
           7.4 PitStop ne conserve pas les données complètes de carte ; ces données sont traitées par le prestataire de
           paiement conformément à ses propres conditions.
+          <br />
+          7.5 Lors du paiement de l&apos;acompte pour une réservation, le Client est informé que les règles d&apos;annulation et de
+          conservation du dépôt sont celles de l&apos;article 10 des présentes CGV (fenêtres 12 h / 1 h, no-show, etc.).
         </p>
       </section>
 
@@ -170,6 +179,19 @@ export function CgvBodyFr() {
           <br />
           9.4 Le garage peut conserver l&apos;acompte dans les cas prévus aux articles 10.2 à 10.5 et, le cas échéant,
           lorsque des frais de préparation justifiés sont engagés.
+          <br />
+          9.5 L&apos;acompte est affecté à la réservation et au Garage choisi. Il est géré selon un dispositif de séquestre
+          interne (suivi en base de données) : PitStop ne transfère pas automatiquement les fonds sur le compte bancaire du
+          garage via Stripe Connect ; le reversement au garage intervient par virement bancaire manuel sur l&apos;IBAN
+          professionnel déclaré par le garage, sous réserve des statuts de traitement et des annulations/remboursements prévus
+          aux présentes CGV.
+          <br />
+          9.6 En cas de remboursement intégral du Client conformément à l&apos;article 10 (ou décision amiable), la créance
+          correspondante du Garage choisi sur cet acompte est réputée éteinte ou ajustée en cohérence avec ce remboursement.
+          <br />
+          9.7 Les délais pratiques de remboursement sur le moyen de paiement d&apos;origine dépendent du prestataire de paiement
+          et de l&apos;émetteur de la carte ; les indications communiquées au Client (par exemple 5 à 10 jours ouvrés) sont
+          données à titre indicatif.
         </p>
       </section>
 
@@ -194,6 +216,11 @@ export function CgvBodyFr() {
             <li>
               Effet : annulation en ligne indisponible ; le Client doit contacter directement le garage. Le remboursement
               éventuel de l&apos;acompte dépend de l&apos;accord conclu avec le garage ; PitStop peut faciliter la médiation.
+            </li>
+            <li>
+              À titre complémentaire, le Garage choisi peut, depuis son espace professionnel PitStop et avec l&apos;accord du
+              Client, enregistrer une annulation conduisant au remboursement de l&apos;acompte lorsque les outils de paiement
+              le permettent.
             </li>
           </ul>
         </div>

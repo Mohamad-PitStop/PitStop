@@ -27,6 +27,8 @@ export const nlCore = {
     credit: "credit",
     credits: "credits",
     buy: "Kopen",
+    garageDashboard: "Garageportaal",
+    adminGarages: "Garages",
   },
   cookies: {
     banner:

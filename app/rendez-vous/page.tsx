@@ -4,7 +4,7 @@ import { RendezVousPageContent } from "@/components/rendez-vous-page-content"
 export default async function RendezVousPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ type?: string; priceMin?: string; priceMax?: string }>
+  searchParams?: Promise<{ type?: string; priceMin?: string; priceMax?: string; garageId?: string }>
 }) {
   const params = await searchParams
   const isObd = params?.type === "obd-scan"
@@ -31,6 +31,7 @@ export default async function RendezVousPage({
             bookingType={bookingType}
             priceMin={priceMin}
             priceMax={priceMax}
+            selectedGarageId={params?.garageId}
             garageName={garageName}
             garageAddress={garageAddress}
             garagePhoneDisplay={garagePhoneDisplay}

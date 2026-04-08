@@ -12,6 +12,9 @@ import {
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { getClientIp } from "@/lib/rate-limit"
 import { generateCancelToken, ensureReservationMigrations } from "@/lib/reservation-db"
+import { ensureGarageTables, findGarageById } from "@/lib/garage-db"
+import { createDepositPayout } from "@/lib/deposit-payout-db"
+import { isGarageSlotBookable } from "@/lib/garage-availability"
 
 export const runtime = "nodejs"
 
@@ -26,6 +29,7 @@ const BodySchema = z.object({
   priceMin: z.number().positive().optional(),
   priceMax: z.number().positive().optional(),
   promoCode: z.string().trim().optional().nullable(),
+  garageId: z.string().optional().nullable(),
   vehicle: z
     .object({
       marque: z.string().optional(),
@@ -60,7 +64,20 @@ export async function POST(req: Request) {
     let amount = getDepositAmountCents(body.priceMin)
 
     const calendarId = getCalendarIdIfConfigured()
-    if (calendarId) {
+    if (body.garageId) {
+      await ensureGarageTables()
+      const garage = await findGarageById(body.garageId)
+      if (!garage || garage.status !== "approved") {
+        return Response.json({ ok: false, error: "Garage invalide ou non disponible." }, { status: 400 })
+      }
+      const slotOk = await isGarageSlotBookable(body.garageId, body.startAt, body.endAt)
+      if (!slotOk) {
+        return Response.json(
+          { ok: false, error: "Ce créneau n'est plus disponible. Merci d'en choisir un autre." },
+          { status: 409 }
+        )
+      }
+    } else if (calendarId) {
       const ok = await isSlotFree({ calendarId, startAt: body.startAt, endAt: body.endAt })
       if (!ok) {
         return Response.json(
@@ -90,6 +107,7 @@ export async function POST(req: Request) {
     }
 
     await ensureReservationMigrations()
+    if (body.garageId) await ensureGarageTables()
     const cancelToken = generateCancelToken()
 
     const reservation = await prisma.reservation.create({
@@ -106,11 +124,16 @@ export async function POST(req: Request) {
         vehicleAnnee: body.vehicle?.annee,
         vehicleKm: body.vehicle?.km,
         status: "pending",
-        calendarId: calendarId ?? undefined,
+        calendarId: body.garageId ? undefined : calendarId ?? undefined,
         cancelToken,
         userId: user?.id ?? undefined,
+        garageId: body.garageId ?? undefined,
       },
     })
+
+    if (body.garageId) {
+      await createDepositPayout(body.garageId, reservation.id, amount)
+    }
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,

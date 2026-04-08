@@ -27,6 +27,8 @@ export const enCore = {
     credit: "credit",
     credits: "credits",
     buy: "Buy",
+    garageDashboard: "Garage portal",
+    adminGarages: "Garages",
   },
   cookies: {
     banner:

@@ -8,7 +8,7 @@ export function CgvBodyEn() {
         <p className="text-muted-foreground">
           PitStop: Private customers (Belgium)
           <br />
-          Version 1.1: Last updated: 5 April 2026
+          Version 1.2: Last updated: 5 April 2026
         </p>
       </header>
 
@@ -64,7 +64,12 @@ export function CgvBodyEn() {
           <li>Diagnostic: estimate and guidance provided by PitStop based on information declared by the Customer;</li>
           <li>Credit: consumption unit granting access to one diagnostic;</li>
           <li>Partner garage: independent professional listed on the platform;</li>
-          <li>Deposit: amount of EUR 25 paid when booking an appointment.</li>
+          <li>Selected garage: the partner garage designated by the Customer when booking;</li>
+          <li>Deposit: amount of EUR 25 paid when booking an appointment;</li>
+          <li>
+            Deposit escrow: the deposit is collected via a payment provider (Stripe) and tracked on PitStop&apos;s side for
+            manual payout to the Selected garage as described below, without using Stripe Connect on the garage&apos;s behalf.
+          </li>
         </ul>
       </section>
 
@@ -130,6 +135,9 @@ export function CgvBodyEn() {
           7.3 The Customer warrants that they are authorised to use the selected payment method.
           <br />
           7.4 PitStop does not store full card data; such data is processed by the payment provider under its own terms.
+          <br />
+          7.5 When paying the deposit for a booking, the Customer is informed that cancellation and deposit retention rules are
+          those in Article 10 of these GTS (12 h / 1 h windows, no-show, etc.).
         </p>
       </section>
 
@@ -160,6 +168,17 @@ export function CgvBodyEn() {
           <br />
           9.4 The garage may retain the deposit in the cases set out in Articles 10.2 to 10.5 and, where applicable, when
           justified preparation costs have been incurred.
+          <br />
+          9.5 The deposit is allocated to the booking and the Selected garage. It is managed through an internal escrow-style
+          process (database tracking): PitStop does not automatically transfer funds to the garage&apos;s bank account via
+          Stripe Connect; payout to the garage is by manual bank transfer to the professional IBAN declared by the garage,
+          subject to processing statuses and cancellations/refunds under these GTS.
+          <br />
+          9.6 If the Customer receives a full refund in line with Article 10 (or an amicable decision), the corresponding
+          claim of the Selected garage on that deposit is deemed extinguished or adjusted accordingly.
+          <br />
+          9.7 Actual refund times to the original payment method depend on the payment provider and card issuer; any timelines
+          communicated to the Customer (e.g. 5–10 business days) are indicative.
         </p>
       </section>
 
@@ -184,6 +203,10 @@ export function CgvBodyEn() {
             <li>
               Effect: online cancellation unavailable; the Customer must contact the garage directly. Any refund of the
               deposit depends on the agreement with the garage; PitStop may facilitate mediation.
+            </li>
+            <li>
+              In addition, the Selected garage may, from its PitStop professional area and with the Customer&apos;s agreement,
+              record a cancellation that leads to refund of the deposit where payment tools allow.
             </li>
           </ul>
         </div>

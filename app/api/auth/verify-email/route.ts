@@ -14,11 +14,15 @@ import {
   addCredits,
   canGrantWelcomeCredit,
   recordWelcomeCreditGrant,
+  setUserGarageId,
   type UserRole,
 } from "@/lib/accounts-db"
 import { AUTH_COOKIE_NAME, buildSessionCookieOptions, createAuthSession } from "@/lib/auth-session"
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit"
 import { sendSignupConfirmedEmail } from "@/lib/signup-confirmed-email"
+import { findPendingGarageRegistration, deletePendingGarageRegistration } from "@/lib/pending-garage-registration-db"
+import { createGarage } from "@/lib/garage-db"
+import { activateEmployee } from "@/lib/garage-employee-db"
 
 export const runtime = "nodejs"
 
@@ -68,11 +72,20 @@ export async function POST(req: Request) {
       return res
     }
 
-    // Déterminer le rôle (priorité : admin email > pré-assignation > user)
+    // Vérifier s'il y a une inscription garage en attente
+    const pendingGarage = await findPendingGarageRegistration(pending.email)
+
+    // Déterminer le rôle (priorité : admin email > garage > pré-assignation > user)
     let role: UserRole = ADMIN_EMAIL && pending.email === ADMIN_EMAIL ? "admin" : "user"
     let pendingAssignmentId: string | null = null
+    let garageId: string | null = null
 
-    if (role !== "admin") {
+    if (pendingGarage) {
+      role = "garagiste"
+      if (pendingGarage.type === "employee" && pendingGarage.garageId) {
+        garageId = pendingGarage.garageId
+      }
+    } else if (role !== "admin") {
       const pendingRole = await findPendingAssignmentByEmail(pending.email)
       if (pendingRole) {
         role = pendingRole.role
@@ -88,7 +101,37 @@ export async function POST(req: Request) {
       role,
       signupPostalCode: pending.postalCode || null,
       signupCity: pending.city || null,
+      garageId,
     })
+
+    // Si inscription garage owner : créer le garage
+    if (pendingGarage?.type === "owner" && pendingGarage.garageData) {
+      const gd = JSON.parse(pendingGarage.garageData)
+      const garage = await createGarage({
+        companyName: gd.companyName,
+        bceTvaNumber: gd.bceTvaNumber,
+        street: gd.street,
+        postalCode: gd.postalCode,
+        city: gd.city,
+        iban: gd.iban,
+        professionalPhone: gd.professionalPhone,
+        professionalEmail: gd.professionalEmail,
+        managerName: gd.managerName,
+        managerUserId: account.id,
+        specialties: gd.specialties,
+        businessHours: gd.businessHours,
+      })
+      // Lier l'account au garage
+      await setUserGarageId(account.id, garage.id)
+    }
+
+    // Si inscription garage employee : activer l'employé
+    if (pendingGarage?.type === "employee" && garageId) {
+      await activateEmployee(garageId, pending.email, account.id)
+    }
+
+    // Nettoyer l'inscription garage en attente
+    if (pendingGarage) await deletePendingGarageRegistration(pending.email)
 
     // Consommer la pré-assignation de rôle si elle existait
     if (pendingAssignmentId) await deletePendingAssignment(pendingAssignmentId)

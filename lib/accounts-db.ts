@@ -1,7 +1,7 @@
 import { randomUUID, createHash } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 
-export type UserRole = "admin" | "tester" | "user" | "user_friend"
+export type UserRole = "admin" | "tester" | "user" | "user_friend" | "garagiste"
 
 type AccountRow = {
   id: string
@@ -10,6 +10,7 @@ type AccountRow = {
   passwordHash: string
   role: UserRole
   diagnosticCredits: number
+  garageId: string | null
 }
 
 type SessionRow = {
@@ -76,6 +77,13 @@ async function ensureAccountsTable() {
   if (!signupCols.has("signupCity")) {
     await prisma.$executeRawUnsafe(`ALTER TABLE "UserAccount" ADD COLUMN "signupCity" TEXT`)
   }
+  // Migration : colonne garageId (lien vers le garage pour les garagistes)
+  const garageIdCols = await prisma.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM pragma_table_info('UserAccount') WHERE name = 'garageId'`
+  )
+  if (garageIdCols.length === 0) {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "UserAccount" ADD COLUMN "garageId" TEXT`)
+  }
   // Table anti-abus : crédit de bienvenue par IP (hash SHA-256)
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "WelcomeCreditGrant" (
@@ -120,14 +128,14 @@ export async function recordWelcomeCreditGrant(ip: string): Promise<void> {
 }
 
 function toRole(r: unknown): UserRole {
-  if (r === "admin" || r === "tester" || r === "user_friend") return r
+  if (r === "admin" || r === "tester" || r === "user_friend" || r === "garagiste") return r
   return "user"
 }
 
 export async function findAccountByEmail(email: string): Promise<AccountRow | null> {
   await ensureAccountsTable()
   const rows = await prisma.$queryRawUnsafe<AccountRow[]>(
-    `SELECT "id", "name", "email", "passwordHash", "role", "diagnosticCredits"
+    `SELECT "id", "name", "email", "passwordHash", "role", "diagnosticCredits", "garageId"
      FROM "UserAccount"
      WHERE lower("email") = lower(?)
      LIMIT 1`,
@@ -135,7 +143,7 @@ export async function findAccountByEmail(email: string): Promise<AccountRow | nu
   )
   const row = rows[0]
   if (!row) return null
-  return { ...row, role: toRole(row.role), diagnosticCredits: Number(row.diagnosticCredits ?? 0) }
+  return { ...row, role: toRole(row.role), diagnosticCredits: Number(row.diagnosticCredits ?? 0), garageId: row.garageId ?? null }
 }
 
 export async function createAccount(input: {
@@ -145,23 +153,26 @@ export async function createAccount(input: {
   role?: UserRole
   signupPostalCode?: string | null
   signupCity?: string | null
-}): Promise<{ id: string; name: string; email: string; role: UserRole }> {
+  garageId?: string | null
+}): Promise<{ id: string; name: string; email: string; role: UserRole; garageId: string | null }> {
   await ensureAccountsTable()
   const id = randomUUID()
   const role: UserRole = input.role ?? "user"
   const pc = input.signupPostalCode?.trim() ?? null
   const city = input.signupCity?.trim() ?? null
+  const garageId = input.garageId ?? null
   await prisma.$executeRawUnsafe(
-    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role", "diagnosticCredits", "signupPostalCode", "signupCity") VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
+    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role", "diagnosticCredits", "signupPostalCode", "signupCity", "garageId") VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`,
     id,
     input.name,
     input.email,
     input.passwordHash,
     role,
     pc,
-    city
+    city,
+    garageId
   )
-  return { id, name: input.name, email: input.email, role }
+  return { id, name: input.name, email: input.email, role, garageId }
 }
 
 export async function findAccountById(id: string): Promise<{
@@ -172,6 +183,7 @@ export async function findAccountById(id: string): Promise<{
   diagnosticCredits: number
   signupPostalCode: string | null
   signupCity: string | null
+  garageId: string | null
 } | null> {
   await ensureAccountsTable()
   const rows = await prisma.$queryRawUnsafe<
@@ -183,9 +195,10 @@ export async function findAccountById(id: string): Promise<{
       diagnosticCredits: number
       signupPostalCode: string | null
       signupCity: string | null
+      garageId: string | null
     }>
   >(
-    `SELECT "id", "name", "email", "role", "diagnosticCredits", "signupPostalCode", "signupCity" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
+    `SELECT "id", "name", "email", "role", "diagnosticCredits", "signupPostalCode", "signupCity", "garageId" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
     id
   )
   const row = rows[0]
@@ -196,6 +209,7 @@ export async function findAccountById(id: string): Promise<{
     diagnosticCredits: Number(row.diagnosticCredits ?? 0),
     signupPostalCode: row.signupPostalCode ?? null,
     signupCity: row.signupCity ?? null,
+    garageId: row.garageId ?? null,
   }
 }
 
@@ -325,6 +339,11 @@ export async function getAllAccounts(): Promise<Array<{ id: string; name: string
 export async function setUserRole(userId: string, role: UserRole): Promise<void> {
   await ensureAccountsTable()
   await prisma.$executeRawUnsafe(`UPDATE "UserAccount" SET "role" = ? WHERE "id" = ?`, role, userId)
+}
+
+export async function setUserGarageId(userId: string, garageId: string): Promise<void> {
+  await ensureAccountsTable()
+  await prisma.$executeRawUnsafe(`UPDATE "UserAccount" SET "garageId" = ? WHERE "id" = ?`, garageId, userId)
 }
 
 export async function logAdminCreditGrant(input: {

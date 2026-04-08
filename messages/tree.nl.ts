@@ -10,6 +10,7 @@ import { nlSale } from "./parts/nl-sale"
 import { nlMisc } from "./parts/nl-misc"
 import { nlSurface } from "./parts/nl-surface"
 import { nlPagesB } from "./parts/nl-pagesB"
+import { nlGarage } from "./parts/nl-garage"
 
 export const treeNl = deepMergeAll(
   nlCore as unknown as Record<string, unknown>,
@@ -22,5 +23,6 @@ export const treeNl = deepMergeAll(
   nlSale as unknown as Record<string, unknown>,
   nlMisc as unknown as Record<string, unknown>,
   nlSurface as unknown as Record<string, unknown>,
-  nlPagesB as unknown as Record<string, unknown>
+  nlPagesB as unknown as Record<string, unknown>,
+  nlGarage as unknown as Record<string, unknown>
 )

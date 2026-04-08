@@ -88,7 +88,7 @@ export const frSurface = {
     titleObd: "Planifier un scan OBD",
     titleStandard: "Planifier un rendez-vous",
     description:
-      "Vous préférez être recontacté par un garage partenaire au lieu de contacter directement ADI‑Cars ? Renseignez vos coordonnées et proposez un créneau précis pour déposer votre véhicule. Un garage partenaire recevra votre demande par e-mail puis vous recontactera.",
+      "Vous préférez être recontacté par un garage partenaire ? Renseignez vos coordonnées et proposez un créneau précis pour déposer votre véhicule. Un garage partenaire recevra votre demande par e-mail puis vous recontactera.",
     nameLabel: "Nom et prénom",
     phoneLabel: "Téléphone",
     postalLabel: "Code postal",
@@ -130,12 +130,13 @@ export const frSurface = {
     referenceDesc:
       "Voici le garage partenaire principal. Vous pouvez aussi chercher les garages partenaires les plus proches selon votre code postal.",
     findNearTitle: "Trouver un garage partenaire proche",
-    findNearDesc: "Indiquez votre code postal pour estimer la distance et afficher l'itinéraire.",
+    findNearDesc: "Indiquez votre code postal pour trier les garages par proximité.",
     yourPostal: "Votre code postal",
     postalPh: "Ex: 1420",
     searchingZone: "Recherche de votre zone…",
     postalNotFound: "Impossible de trouver ce code postal. Essayez un autre format (ex: 1420).",
     partnersList: "Garages partenaires",
+    noGarages: "Aucun garage partenaire disponible pour le moment.",
     mapIframeTitle: "Carte - garages partenaires",
     mapPlaceholder:
       "Entrez votre code postal pour afficher la carte et l'itinéraire vers le garage partenaire le plus proche.",
@@ -170,6 +171,11 @@ export const frSurface = {
     hoursByAppointment: "Sur rendez-vous",
     callGarage: "Appeler le garage",
     mapIframeTitle: "Carte - {{name}}",
+    bookingWithPartnerGarage:
+      "Les créneaux et l’acompte concernent le garage partenaire sélectionné.",
+    viewGaragePage: "Voir la fiche du garage",
+    loadingGarage: "Chargement du garage…",
+    garageNotFound: "Ce garage est introuvable ou n’est plus disponible.",
   },
   profilePage: {
     updatedToast: "Profil mis à jour.",

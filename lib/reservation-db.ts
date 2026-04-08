@@ -23,6 +23,15 @@ export async function ensureReservationMigrations() {
       `ALTER TABLE "Reservation" ADD COLUMN "userId" TEXT`
     )
   }
+  const col3 = await prisma.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM pragma_table_info('Reservation') WHERE name = 'garageId'`
+  )
+  if (col3.length === 0) {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Reservation" ADD COLUMN "garageId" TEXT`)
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "Reservation_garageId_startAt_idx" ON "Reservation" ("garageId", "startAt")`
+    )
+  }
   migrated = true
 }
 

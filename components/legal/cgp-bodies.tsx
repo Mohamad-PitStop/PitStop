@@ -10,7 +10,7 @@ export function CgpBodyFr() {
         <p className="text-muted-foreground">
           PitStop : Garages partenaires (Belgique)
           <br />
-          Version 1.0 : Dernière mise à jour : 2 avril 2026
+          Version 1.1 : Dernière mise à jour : 5 avril 2026
         </p>
       </header>
 
@@ -40,7 +40,11 @@ export function CgpBodyFr() {
           <li>transmission de leads et réservations ;</li>
           <li>gestion des acomptes et règles d&apos;annulation/no-show ;</li>
           <li>principe d&apos;alignement avec les estimations communiquées au Client ;</li>
-          <li>obligations réciproques de qualité et transparence.</li>
+          <li>obligations réciproques de qualité et transparence ;</li>
+          <li>
+            espaces professionnels dédiés (tableau de bord garage) permettant la gestion des disponibilités, des réservations, des
+            demandes de reversement d&apos;acompte et, le cas échéant, des collaborateurs.
+          </li>
         </ul>
       </section>
 
@@ -89,7 +93,11 @@ export function CgpBodyFr() {
         <p className="text-muted-foreground">6.2 Le Garage reconnaît les mécanismes suivants :</p>
         <ul className="list-disc pl-6 text-muted-foreground space-y-1">
           <li>annulation &gt; 12h : remboursement automatique ;</li>
-          <li>annulation entre 12h et 1h : traitement direct Client/Garage ;</li>
+          <li>
+            annulation entre 12h et 1h : traitement direct Client/Garage ; le Garage peut aussi, avec l&apos;accord du Client,
+            enregistrer une annulation depuis son espace PitStop conduisant au remboursement lorsque les outils de paiement le
+            permettent ;
+          </li>
           <li>annulation &lt; 1h : acompte conservé ;</li>
           <li>no-show (≥15 min sans nouvelle) : acompte conservé ;</li>
           <li>retard &gt;15 min avec information : acompte conservé, intervention possible à la discrétion du Garage.</li>
@@ -97,6 +105,35 @@ export function CgpBodyFr() {
         <p className="text-muted-foreground">
           6.3 Le Garage conserve la faculté de justifier la conservation de l&apos;acompte lorsque des coûts de préparation réels
           ont été engagés.
+        </p>
+        <p className="text-muted-foreground">
+          6.4 Réservation multi-garages : le Client désigne un Garage sur la plateforme ; l&apos;acompte est attribué à ce Garage
+          dans le suivi interne PitStop.
+        </p>
+        <p className="text-muted-foreground">
+          6.5 Séquestre et absence de Stripe Connect : l&apos;acompte est encaissé via le prestataire de paiement du Client ;
+          PitStop assure un suivi en base de données en vue d&apos;un reversement manuel sur l&apos;IBAN professionnel fourni
+          par le Garage, sans recours à Stripe Connect pour le compte du Garage. Un délai minimal après l&apos;heure de fin du
+          rendez-vous peut être exigé par la plateforme avant toute demande de retrait par le Garage.
+        </p>
+        <p className="text-muted-foreground">
+          6.6 Demandes de reversement : le Garage peut initier une demande depuis son espace professionnel selon les statuts
+          affichés ; l&apos;administrateur PitStop confirme le virement bancaire et peut enregistrer une référence. En cas
+          d&apos;annulation ou de remboursement Client conforme aux CGV B2C, la ligne de reversement correspondante est annulée
+          ou ajustée en cohérence avec ce traitement.
+        </p>
+        <p className="text-muted-foreground">
+          6.7 Disponibilités : le Garage renseigne ses plages, fermetures exceptionnelles et blocages dans son espace ; les
+          créneaux proposés au Client sont calculés à partir des données stockées sur la plateforme (sans obligation de
+          synchronisation Google Calendar par garage).
+        </p>
+        <p className="text-muted-foreground">
+          6.8 Horaires d&apos;ouverture : toute demande de modification substantielle passe par le formulaire prévu ; PitStop
+          (administration) peut devoir valider la demande avant application sur le profil public du Garage.
+        </p>
+        <p className="text-muted-foreground">
+          6.9 Comptes employés : le Garage peut inviter des collaborateurs par e-mail ; l&apos;accès « garagiste » est activé
+          après acceptation de l&apos;invitation et sous réserve des paramètres du Garage et des présentes CGP B2B.
         </p>
       </section>
 
@@ -244,7 +281,7 @@ export function CgpBodyEn() {
         <p className="text-muted-foreground">
           PitStop: Partner garages (Belgium)
           <br />
-          Version 1.0: Last updated: 2 April 2026
+          Version 1.1: Last updated: 5 April 2026
         </p>
       </header>
 
@@ -274,7 +311,11 @@ export function CgpBodyEn() {
           <li>transmitting leads and bookings;</li>
           <li>managing deposits and cancellation/no-show rules;</li>
           <li>principle of alignment with estimates communicated to the Customer;</li>
-          <li>mutual obligations of quality and transparency.</li>
+          <li>mutual obligations of quality and transparency;</li>
+          <li>
+            dedicated professional areas (garage dashboard) for managing availability, bookings, deposit payout requests and,
+            where applicable, staff.
+          </li>
         </ul>
       </section>
 
@@ -322,13 +363,43 @@ export function CgpBodyEn() {
         <p className="text-muted-foreground">6.2 The Garage acknowledges the following mechanisms:</p>
         <ul className="list-disc pl-6 text-muted-foreground space-y-1">
           <li>cancellation &gt; 12h: automatic refund;</li>
-          <li>cancellation between 12h and 1h: direct Customer/Garage handling;</li>
+          <li>
+            cancellation between 12h and 1h: direct Customer/Garage handling; the Garage may also, with the Customer&apos;s
+            agreement, record a cancellation from its PitStop area leading to a refund where payment tools allow;
+          </li>
           <li>cancellation &lt; 1h: deposit retained;</li>
           <li>no-show (≥15 min without notice): deposit retained;</li>
           <li>delay &gt;15 min with notice: deposit retained; work possible at the Garage&apos;s discretion.</li>
         </ul>
         <p className="text-muted-foreground">
           6.3 The Garage may justify retention of the deposit where real preparation costs have been incurred.
+        </p>
+        <p className="text-muted-foreground">
+          6.4 Multi-garage booking: the Customer selects a Garage on the platform; the deposit is allocated to that Garage in
+          PitStop&apos;s internal tracking.
+        </p>
+        <p className="text-muted-foreground">
+          6.5 Escrow and no Stripe Connect: the deposit is collected via the Customer&apos;s payment provider; PitStop maintains
+          database tracking for manual payout to the professional IBAN provided by the Garage, without Stripe Connect on the
+          Garage&apos;s behalf. A minimum delay after the scheduled end of the appointment may be required before the Garage
+          can request a payout.
+        </p>
+        <p className="text-muted-foreground">
+          6.6 Payout requests: the Garage may initiate a request from its professional area according to displayed statuses; the
+          PitStop administrator confirms the bank transfer and may record a reference. If a Customer cancellation or refund
+          applies under the B2C GTS, the corresponding payout line is cancelled or adjusted accordingly.
+        </p>
+        <p className="text-muted-foreground">
+          6.7 Availability: the Garage maintains slots, exceptional closures and blocks in its area; slots offered to the
+          Customer are derived from data stored on the platform (no mandatory per-garage Google Calendar sync).
+        </p>
+        <p className="text-muted-foreground">
+          6.8 Opening hours: any material change request goes through the provided form; PitStop (administration) may need to
+          approve the request before it applies to the Garage&apos;s public profile.
+        </p>
+        <p className="text-muted-foreground">
+          6.9 Staff accounts: the Garage may invite colleagues by e-mail; “garage staff” access is activated after the
+          invitation is accepted and subject to the Garage&apos;s settings and these B2B GPT.
         </p>
       </section>
 
@@ -472,7 +543,7 @@ export function CgpBodyNl() {
         <p className="text-muted-foreground">
           PitStop: Partnergarages (België)
           <br />
-          Versie 1.0: Laatst bijgewerkt: 2 april 2026
+          Versie 1.1: Laatst bijgewerkt: 5 april 2026
         </p>
       </header>
 
@@ -502,7 +573,11 @@ export function CgpBodyNl() {
           <li>doorgeven van leads en reserveringen;</li>
           <li>beheer van voorschotten en regels voor annulering/no-show;</li>
           <li>beginsel van afstemming op de aan de Klant gecommuniceerde schattingen;</li>
-          <li>wederzijdse verplichtingen tot kwaliteit en transparantie.</li>
+          <li>wederzijdse verplichtingen tot kwaliteit en transparantie;</li>
+          <li>
+            toegewijde professionele omgevingen (garage-dashboard) voor beheer van beschikbaarheid, reserveringen,
+            uitbetalingsaanvragen voor het voorschot en, indien van toepassing, medewerkers.
+          </li>
         </ul>
       </section>
 
@@ -551,13 +626,46 @@ export function CgpBodyNl() {
         <p className="text-muted-foreground">6.2 De Garage erkent de volgende mechanismen:</p>
         <ul className="list-disc pl-6 text-muted-foreground space-y-1">
           <li>annulering &gt; 12u: automatische terugbetaling;</li>
-          <li>annulering tussen 12u en 1u: rechtstreekse afhandeling Klant/Garage;</li>
+          <li>
+            annulering tussen 12u en 1u: rechtstreekse afhandeling Klant/Garage; de Garage kan ook, met akkoord van de Klant,
+            een annulering registreren vanuit zijn PitStop-omgeving die leidt tot terugbetaling voor zover de betaaltools dit
+            toelaten;
+          </li>
           <li>annulering &lt; 1u: voorschot behouden;</li>
           <li>no-show (≥15 min zonder bericht): voorschot behouden;</li>
           <li>vertraging &gt;15 min met bericht: voorschot behouden; ingreep mogelijk naar goeddunken van de Garage.</li>
         </ul>
         <p className="text-muted-foreground">
           6.3 De Garage kan het behoud van het voorschot rechtvaardigen wanneer reële voorbereidingskosten zijn gemaakt.
+        </p>
+        <p className="text-muted-foreground">
+          6.4 Reservering met meerdere garages: de Klant kiest een Garage op het platform; het voorschot wordt aan die Garage
+          toegewezen in de interne opvolging van PitStop.
+        </p>
+        <p className="text-muted-foreground">
+          6.5 Bewaring en geen Stripe Connect: het voorschot wordt geïnd via de betaaldienstverlener van de Klant; PitStop houdt
+          een opvolging in de databank aan voor manuele uitbetaling naar de professionele IBAN van de Garage, zonder Stripe
+          Connect ten behoeve van de Garage. Een minimale termijn na het geplande einde van de afspraak kan vereist zijn voordat
+          de Garage een uitbetaling kan aanvragen.
+        </p>
+        <p className="text-muted-foreground">
+          6.6 Uitbetalingsaanvragen: de Garage kan een aanvraag indienen vanuit zijn professionele omgeving volgens de getoonde
+          statussen; de PitStop-beheerder bevestigt de bankoverschrijving en kan een referentie registreren. Bij annulering of
+          terugbetaling aan de Klant in overeenstemming met de B2C-AV wordt de overeenkomstige uitbetalingslijn geannuleerd of
+          dienovereenkomstig aangepast.
+        </p>
+        <p className="text-muted-foreground">
+          6.7 Beschikbaarheid: de Garage beheert tijdssloten, uitzonderlijke sluitingen en blokkeringen in zijn omgeving; aan de
+          Klant aangeboden slots worden afgeleid van gegevens op het platform (geen verplichte Google Agenda-synchronisatie per
+          garage).
+        </p>
+        <p className="text-muted-foreground">
+          6.8 Openingsuren: elke wezenlijke wijzigingsaanvraag verloopt via het voorziene formulier; PitStop (administratie) kan
+          de aanvraag moeten goedkeuren voordat ze op het openbare profiel van de Garage geldt.
+        </p>
+        <p className="text-muted-foreground">
+          6.9 Medewerkersaccounts: de Garage kan collega&apos;s per e-mail uitnodigen; toegang als « garagist » wordt geactiveerd
+          na aanvaarding van de uitnodiging en onder voorbehoud van de instellingen van de Garage en deze B2B APV.
         </p>
       </section>
 

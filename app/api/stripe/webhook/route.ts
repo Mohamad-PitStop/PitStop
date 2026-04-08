@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { getStripe } from "@/lib/stripe"
 import { createCalendarEvent, getBusyIntervals } from "@/lib/google-calendar"
 import { applyStripeCreditPurchaseOnce } from "@/lib/accounts-db"
+import { createDepositPayout } from "@/lib/deposit-payout-db"
 
 export const runtime = "nodejs"
 
@@ -49,7 +50,8 @@ function reservationSummary(type: string) {
 
 async function confirmReservationAfterPayment(
   reservationId: string,
-  stripeUpdate: { stripeSessionId?: string; stripePaymentIntentId?: string }
+  stripeUpdate: { stripeSessionId?: string; stripePaymentIntentId?: string },
+  opts?: { paidAmountCents?: number | null }
 ) {
   const reservation = await prisma.reservation.findUnique({ where: { id: reservationId } })
   if (!reservation) throw new Error("Réservation introuvable.")
@@ -61,15 +63,25 @@ async function confirmReservationAfterPayment(
     data: { status: "paid", ...stripeUpdate },
   })
 
+  const recordGaragePayoutIfNeeded = async () => {
+    const cents = opts?.paidAmountCents
+    if (cents == null || cents <= 0 || !reservation.garageId) return
+    await createDepositPayout(reservation.garageId, reservation.id, cents)
+  }
+
   const calendarId = reservation.calendarId
   if (!calendarId) {
+    const notes = reservation.garageId
+      ? "Paiement confirmé (rendez-vous garage partenaire)."
+      : "Paiement confirmé. Synchronisation Google Calendar non configurée."
     await prisma.reservation.update({
       where: { id: reservation.id },
       data: {
         status: "confirmed",
-        notes: "Paiement confirmé. Synchronisation Google Calendar non configurée.",
+        notes,
       },
     })
+    await recordGaragePayoutIfNeeded()
     return
   }
 
@@ -88,6 +100,7 @@ async function confirmReservationAfterPayment(
             "Paiement reçu mais conflit de créneau détecté lors de la confirmation. Contacter le client pour reprogrammer.",
         },
       })
+      await recordGaragePayoutIfNeeded()
       return
     }
 
@@ -115,11 +128,13 @@ async function confirmReservationAfterPayment(
       where: { id: reservation.id },
       data: { calendarEventId: eventId, status: "confirmed" },
     })
+    await recordGaragePayoutIfNeeded()
   } else {
     await prisma.reservation.update({
       where: { id: reservation.id },
       data: { status: "confirmed" },
     })
+    await recordGaragePayoutIfNeeded()
   }
 }
 
@@ -162,10 +177,15 @@ export async function POST(req: Request) {
         const paymentIntentId =
           typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id
 
-        await confirmReservationAfterPayment(reservationId, {
-          stripeSessionId: session.id,
-          stripePaymentIntentId: paymentIntentId ?? undefined,
-        })
+        const paidCents = session.amount_total ?? undefined
+        await confirmReservationAfterPayment(
+          reservationId,
+          {
+            stripeSessionId: session.id,
+            stripePaymentIntentId: paymentIntentId ?? undefined,
+          },
+          { paidAmountCents: paidCents }
+        )
       }
     } else if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
@@ -182,9 +202,11 @@ export async function POST(req: Request) {
         const reservationId = paymentIntent.metadata?.reservationId
         if (!reservationId) throw new Error("reservationId manquant dans metadata PaymentIntent.")
 
-        await confirmReservationAfterPayment(reservationId, {
-          stripePaymentIntentId: paymentIntent.id,
-        })
+        await confirmReservationAfterPayment(
+          reservationId,
+          { stripePaymentIntentId: paymentIntent.id },
+          { paidAmountCents: paymentIntent.amount }
+        )
       }
     }
 

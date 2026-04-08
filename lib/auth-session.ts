@@ -49,6 +49,7 @@ export type SessionUser = {
   email: string
   role: UserRole
   diagnosticCredits: number
+  garageId: string | null
 }
 
 export async function getUserFromAuthCookie(cookieHeader: string | null): Promise<SessionUser | null> {
@@ -69,6 +70,7 @@ export async function getUserFromAuthCookie(cookieHeader: string | null): Promis
     email: row.email,
     role: row.role,
     diagnosticCredits: row.diagnosticCredits,
+    garageId: row.garageId ?? null,
   }
 }
 

@@ -9,13 +9,5 @@ export type PartnerGarage = {
   lng?: number
 }
 
-export const partnerGarages: PartnerGarage[] = [
-  {
-    id: "adi-cars-charleroi",
-    name: "ADI\u2011Cars",
-    address: "Route de Trazegnies 738, 6031 Charleroi",
-    phoneDisplay: "+32 483 00 00 30",
-    phoneTel: "+32483000030",
-  },
-]
+export const partnerGarages: PartnerGarage[] = []
 

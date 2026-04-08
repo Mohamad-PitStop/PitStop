@@ -1,11 +1,10 @@
 import { createClient } from "@libsql/client"
-
-const dbUrl = process.env.DATABASE_URL ?? "file:./dev.db"
-const authToken = process.env.TURSO_AUTH_TOKEN
+import { getDatabaseUrl, getTursoAuthToken } from "@/lib/database-config"
 
 function getDb() {
+  const authToken = getTursoAuthToken()
   return createClient({
-    url: dbUrl,
+    url: getDatabaseUrl(),
     ...(authToken ? { authToken } : {}),
   })
 }

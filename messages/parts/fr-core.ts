@@ -28,6 +28,8 @@ export const frCore = {
     credit: "crédit",
     credits: "crédits",
     buy: "Acheter",
+    garageDashboard: "Espace garage",
+    adminGarages: "Garages",
   },
   cookies: {
     banner:

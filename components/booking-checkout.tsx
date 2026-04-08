@@ -29,12 +29,15 @@ export function BookingCheckout({
   priceMin,
   priceMax,
   noCard = false,
+  garageId,
 }: {
   type: string
   vehicle?: { marque?: string; modele?: string; annee?: number; km?: number }
   priceMin?: number
   priceMax?: number
   noCard?: boolean
+  /** Si défini : créneaux et paiement rattachés à ce garage partenaire. */
+  garageId?: string | null
 }) {
   const { t, locale } = useTranslation()
   const dateFnsLocale = useMemo(
@@ -107,10 +110,15 @@ export function BookingCheckout({
       setError(null)
       setSelectedSlot(null)
       try {
+        const garageQs =
+          garageId != null && garageId !== ""
+            ? `&garageId=${encodeURIComponent(garageId)}`
+            : ""
         const res = await fetch(
-          `/api/availability?date=${encodeURIComponent(dateParam)}&type=${encodeURIComponent(type)}`,
+          `/api/availability?date=${encodeURIComponent(dateParam)}&type=${encodeURIComponent(type)}${garageQs}`,
           {
             cache: "no-store",
+            credentials: "include",
           }
         )
         const data = await readJsonOrThrow(res)
@@ -129,7 +137,7 @@ export function BookingCheckout({
     return () => {
       cancelled = true
     }
-  }, [dateParam, type, readJsonOrThrow, t])
+  }, [dateParam, type, garageId, readJsonOrThrow, t])
 
   const canPickDate = (d: Date) => {
     const today = startOfDay(new Date())
@@ -146,6 +154,7 @@ export function BookingCheckout({
       const res = await fetch("/api/stripe/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           type,
           name,
@@ -158,6 +167,7 @@ export function BookingCheckout({
           priceMax,
           vehicle,
           promoCode: promoApplied?.code ?? undefined,
+          ...(garageId != null && garageId !== "" ? { garageId } : {}),
         }),
       })
       const data = await readJsonOrThrow(res)
