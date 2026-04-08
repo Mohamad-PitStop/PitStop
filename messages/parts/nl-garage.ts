@@ -197,6 +197,9 @@ export const nlGarage = {
       viewProfile: "Profiel bekijken",
       book: "Boeken",
     },
+    listPage: {
+      proLink: "Partnergarage? Registratie of professioneel portaal",
+    },
     export: {
       title: "Gegevens exporteren",
       csv: "Exporteren als CSV",

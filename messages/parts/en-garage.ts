@@ -197,6 +197,9 @@ export const enGarage = {
       viewProfile: "View profile",
       book: "Book",
     },
+    listPage: {
+      proLink: "Partner garage? Sign up or open the professional portal",
+    },
     export: {
       title: "Export data",
       csv: "Export as CSV",

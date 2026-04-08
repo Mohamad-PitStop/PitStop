@@ -28,6 +28,7 @@ export const nlCore = {
     credits: "credits",
     buy: "Kopen",
     garageDashboard: "Garageportaal",
+    garagePartnerSignup: "Partnergarage",
     adminGarages: "Garages",
   },
   cookies: {
@@ -60,5 +61,6 @@ export const nlCore = {
     cgpGarages: "CGP garages",
     sla: "SLA",
     contact: "Contact",
+    garageProfessionals: "Registratie partnergarage",
   },
 } as const

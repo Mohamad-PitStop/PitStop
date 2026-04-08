@@ -28,6 +28,7 @@ export const enCore = {
     credits: "credits",
     buy: "Buy",
     garageDashboard: "Garage portal",
+    garagePartnerSignup: "Partner garage",
     adminGarages: "Garages",
   },
   cookies: {
@@ -60,5 +61,6 @@ export const enCore = {
     cgpGarages: "Partner garage terms",
     sla: "SLA",
     contact: "Contact",
+    garageProfessionals: "Partner garage signup",
   },
 } as const

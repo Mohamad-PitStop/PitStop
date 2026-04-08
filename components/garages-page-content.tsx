@@ -17,6 +17,11 @@ export function GaragesPageContent() {
         </Link>
       </div>
       <GarageFinder />
+      <p className="border-t border-border/60 pt-6 text-center text-sm text-muted-foreground">
+        <Link href="/inscription-garage" className="font-medium text-primary hover:underline">
+          {t("garage.listPage.proLink")}
+        </Link>
+      </p>
     </div>
   )
 }

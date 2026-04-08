@@ -27,6 +27,11 @@ export const nlHome = {
     partnerTitleLine2: "Word PitStop-partner",
     partnerSubtitle:
       "Sluit u aan bij ons netwerk van partnergarages in België. Vul dit formulier in en we nemen snel contact op.",
+    partnerOnlineIntro:
+      "Wilt u meteen uw account en garagefiche aanmaken? Online registratie geeft toegang tot het professionele portaal (agenda, reserveringen, voorschotten) na goedkeuring door ons team.",
+    partnerOnlineCta: "Mijn garage online registreren",
+    partnerOnlineHint:
+      "U kunt ook eerst het onderstaande formulier gebruiken als u liever wordt teruggebeld.",
     partnerForm: {
       labelGarageName: "Naam van de garage",
       labelContactName: "Contactpersoon",

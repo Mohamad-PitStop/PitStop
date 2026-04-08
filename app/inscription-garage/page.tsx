@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, useState } from "react"
+import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -123,6 +124,15 @@ export default function InscriptionGaragePage() {
             <CardHeader>
               <CardTitle>{t("garage.registration.title")}</CardTitle>
               <CardDescription>{t("garage.registration.subtitle")}</CardDescription>
+              <p className="pt-1 text-sm text-muted-foreground">
+                {t("auth.alreadyAccount")}{" "}
+                <Link
+                  href={`/connexion?callbackUrl=${encodeURIComponent("/garage/dashboard")}`}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {t("auth.signIn")}
+                </Link>
+              </p>
             </CardHeader>
             <CardContent>
               <form onSubmit={onSubmit} className="space-y-6">

@@ -228,6 +228,11 @@ export const frGarage = {
       book: "Réserver",
     },
 
+    /** Page liste /garages (parcours client) : lien vers l’espace pro. */
+    listPage: {
+      proLink: "Vous êtes garagiste partenaire ? Inscription ou espace pro",
+    },
+
     // ── Export ─────────────────────────────────────────────────────────────
     export: {
       title: "Exporter les données",

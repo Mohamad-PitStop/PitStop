@@ -27,6 +27,11 @@ export const enHome = {
     partnerTitleLine2: "Become a PitStop partner",
     partnerSubtitle:
       "Join our network of partner garages in Belgium. Fill in this form and our team will get back to you shortly.",
+    partnerOnlineIntro:
+      "Prefer to create your account and garage profile right away? Online signup unlocks the professional portal (calendar, bookings, deposits) after our team validates your application.",
+    partnerOnlineCta: "Register my garage online",
+    partnerOnlineHint:
+      "You can also use the form below if you’d rather be contacted first.",
     partnerForm: {
       labelGarageName: "Garage name",
       labelContactName: "Contact person",

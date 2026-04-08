@@ -234,6 +234,20 @@ export function LandingPage() {
                 </LandingStaggerItem>
 
                 <LandingStaggerItem index={16}>
+                  <div className="mb-6 rounded-xl border border-primary/25 bg-primary/5 p-5 text-center md:p-6">
+                    <p className="mx-auto mb-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                      {t("home.partnerOnlineIntro")}
+                    </p>
+                    <Button asChild size="lg" className="gap-2">
+                      <Link href="/inscription-garage">
+                        {t("home.partnerOnlineCta")}
+                        <ArrowRight className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+                      </Link>
+                    </Button>
+                    <p className="mx-auto mt-3 max-w-xl text-xs text-muted-foreground">
+                      {t("home.partnerOnlineHint")}
+                    </p>
+                  </div>
                   <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm md:p-8">
                     <PartnerContactForm />
                   </div>
@@ -263,6 +277,9 @@ export function LandingPage() {
                       </Link>
                       <Link href="/cgp-garages" className="transition-colors hover:text-foreground">
                         {t("footer.cgpGarages")}
+                      </Link>
+                      <Link href="/inscription-garage" className="transition-colors hover:text-foreground">
+                        {t("footer.garageProfessionals")}
                       </Link>
                       <Link href="/sla" className="transition-colors hover:text-foreground">
                         {t("footer.sla")}

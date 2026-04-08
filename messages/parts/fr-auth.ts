@@ -10,6 +10,8 @@ export const frAuth = {
     signIn: "Se connecter",
     noAccount: "Pas encore de compte ?",
     createAccount: "Créer un compte",
+    garagePartnerHint: "Vous êtes garage partenaire ou employé ?",
+    garagePartnerCta: "Inscription et espace professionnel",
     diagnosticBanner:
       "Connectez-vous pour lancer un diagnostic ou consulter une analyse déjà enregistrée. Pas encore de compte ? Utilisez le lien ci-dessous.",
     signupFail: "Impossible de créer le compte.",

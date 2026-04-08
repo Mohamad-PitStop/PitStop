@@ -9,6 +9,8 @@ export const nlAuth = {
     signIn: "Inloggen",
     noAccount: "Nog geen account?",
     createAccount: "Account aanmaken",
+    garagePartnerHint: "Partnergarage of medewerker?",
+    garagePartnerCta: "Registratie en professioneel portaal",
     diagnosticBanner:
       "Log in om een diagnose te starten of een opgeslagen analyse te bekijken. Nog geen account? Gebruik de link hieronder.",
     signupFail: "Account aanmaken mislukt.",

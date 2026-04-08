@@ -29,6 +29,8 @@ export const frCore = {
     credits: "crédits",
     buy: "Acheter",
     garageDashboard: "Espace garage",
+    /** Lien discret pour les professionnels (non connectés ou compte client). */
+    garagePartnerSignup: "Garage partenaire",
     adminGarages: "Garages",
   },
   cookies: {
@@ -62,5 +64,6 @@ export const frCore = {
     cgpGarages: "CGP garages",
     sla: "SLA",
     contact: "Contact",
+    garageProfessionals: "Inscription garage partenaire",
   },
 } as const

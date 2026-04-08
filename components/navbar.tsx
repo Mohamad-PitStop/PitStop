@@ -213,6 +213,14 @@ export function Navbar() {
             {t("navbar.garageDashboard")}
           </Link>
         )}
+        {user.role !== "garagiste" && (
+          <Link
+            href="/inscription-garage"
+            className="hidden shrink-0 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors min-[1100px]:inline sm:text-xs"
+          >
+            {t("navbar.garagePartnerSignup")}
+          </Link>
+        )}
         <Link
           href="/profil"
           className="hidden text-xs text-muted-foreground hover:text-foreground transition-colors min-[1080px]:inline"
@@ -240,15 +248,23 @@ export function Navbar() {
         </Button>
       </div>
     ) : (
-      <Link href="/connexion" className={cn(isConnexionPage && "hidden")}>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 min-w-[6rem] px-2.5 text-xs min-[1024px]:min-w-[7.5rem] min-[1024px]:px-3"
+      <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">
+        <Link
+          href="/inscription-garage"
+          className="shrink-0 text-[11px] font-medium text-primary underline-offset-2 hover:underline sm:text-xs"
         >
-          {t("navbar.login")}
-        </Button>
-      </Link>
+          {t("navbar.garagePartnerSignup")}
+        </Link>
+        <Link href="/connexion" className={cn(isConnexionPage && "hidden")}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 min-w-[6rem] px-2.5 text-xs min-[1024px]:min-w-[7.5rem] min-[1024px]:px-3"
+          >
+            {t("navbar.login")}
+          </Button>
+        </Link>
+      </div>
     ))
 
   // Indicateur crédits pour la page d'accueil et la page diagnostic (desktop)

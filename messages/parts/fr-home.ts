@@ -28,6 +28,11 @@ export const frHome = {
     partnerTitleLine2: "Devenez partenaire PitStop",
     partnerSubtitle:
       "Rejoignez notre réseau de garages partenaires en Belgique. Remplissez ce formulaire et notre équipe vous recontactera rapidement.",
+    partnerOnlineIntro:
+      "Vous préférez créer votre compte et votre fiche garage tout de suite ? L’inscription en ligne ouvre l’espace professionnel (calendrier, réservations, acomptes) après validation par notre équipe.",
+    partnerOnlineCta: "Inscrire mon garage en ligne",
+    partnerOnlineHint:
+      "Vous pouvez aussi nous écrire via le formulaire ci-dessous si vous souhaitez d’abord être recontacté.",
     partnerForm: {
       labelGarageName: "Nom du garage",
       labelContactName: "Personne de contact",

@@ -29,7 +29,7 @@ export default function GarageLayout({ children }: { children: React.ReactNode }
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (!data.user || data.user.role !== "garagiste") {
@@ -43,7 +43,7 @@ export default function GarageLayout({ children }: { children: React.ReactNode }
   }, [router])
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" })
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" })
     router.push("/")
   }
 

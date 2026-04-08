@@ -9,6 +9,8 @@ export const enAuth = {
     signIn: "Sign in",
     noAccount: "No account yet?",
     createAccount: "Create an account",
+    garagePartnerHint: "Partner garage or employee?",
+    garagePartnerCta: "Garage signup & professional portal",
     diagnosticBanner:
       "Sign in to start a diagnostic or view a saved analysis. No account yet? Use the link below.",
     signupFail: "Could not create the account.",

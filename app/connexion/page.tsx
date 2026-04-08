@@ -174,6 +174,12 @@ function ConnexionForm() {
                   {t("auth.createAccount")}
                 </Link>
               </p>
+              <p className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                {t("auth.garagePartnerHint")}{" "}
+                <Link href="/inscription-garage" className="text-primary hover:underline">
+                  {t("auth.garagePartnerCta")}
+                </Link>
+              </p>
             </CardContent>
           </Card>
         </div>
