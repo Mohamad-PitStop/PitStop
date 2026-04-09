@@ -669,6 +669,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
 
   const runDiagnostic = async () => {
     setAuthError(null)
+    window.scrollTo(0, 0)
     setIsLoading(true)
 
     try {
@@ -705,7 +706,8 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       sessionStorage.setItem("vehicleInfo", JSON.stringify(formData))
       sessionStorage.removeItem("followUps")
 
-      router.push("/resultat")
+      window.scrollTo(0, 0)
+      router.push("/resultat", { scroll: true })
     } catch (error) {
       console.error("Erreur:", error)
       setAuthError(t("vehicleForm.techError"))

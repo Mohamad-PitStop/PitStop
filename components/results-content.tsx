@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -310,6 +310,10 @@ export function ResultsContent() {
   const [pendingDetails, setPendingDetails] = useState("")
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null) // base64
   const [isMobile, setIsMobile] = useState(false)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   useEffect(() => {
     setIsMobile(navigator.maxTouchPoints > 0)
