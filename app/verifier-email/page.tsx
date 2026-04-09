@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { TEST_PHASE_SIGNUP_BONUS_ENABLED } from "@/lib/feature-flags"
+import { SS_GUEST_ACTIVE, SS_GUEST_DIAG_ID, SS_POST_VERIFY_REDIRECT } from "@/lib/guest-diagnostic"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -28,16 +29,41 @@ function VerifierEmailContent() {
 
     ;(async () => {
       try {
+        let pendingGuestDiagnosticId: string | undefined
+        let postVerifyRedirect: string | undefined
+        try {
+          pendingGuestDiagnosticId = sessionStorage.getItem(SS_GUEST_DIAG_ID) ?? undefined
+          postVerifyRedirect = sessionStorage.getItem(SS_POST_VERIFY_REDIRECT) ?? undefined
+        } catch {
+          /* ignore */
+        }
+
         const res = await fetch("/api/auth/verify-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({
+            token,
+            ...(pendingGuestDiagnosticId ? { pendingGuestDiagnosticId } : {}),
+            ...(postVerifyRedirect ? { postVerifyRedirect } : {}),
+          }),
         })
         const data = await res.json().catch(() => null)
         if (res.ok && data?.ok) {
+          try {
+            sessionStorage.removeItem(SS_GUEST_DIAG_ID)
+            sessionStorage.removeItem(SS_POST_VERIFY_REDIRECT)
+            sessionStorage.removeItem(SS_GUEST_ACTIVE)
+          } catch {
+            /* ignore */
+          }
           setState("success")
           setTimeout(() => {
-            const dest = TEST_PHASE_SIGNUP_BONUS_ENABLED ? "/?welcome_test=1" : "/"
+            const dest =
+              typeof data.redirectTo === "string" && data.redirectTo.startsWith("/")
+                ? data.redirectTo
+                : TEST_PHASE_SIGNUP_BONUS_ENABLED
+                  ? "/?welcome_test=1"
+                  : "/"
             router.replace(dest)
             router.refresh()
           }, 2000)

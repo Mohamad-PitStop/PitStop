@@ -206,6 +206,20 @@ export async function getDiagnosticsByUserId(userId: string, limit: number): Pro
   return result.rows.map(mapRow)
 }
 
+/** Rattache un diagnostic anonyme (userId NULL) au compte. Retourne false si déjà pris ou inconnu. */
+export async function assignDiagnosticRequestToUser(diagnosticId: string, userId: string): Promise<boolean> {
+  await ensureUserIdColumn()
+  const row = await getDiagnosticRequestById(diagnosticId)
+  if (!row || row.userId !== null) return false
+  const db = getDb()
+  await db.execute({
+    sql: `UPDATE DiagnosticRequest SET userId = ? WHERE id = ? AND userId IS NULL`,
+    args: [userId, diagnosticId],
+  })
+  const again = await getDiagnosticRequestById(diagnosticId)
+  return again?.userId === userId
+}
+
 export async function deleteDiagnosticsByUserId(userId: string): Promise<void> {
   await ensureUserIdColumn()
   const db = getDb()

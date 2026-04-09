@@ -6,8 +6,6 @@ const AUTH_COOKIE = "pitstop_auth"
 
 /** Routes réservées : préfixe → raison optionnelle (bannière / contexte sur /connexion). */
 const PROTECTED_ROUTES: Array<{ prefix: string; reason?: string }> = [
-  { prefix: "/diagnostic", reason: "diagnostic" },
-  { prefix: "/resultat", reason: "diagnostic" },
   { prefix: "/profil" },
   { prefix: "/mes-diagnostics" },
   { prefix: "/admin" },

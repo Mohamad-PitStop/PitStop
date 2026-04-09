@@ -11,6 +11,7 @@ import { frMisc } from "./parts/fr-misc"
 import { frSurface } from "./parts/fr-surface"
 import { frPagesB } from "./parts/fr-pagesB"
 import { frGarage } from "./parts/fr-garage"
+import { frGuestDiagnostic } from "./parts/fr-guestDiagnostic"
 
 export const treeFr = deepMergeAll(
   frCore as unknown as Record<string, unknown>,
@@ -24,5 +25,6 @@ export const treeFr = deepMergeAll(
   frMisc as unknown as Record<string, unknown>,
   frSurface as unknown as Record<string, unknown>,
   frPagesB as unknown as Record<string, unknown>,
-  frGarage as unknown as Record<string, unknown>
+  frGarage as unknown as Record<string, unknown>,
+  frGuestDiagnostic as unknown as Record<string, unknown>
 )

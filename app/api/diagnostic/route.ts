@@ -1,12 +1,25 @@
 import { generateText, Output, type LanguageModelUsage } from "ai"
 import { anthropic } from "@ai-sdk/anthropic"
 import { z } from "zod"
-import { createDiagnosticRequest, updateDiagnosticRequestFollowUps, updateDiagnosticResult } from "@/lib/diagnostics-db"
+import {
+  createDiagnosticRequest,
+  getDiagnosticRequestById,
+  updateDiagnosticRequestFollowUps,
+  updateDiagnosticResult,
+} from "@/lib/diagnostics-db"
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
-import { getUserFromAuthCookie } from "@/lib/auth-session"
+import { getUserFromAuthCookie, extractCookieValue } from "@/lib/auth-session"
 import { deductCredit, addCredits } from "@/lib/accounts-db"
 import { NextResponse } from "next/server"
+import {
+  GUEST_INTENT_COOKIE,
+  GUEST_USED_COOKIE,
+  GUEST_ROW_COOKIE,
+  guestDiagnosticCookieOptions,
+  GUEST_INTENT_MAX_AGE,
+  GUEST_USED_MAX_AGE,
+} from "@/lib/guest-diagnostic"
 
 const ANTHROPIC_PROMPT_CACHE_HEADERS = {
   "anthropic-beta": "prompt-caching-2024-07-31",
@@ -180,6 +193,19 @@ function buildDiagnosticResponse(
   return NextResponse.json({ ...payload, diagnosticRequestId, creditRefunded })
 }
 
+function applyGuestFirstSuccessCookies(res: NextResponse, diagId: string) {
+  const z = {
+    maxAge: 0,
+    path: "/" as const,
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+  }
+  res.cookies.set(GUEST_INTENT_COOKIE, "", z)
+  res.cookies.set(GUEST_USED_COOKIE, "1", guestDiagnosticCookieOptions(GUEST_USED_MAX_AGE))
+  res.cookies.set(GUEST_ROW_COOKIE, diagId, guestDiagnosticCookieOptions(GUEST_USED_MAX_AGE))
+}
+
 const DiagnosticInputSchema = z.object({
   marque: z.string().trim().min(1).max(80),
   modele: z.string().trim().min(1).max(80),
@@ -209,6 +235,7 @@ const DiagnosticInputSchema = z.object({
 })
 
 export async function POST(req: Request) {
+  let guestFirstCall = false
   try {
     const body = DiagnosticInputSchema.parse(await req.json())
     const { marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, followUps } = body
@@ -219,22 +246,62 @@ export async function POST(req: Request) {
     const typeCarrosserie = body.typeCarrosserie?.trim() || ""
     const typeBoiteAuto = body.typeBoiteAuto?.trim() || ""
     const photoLevier = body.photoLevier?.trim() || ""
-    const hasFollowUps = Array.isArray(followUps) && followUps.length > 0
     const cookieHeader = req.headers.get("cookie")
     const user = await getUserFromAuthCookie(cookieHeader)
-    if (!user) {
+    const intentOk = extractCookieValue(cookieHeader, GUEST_INTENT_COOKIE) === "1"
+    const guestUsedCookie = extractCookieValue(cookieHeader, GUEST_USED_COOKIE) === "1"
+    const guestRowCookie = extractCookieValue(cookieHeader, GUEST_ROW_COOKIE)
+
+    const isGuestNew = !user && !diagnosticRequestId
+    const isGuestFollowUp =
+      !user &&
+      !!diagnosticRequestId &&
+      guestRowCookie === String(diagnosticRequestId).trim()
+
+    guestFirstCall = isGuestNew
+
+    if (!user && !isGuestNew && !isGuestFollowUp) {
       return NextResponse.json(
         { error: "AUTH_REQUIRED", message: "Connexion requise pour lancer un diagnostic." },
         { status: 401 }
       )
     }
 
-    const isPrivileged = user.role === "admin" || user.role === "tester"
-    const isFriend = user.role === "user_friend"
+    if (isGuestNew) {
+      if (guestUsedCookie) {
+        return NextResponse.json(
+          {
+            error: "GUEST_DIAG_USED",
+            message: "Vous avez déjà utilisé votre diagnostic invité gratuit sur cet appareil.",
+          },
+          { status: 403 }
+        )
+      }
+      if (!intentOk) {
+        return NextResponse.json(
+          {
+            error: "GUEST_INTENT_REQUIRED",
+            message: "Choisissez le diagnostic invité gratuit depuis la page diagnostic.",
+          },
+          { status: 403 }
+        )
+      }
+    }
+
+    if (isGuestFollowUp) {
+      const rowCheck = await getDiagnosticRequestById(String(diagnosticRequestId).trim())
+      if (!rowCheck || rowCheck.userId !== null) {
+        return NextResponse.json({ error: "FORBIDDEN", message: "Diagnostic non accessible." }, { status: 403 })
+      }
+    }
+
+    const isPrivileged = user ? user.role === "admin" || user.role === "tester" : false
+    const isFriend = user?.role === "user_friend"
+    const isGuestRequest = !user
 
     // ── Gestion des crédits (compte) ─────────────────────────────────────────
-    if (!isPrivileged && !diagnosticRequestId) {
-      const deducted = await deductCredit(user.id)
+    if (!isPrivileged && !diagnosticRequestId && !isGuestRequest) {
+      const deducted = await deductCredit(user!.id)
       if (!deducted) {
         return NextResponse.json(
           { error: "NO_CREDITS", message: "Vous n'avez plus de crédits. Rechargez votre compte pour continuer." },
@@ -421,7 +488,7 @@ mentionnant les variantes concernées.
     const varianteLine = variante?.trim() ? `\n\nVariante : ${variante.trim()}` : ""
     const prompt = `${userContentBase}${varianteLine}${extraLines}${followUpsText}${autodocBlock}`
     const followUpsJson = Array.isArray(followUps) && followUps.length > 0 ? JSON.stringify(followUps) : null
-    const userId = user.id
+    const userId = user?.id ?? null
 
     let diagId = diagnosticRequestId
     if (!diagId) {
@@ -478,11 +545,13 @@ mentionnant les variantes concernées.
         await updateDiagnosticResult(diagId, JSON.stringify(diagnostic1), status)
       }
       let creditRefunded = false
-      if (!isPrivileged && isNoInterventionDiagnostic(diagnostic1)) {
+      if (user && !isPrivileged && isNoInterventionDiagnostic(diagnostic1)) {
         await addCredits(user.id, 1)
         creditRefunded = true
       }
-      return buildDiagnosticResponse(diagnostic1, isFriend, diagId, creditRefunded)
+      const res1 = buildDiagnosticResponse(diagnostic1, isFriend, diagId, creditRefunded)
+      if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res1, diagId)
+      return res1
     }
 
     const refinementPrompt = `${prompt}\n\nCONTRAINTE ABSOLUE: toutes les fourchettes de prix (priceRange, diy.costRange, garage.costRange) doivent avoir un ecart <= 100 euros. Si tu ne peux pas respecter ca sans inventer, mets needsMoreInfo=true et pose UNE question courte et ciblée (missingInfo.question) pour reduire l'incertitude, puis donne quand meme une fourchette provisoire avec ecart <= 100.\n\nTa reponse precedente avait des fourchettes trop larges. Corrige en respectant strictement ecart <= 100 euros partout.\nReponse precedente (JSON): ${JSON.stringify(diagnostic1)}`
@@ -502,16 +571,26 @@ mentionnant les variantes concernées.
       await updateDiagnosticResult(diagId, JSON.stringify(finalDiagnostic), status)
     }
     let creditRefunded = false
-    if (!isPrivileged && isNoInterventionDiagnostic(finalDiagnostic)) {
+    if (user && !isPrivileged && isNoInterventionDiagnostic(finalDiagnostic)) {
       await addCredits(user.id, 1)
       creditRefunded = true
     }
-    return buildDiagnosticResponse(finalDiagnostic, isFriend, diagId, creditRefunded)
+    const res2 = buildDiagnosticResponse(finalDiagnostic, isFriend, diagId, creditRefunded)
+    if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res2, diagId)
+    return res2
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json({ error: "Données du formulaire invalides." }, { status: 400 })
     }
     console.error("Diagnostic API error:", error)
+    if (guestFirstCall) {
+      const res = NextResponse.json(
+        { error: "Erreur lors de l'analyse. Veuillez réessayer." },
+        { status: 500 }
+      )
+      res.cookies.set(GUEST_INTENT_COOKIE, "1", guestDiagnosticCookieOptions(GUEST_INTENT_MAX_AGE))
+      return res
+    }
     return Response.json(
       { error: "Erreur lors de l'analyse. Veuillez réessayer." },
       { status: 500 }

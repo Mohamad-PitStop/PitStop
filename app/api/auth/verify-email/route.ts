@@ -23,13 +23,19 @@ import { sendSignupConfirmedEmail } from "@/lib/signup-confirmed-email"
 import { findPendingGarageRegistration, deletePendingGarageRegistration } from "@/lib/pending-garage-registration-db"
 import { createGarage } from "@/lib/garage-db"
 import { activateEmployee } from "@/lib/garage-employee-db"
+import { assignDiagnosticRequestToUser } from "@/lib/diagnostics-db"
+import { clearGuestDiagnosticCookies, sanitizePostVerifyRedirect } from "@/lib/guest-diagnostic"
 
 export const runtime = "nodejs"
 
 const VERIFY_RATE_LIMIT = { name: "verify-email", maxRequests: 10, windowSeconds: 60 * 15 }
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").toLowerCase().trim()
 
-const Schema = z.object({ token: z.string().min(10) })
+const Schema = z.object({
+  token: z.string().min(10),
+  pendingGuestDiagnosticId: z.string().trim().min(10).max(120).optional(),
+  postVerifyRedirect: z.string().max(2048).optional(),
+})
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex")
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
     const rl = checkRateLimit(VERIFY_RATE_LIMIT, ip)
     if (!rl.allowed) return rateLimitResponse(rl.retryAfterSeconds)
 
-    const { token } = Schema.parse(await req.json())
+    const { token, pendingGuestDiagnosticId, postVerifyRedirect } = Schema.parse(await req.json())
     const tokenHash = hashToken(token)
 
     const pending = await findPendingVerificationByTokenHash(tokenHash)
@@ -65,10 +71,17 @@ export async function POST(req: Request) {
     const existing = await findAccountByEmail(pending.email)
     if (existing) {
       await deletePendingVerification(pending.email)
-      // Compte déjà créé : créer simplement une session
       const sessionToken = await createAuthSession(existing.id)
-      const res = NextResponse.json({ ok: true, alreadyExists: true })
+      let redirectTo: string | null = null
+      if (pendingGuestDiagnosticId && existing.role !== "garagiste") {
+        const ok = await assignDiagnosticRequestToUser(pendingGuestDiagnosticId, existing.id)
+        if (ok) {
+          redirectTo = sanitizePostVerifyRedirect(postVerifyRedirect) ?? "/mes-diagnostics"
+        }
+      }
+      const res = NextResponse.json({ ok: true, alreadyExists: true, redirectTo })
       res.cookies.set(AUTH_COOKIE_NAME, sessionToken, buildSessionCookieOptions())
+      if (redirectTo) clearGuestDiagnosticCookies(res)
       return res
     }
 
@@ -139,37 +152,48 @@ export async function POST(req: Request) {
     // Nettoyer la vérification en attente
     await deletePendingVerification(pending.email)
 
-    // Crédit de bienvenue : phase de test = 1 crédit systématique ; sinon anti-abus par IP (60 j).
     let welcomed = false
-    if (TEST_PHASE_SIGNUP_BONUS_ENABLED) {
-      await addCredits(account.id, 1)
-      welcomed = true
-    } else {
-      const grantWelcome = await canGrantWelcomeCredit(ip)
-      if (grantWelcome) {
-        await addCredits(account.id, 1)
-        await recordWelcomeCreditGrant(ip)
-        welcomed = true
+    let redirectTo: string | null = null
+    let attachedFromGuest = false
+    if (pendingGuestDiagnosticId && role !== "garagiste") {
+      attachedFromGuest = await assignDiagnosticRequestToUser(pendingGuestDiagnosticId, account.id)
+      if (attachedFromGuest) {
+        redirectTo = sanitizePostVerifyRedirect(postVerifyRedirect) ?? "/mes-diagnostics"
       }
     }
 
-    // E-mail de bienvenue (ne bloque pas la réponse en cas d’échec SMTP)
+    // Crédit de bienvenue : pas si le diagnostic invité vient d’être rattaché (= déjà « gratuit » consommé).
+    if (!attachedFromGuest) {
+      if (TEST_PHASE_SIGNUP_BONUS_ENABLED) {
+        await addCredits(account.id, 1)
+        welcomed = true
+      } else {
+        const grantWelcome = await canGrantWelcomeCredit(ip)
+        if (grantWelcome) {
+          await addCredits(account.id, 1)
+          await recordWelcomeCreditGrant(ip)
+          welcomed = true
+        }
+      }
+    }
+
     void sendSignupConfirmedEmail({
       to: account.email,
       name: account.name,
-      welcomed,
+      welcomed: attachedFromGuest ? false : welcomed,
       testPhaseBonus: TEST_PHASE_SIGNUP_BONUS_ENABLED,
     }).catch((err) => console.error("verify-email: envoi email de confirmation:", err))
 
-    // Créer la session et retourner le cookie
     const sessionToken = await createAuthSession(account.id)
     const res = NextResponse.json({
       ok: true,
-      welcomed,
+      welcomed: attachedFromGuest ? false : welcomed,
       testPhaseBonus: TEST_PHASE_SIGNUP_BONUS_ENABLED,
+      redirectTo,
       user: { id: account.id, name: account.name, email: account.email, role: account.role },
     })
     res.cookies.set(AUTH_COOKIE_NAME, sessionToken, buildSessionCookieOptions())
+    if (attachedFromGuest) clearGuestDiagnosticCookies(res)
     return res
   } catch (error) {
     if (error instanceof z.ZodError) {

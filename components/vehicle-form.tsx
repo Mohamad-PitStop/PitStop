@@ -22,12 +22,13 @@ import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { buildLoginUrl } from "@/lib/login-redirect"
+import { SS_GUEST_ACTIVE, SS_GUEST_DIAG_ID } from "@/lib/guest-diagnostic"
 
 function sortYearsDesc(years: string[]): string[] {
   return [...years].sort((a, b) => Number(b) - Number(a))
 }
 
-export function VehicleForm() {
+export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosticSession?: boolean }) {
   const router = useRouter()
   const { t, locale } = useTranslation()
   const { makes: apiMakes, models: apiModels, loadingMakes, loadingModels, fetchModels } = useCarsApi()
@@ -555,6 +556,11 @@ export function VehicleForm() {
       return
     }
 
+    if (guestDiagnosticSession) {
+      void runDiagnostic()
+      return
+    }
+
     router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
   }
 
@@ -579,6 +585,11 @@ export function VehicleForm() {
   }, [marqueOpen])
 
   useEffect(() => {
+    if (guestDiagnosticSession) {
+      setAuthUser(null)
+      setAuthSessionReady(true)
+      return
+    }
     let cancelled = false
     ;(async () => {
       try {
@@ -602,7 +613,7 @@ export function VehicleForm() {
     return () => {
       cancelled = true
     }
-  }, [router])
+  }, [router, guestDiagnosticSession])
 
   // Retour Stripe (achat de crédits connecté) : rafraîchir le solde et restaurer le formulaire
   useEffect(() => {
@@ -667,6 +678,7 @@ export function VehicleForm() {
       }
       const response = await fetch("/api/diagnostic", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
@@ -674,9 +686,19 @@ export function VehicleForm() {
       const data = await response.json().catch(() => null)
 
       if (!response.ok) {
-        const msg = data?.error || t("vehicleForm.analysisError")
+        const msg =
+          typeof data?.message === "string"
+            ? data.message
+            : typeof data?.error === "string"
+              ? data.error
+              : t("vehicleForm.analysisError")
         setAuthError(msg)
         return
+      }
+
+      if (guestDiagnosticSession && data?.diagnosticRequestId) {
+        sessionStorage.setItem(SS_GUEST_ACTIVE, "1")
+        sessionStorage.setItem(SS_GUEST_DIAG_ID, String(data.diagnosticRequestId))
       }
 
       sessionStorage.setItem("diagnostic", JSON.stringify(data))

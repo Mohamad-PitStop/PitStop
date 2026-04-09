@@ -1,22 +1,34 @@
 import { NextResponse } from "next/server"
-import { getUserFromAuthCookie } from "@/lib/auth-session"
+import { getUserFromAuthCookie, extractCookieValue } from "@/lib/auth-session"
 import { getDiagnosticRequestById, updateDiagnosticStatus, type DiagnosticStatus } from "@/lib/diagnostics-db"
+import { GUEST_ROW_COOKIE } from "@/lib/guest-diagnostic"
 
 const ALLOWED_STATUSES: DiagnosticStatus[] = ["abandoned", "completed"]
+
+function guestOwnsRow(cookieHeader: string | null, id: string, row: { userId: string | null }) {
+  if (row.userId !== null) return false
+  return extractCookieValue(cookieHeader, GUEST_ROW_COOKIE) === id
+}
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await getUserFromAuthCookie(req.headers.get("cookie"))
-  if (!user) {
-    return NextResponse.json({ error: "Non connecté" }, { status: 401 })
+  const cookieHeader = req.headers.get("cookie")
+  const user = await getUserFromAuthCookie(cookieHeader)
+  const { id } = await params
+
+  const row = await getDiagnosticRequestById(id)
+  if (!row) {
+    return NextResponse.json({ error: "Non trouvé" }, { status: 404 })
   }
 
-  const { id } = await params
-  const row = await getDiagnosticRequestById(id)
-  if (!row || row.userId !== user.id) {
-    return NextResponse.json({ error: "Non trouvé" }, { status: 404 })
+  if (user) {
+    if (row.userId !== user.id) {
+      return NextResponse.json({ error: "Non trouvé" }, { status: 404 })
+    }
+  } else if (!guestOwnsRow(cookieHeader, id, row)) {
+    return NextResponse.json({ error: "Non connecté" }, { status: 401 })
   }
 
   if (!row.resultJson) {
@@ -42,12 +54,10 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await getUserFromAuthCookie(req.headers.get("cookie"))
-  if (!user) {
-    return NextResponse.json({ error: "Non connecté" }, { status: 401 })
-  }
-
+  const cookieHeader = req.headers.get("cookie")
+  const user = await getUserFromAuthCookie(cookieHeader)
   const { id } = await params
+
   const body = await req.json().catch(() => null)
   const status = body?.status as DiagnosticStatus | undefined
 
@@ -56,8 +66,16 @@ export async function PATCH(
   }
 
   const row = await getDiagnosticRequestById(id)
-  if (!row || row.userId !== user.id) {
+  if (!row) {
     return NextResponse.json({ error: "Non trouvé" }, { status: 404 })
+  }
+
+  if (user) {
+    if (row.userId !== user.id) {
+      return NextResponse.json({ error: "Non trouvé" }, { status: 404 })
+    }
+  } else if (!guestOwnsRow(cookieHeader, id, row)) {
+    return NextResponse.json({ error: "Non connecté" }, { status: 401 })
   }
 
   await updateDiagnosticStatus(id, status)

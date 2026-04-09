@@ -1,18 +1,79 @@
 "use client"
 
+import { useCallback, useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { VehicleForm } from "@/components/vehicle-form"
+import { DiagnosticGuestGate } from "@/components/diagnostic-guest-gate"
 import { CheckCircle, Info } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/locale-context"
+import { buildLoginUrl } from "@/lib/login-redirect"
 
 export function DiagnosticPageContent() {
   const { t } = useTranslation()
+  const [sessionUser, setSessionUser] = useState<{ id: string } | null | undefined>(undefined)
+  const [guestUsed, setGuestUsed] = useState(false)
+  const [guestMode, setGuestMode] = useState(false)
+  const [eligibilityReady, setEligibilityReady] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const meRes = await fetch("/api/auth/me", { credentials: "include" })
+        const meData = await meRes.json().catch(() => null)
+        if (cancelled) return
+        if (meData?.user) {
+          setSessionUser(meData.user)
+          setEligibilityReady(true)
+          return
+        }
+        setSessionUser(null)
+        const gRes = await fetch("/api/guest/diagnostic-eligibility", { credentials: "include" })
+        const g = await gRes.json().catch(() => null)
+        if (cancelled) return
+        setGuestUsed(!!g?.guestDiagnosticUsed)
+        setEligibilityReady(true)
+      } catch {
+        if (!cancelled) {
+          setSessionUser(null)
+          setEligibilityReady(true)
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const onLogin = useCallback(() => {
+    window.location.assign(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
+  }, [])
+
+  const onContinueGuest = useCallback(async () => {
+    const r = await fetch("/api/guest/diagnostic-intent", { method: "POST", credentials: "include" })
+    const data = await r.json().catch(() => null)
+    if (!r.ok) {
+      throw new Error(typeof data?.message === "string" ? data.message : "Impossible d’activer le mode invité.")
+    }
+    setGuestMode(true)
+  }, [])
+
+  const showGate = eligibilityReady && sessionUser === null && !guestMode
+  const gateLoading = !eligibilityReady || sessionUser === undefined
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background">
+      <DiagnosticGuestGate
+        open={gateLoading || showGate}
+        guestUsed={guestUsed}
+        loading={gateLoading}
+        onLogin={onLogin}
+        onContinueGuest={onContinueGuest}
+      />
+
       <Navbar />
 
-      <main>
+      <main className={gateLoading || showGate ? "pointer-events-none opacity-40 select-none" : ""}>
         <section className="relative overflow-hidden py-14 md:py-20">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
 
@@ -35,7 +96,9 @@ export function DiagnosticPageContent() {
             </div>
 
             <div className="mx-auto max-w-4xl space-y-8">
-              <VehicleForm />
+              {sessionUser !== undefined && (sessionUser !== null || guestMode) ? (
+                <VehicleForm guestDiagnosticSession={guestMode} />
+              ) : null}
 
               <div className="flex items-start gap-3 rounded-lg border border-border/50 bg-secondary/30 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />

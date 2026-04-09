@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -29,6 +29,8 @@ import {
 } from "lucide-react"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
 import { useTranslation } from "@/lib/i18n/locale-context"
+import { buildLoginUrl } from "@/lib/login-redirect"
+import { SS_GUEST_ACTIVE, SS_GUEST_DIAG_ID, SS_POST_VERIFY_REDIRECT } from "@/lib/guest-diagnostic"
 
 /** Rendu léger de markdown : **gras**, sauts de ligne, puces (• ou - en début de ligne) */
 function RichText({ text, className }: { text: string; className?: string }) {
@@ -199,6 +201,80 @@ function isNoInterventionResult(d: DiagnosticResult): boolean {
   return false
 }
 
+function GuestBookingButton({
+  href,
+  className,
+  variant = "default",
+  children,
+  diagnosticId,
+}: {
+  href: string
+  className?: string
+  variant?: "default" | "outline"
+  children: ReactNode
+  diagnosticId?: string | null
+}) {
+  const { t } = useTranslation()
+  const [isGuest, setIsGuest] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    try {
+      setIsGuest(sessionStorage.getItem(SS_GUEST_ACTIVE) === "1")
+    } catch {
+      setIsGuest(false)
+    }
+  }, [])
+
+  function armGuestFlow() {
+    try {
+      sessionStorage.setItem(SS_POST_VERIFY_REDIRECT, href)
+      if (diagnosticId) sessionStorage.setItem(SS_GUEST_DIAG_ID, diagnosticId)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (!isGuest) {
+    return (
+      <Button asChild variant={variant} size="lg" className={className}>
+        <Link href={href}>{children}</Link>
+      </Button>
+    )
+  }
+
+  const loginHref = buildLoginUrl(href, { reason: "diagnostic" })
+  const signupHref = `/inscription?callbackUrl=${encodeURIComponent(href)}`
+
+  return (
+    <>
+      <Button type="button" variant={variant} size="lg" className={className} onClick={() => setOpen(true)}>
+        {children}
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("guestDiag.rdvTitle")}</DialogTitle>
+            <DialogDescription>{t("guestDiag.rdvBody")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+            <Button asChild className="w-full">
+              <Link href={signupHref} onClick={armGuestFlow}>
+                {t("guestDiag.rdvSignup")}
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href={loginHref} onClick={armGuestFlow}>
+                {t("guestDiag.rdvLogin")}
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
 const severityConfig = {
   low: {
     color: "bg-green-500/20 text-green-400 border-green-500/30",
@@ -315,12 +391,13 @@ export function ResultsContent() {
     try {
       const response = await fetch("/api/diagnostic", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...vehicleInfo,
           followUps: nextFollowUps,
           diagnosticRequestId: diagnostic?.diagnosticRequestId,
-        })
+        }),
       })
 
       if (!response.ok) {
@@ -381,6 +458,7 @@ export function ResultsContent() {
     try {
       const response = await fetch("/api/diagnostic", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...vehicleInfo,
@@ -419,11 +497,13 @@ export function ResultsContent() {
 
   const handleAbandon = async () => {
     const diagId = diagnostic?.diagnosticRequestId
+    const isGuest = typeof window !== "undefined" && sessionStorage.getItem(SS_GUEST_ACTIVE) === "1"
     setIsAbandoning(true)
     try {
       if (diagId) {
         await fetch(`/api/diagnostic/${diagId}`, {
           method: "PATCH",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "abandoned" }),
         })
@@ -434,7 +514,9 @@ export function ResultsContent() {
       sessionStorage.removeItem("diagnostic")
       sessionStorage.removeItem("vehicleInfo")
       sessionStorage.removeItem("followUps")
-      router.push("/mes-diagnostics")
+      sessionStorage.removeItem(SS_GUEST_ACTIVE)
+      sessionStorage.removeItem(SS_GUEST_DIAG_ID)
+      router.push(isGuest ? "/" : "/mes-diagnostics")
     }
   }
 
@@ -777,11 +859,13 @@ export function ResultsContent() {
               </div>
             </div>
 
-            <Button asChild size="lg" className="w-full">
-              <Link href={`/rendez-vous?type=obd-scan${diagnostic.obdScanFirst?.scanPrice ? `&priceMin=${diagnostic.obdScanFirst.scanPrice}` : ""}`}>
-                {t("results.planObd")}
-              </Link>
-            </Button>
+            <GuestBookingButton
+              href={`/rendez-vous?type=obd-scan${diagnostic.obdScanFirst?.scanPrice ? `&priceMin=${diagnostic.obdScanFirst.scanPrice}` : ""}`}
+              className="w-full"
+              diagnosticId={diagnostic.diagnosticRequestId ?? null}
+            >
+              {t("results.planObd")}
+            </GuestBookingButton>
           </CardContent>
         </Card>
       )}
@@ -827,9 +911,13 @@ export function ResultsContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild size="lg" className="w-full">
-              <Link href="/rendez-vous?type=lavage-auto">{t("results.bookWash")}</Link>
-            </Button>
+            <GuestBookingButton
+              href="/rendez-vous?type=lavage-auto"
+              className="w-full"
+              diagnosticId={diagnostic.diagnosticRequestId ?? null}
+            >
+              {t("results.bookWash")}
+            </GuestBookingButton>
           </CardContent>
         </Card>
       )}
@@ -993,9 +1081,13 @@ export function ResultsContent() {
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
-              <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 font-semibold">
-                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>{t("results.bookRdV")}</Link>
-              </Button>
+              <GuestBookingButton
+                href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 font-semibold"
+                diagnosticId={diagnostic.diagnosticRequestId ?? null}
+              >
+                {t("results.bookRdV")}
+              </GuestBookingButton>
               <Button asChild variant="outline" className="flex-1 border-primary/40">
                 <Link href="/garages">{t("results.findGarage")}</Link>
               </Button>
@@ -1024,9 +1116,13 @@ export function ResultsContent() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row gap-3">
-              <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Link href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}>{t("results.bookRdV")}</Link>
-              </Button>
+              <GuestBookingButton
+                href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                diagnosticId={diagnostic.diagnosticRequestId ?? null}
+              >
+                {t("results.bookRdV")}
+              </GuestBookingButton>
               <Button asChild size="lg" variant="outline" className="flex-1 border-primary/40">
                 <Link href="/garages">{t("results.findGarage")}</Link>
               </Button>

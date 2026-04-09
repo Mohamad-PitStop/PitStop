@@ -8,6 +8,7 @@ import { DirectionsLink } from "@/components/directions-link"
 import { RendezVousForm } from "@/components/rendez-vous-form"
 import { BookingCheckout } from "@/components/booking-checkout"
 import { useTranslation } from "@/lib/i18n/locale-context"
+import { SS_GUEST_ACTIVE, SS_GUEST_DIAG_ID } from "@/lib/guest-diagnostic"
 
 type Props = {
   isObd: boolean
@@ -49,6 +50,41 @@ export function RendezVousPageContent({
   const { t } = useTranslation()
   const [dynamicGarage, setDynamicGarage] = useState<LoadedGarage | null>(null)
   const [garageLoadError, setGarageLoadError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      let id: string | null = null
+      try {
+        id = sessionStorage.getItem(SS_GUEST_DIAG_ID)
+      } catch {
+        return
+      }
+      if (!id) return
+      const me = await fetch("/api/auth/me", { credentials: "include" })
+        .then((r) => r.json())
+        .catch(() => null)
+      if (cancelled || !me?.user) return
+      const att = await fetch("/api/auth/attach-guest-diagnostic", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ diagnosticId: id }),
+      })
+        .then((r) => r.json())
+        .catch(() => null)
+      if (cancelled || !att?.ok) return
+      try {
+        sessionStorage.removeItem(SS_GUEST_DIAG_ID)
+        sessionStorage.removeItem(SS_GUEST_ACTIVE)
+      } catch {
+        /* ignore */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!selectedGarageId?.trim()) {

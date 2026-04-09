@@ -11,6 +11,7 @@ import { enMisc } from "./parts/en-misc"
 import { enSurface } from "./parts/en-surface"
 import { enPagesB } from "./parts/en-pagesB"
 import { enGarage } from "./parts/en-garage"
+import { enGuestDiagnostic } from "./parts/en-guestDiagnostic"
 
 export const treeEn = deepMergeAll(
   enCore as unknown as Record<string, unknown>,
@@ -24,5 +25,6 @@ export const treeEn = deepMergeAll(
   enMisc as unknown as Record<string, unknown>,
   enSurface as unknown as Record<string, unknown>,
   enPagesB as unknown as Record<string, unknown>,
-  enGarage as unknown as Record<string, unknown>
+  enGarage as unknown as Record<string, unknown>,
+  enGuestDiagnostic as unknown as Record<string, unknown>
 )
