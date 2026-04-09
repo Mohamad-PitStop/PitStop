@@ -164,7 +164,7 @@ export default function InscriptionGaragePage() {
                       <Input placeholder={t("garage.registration.companyName")} value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
                       <Input placeholder={t("garage.registration.bceTva")} value={bceTva} onChange={(e) => setBceTva(e.target.value)} required />
                       <Input placeholder={t("garage.registration.street")} value={street} onChange={(e) => setStreet(e.target.value)} required />
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 items-start gap-3">
                         <Input
                           placeholder={t("garage.registration.postalCode")}
                           inputMode="numeric"
@@ -174,8 +174,9 @@ export default function InscriptionGaragePage() {
                           onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
                           required
                         />
-                        <div className="flex items-center gap-2">
+                        <div className="flex min-h-9 items-center gap-2">
                           <Input
+                            className="min-w-0 flex-1"
                             placeholder={t("garage.registration.city")}
                             autoComplete="address-level2"
                             value={city}
@@ -185,9 +186,11 @@ export default function InscriptionGaragePage() {
                             }}
                             required
                           />
-                          {lookupLoading ? (
-                            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />
-                          ) : null}
+                          <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center" aria-hidden>
+                            {lookupLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            ) : null}
+                          </span>
                         </div>
                       </div>
                       {showBelgiumOnlyLocation ? (

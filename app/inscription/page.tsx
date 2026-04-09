@@ -167,47 +167,48 @@ function InscriptionForm() {
                         onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label htmlFor="postalCode" className="text-sm font-medium text-foreground">
-                          {t("auth.postalCode")}
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                      <label
+                        htmlFor="postalCode"
+                        className="col-start-1 row-start-1 text-sm font-medium leading-snug text-foreground"
+                      >
+                        {t("auth.postalCode")}
+                      </label>
+                      <div className="col-start-1 row-start-3 flex items-center gap-2 sm:col-start-2 sm:row-start-1">
+                        <label htmlFor="city" className="text-sm font-medium leading-snug text-foreground">
+                          {t("auth.city")}
                         </label>
-                        <Input
-                          id="postalCode"
-                          inputMode="numeric"
-                          autoComplete="postal-code"
-                          placeholder="ex. 6000"
-                          required
-                          maxLength={4}
-                          pattern="[0-9]{4}"
-                          title={t("auth.postalTitle")}
-                          value={postalCode}
-                          onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                        />
+                        {lookupLoading ? (
+                          <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" aria-hidden />
+                        ) : null}
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <label htmlFor="city" className="text-sm font-medium text-foreground">
-                            {t("auth.city")}
-                          </label>
-                          {lookupLoading ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" aria-hidden />
-                          ) : null}
-                        </div>
-                        <Input
-                          id="city"
-                          autoComplete="address-level2"
-                          placeholder={t("auth.cityPlaceholder")}
-                          required
-                          minLength={2}
-                          maxLength={80}
-                          value={city}
-                          onChange={(e) => {
-                            markCityEditedByUser()
-                            setCity(e.target.value)
-                          }}
-                        />
-                      </div>
+                      <Input
+                        id="postalCode"
+                        className="col-start-1 row-start-2 sm:row-start-2"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
+                        placeholder="ex. 6000"
+                        required
+                        maxLength={4}
+                        pattern="[0-9]{4}"
+                        title={t("auth.postalTitle")}
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      />
+                      <Input
+                        id="city"
+                        className="col-start-1 row-start-4 sm:col-start-2 sm:row-start-2"
+                        autoComplete="address-level2"
+                        placeholder={t("auth.cityPlaceholder")}
+                        required
+                        minLength={2}
+                        maxLength={80}
+                        value={city}
+                        onChange={(e) => {
+                          markCityEditedByUser()
+                          setCity(e.target.value)
+                        }}
+                      />
                     </div>
                     {showBelgiumOnlyLocation ? (
                       <p
