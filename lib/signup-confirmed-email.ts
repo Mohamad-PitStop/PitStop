@@ -13,7 +13,7 @@ export function buildSignupConfirmedEmailHtml(
   opts: { welcomed: boolean; testPhaseBonus: boolean }
 ): string {
   const safeBase = baseUrl.replace(/\/$/, "")
-  const logoUrl = `${safeBase}/placeholder-logo.svg`
+  const logoUrl = `${safeBase}/images/pitstop-logo.png`
   const homeUrl = safeBase
 
   const creditBlock =
@@ -32,7 +32,7 @@ export function buildSignupConfirmedEmailHtml(
     <div style="font-family:Arial,Helvetica,sans-serif;background:#f8fafc;padding:24px;">
       <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">
         <div style="padding:28px 24px 8px;text-align:center;background:#ffffff;">
-          <img src="${logoUrl}" alt="PitStop" width="215" height="48"
+          <img src="${logoUrl}" alt="PitStop" width="130" height="40"
                style="display:block;max-width:100%;height:auto;margin:0 auto;border:0;outline:none;text-decoration:none;" />
         </div>
         <div style="padding:8px 24px 28px;">
