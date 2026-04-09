@@ -202,7 +202,6 @@ function InscriptionForm() {
                             setCity(e.target.value)
                           }}
                         />
-                        <p className="text-xs text-muted-foreground">{t("auth.cityAutoFillHint")}</p>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed -mt-1">

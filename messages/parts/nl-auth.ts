@@ -32,7 +32,6 @@ export const nlAuth = {
     namePlaceholder: "Bv. Jan Janssens",
     postalCode: "Postcode",
     city: "Gemeente of stad",
-    cityAutoFillHint: "De gemeente wordt automatisch voorop ingevuld op basis van de postcode; u kunt ze aanpassen.",
     cityPlaceholder: "bv. Charleroi",
     postalTitle: "4 cijfers (België)",
     signupStatsNote:

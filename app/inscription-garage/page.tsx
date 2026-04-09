@@ -169,23 +169,20 @@ export default function InscriptionGaragePage() {
                           onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
                           required
                         />
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Input
-                              placeholder={t("garage.registration.city")}
-                              autoComplete="address-level2"
-                              value={city}
-                              onChange={(e) => {
-                                markCityEditedByUser()
-                                setCity(e.target.value)
-                              }}
-                              required
-                            />
-                            {lookupLoading ? (
-                              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />
-                            ) : null}
-                          </div>
-                          <p className="text-[11px] leading-snug text-muted-foreground">{t("auth.cityAutoFillHint")}</p>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            placeholder={t("garage.registration.city")}
+                            autoComplete="address-level2"
+                            value={city}
+                            onChange={(e) => {
+                              markCityEditedByUser()
+                              setCity(e.target.value)
+                            }}
+                            required
+                          />
+                          {lookupLoading ? (
+                            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />
+                          ) : null}
                         </div>
                       </div>
                       <Input placeholder={t("garage.registration.iban")} value={iban} onChange={(e) => setIban(e.target.value)} required />

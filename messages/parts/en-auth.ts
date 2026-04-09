@@ -32,7 +32,6 @@ export const enAuth = {
     namePlaceholder: "e.g. John Smith",
     postalCode: "Postal code",
     city: "Municipality or city",
-    cityAutoFillHint: "The municipality is suggested from the postal code; you can edit it.",
     cityPlaceholder: "e.g. Charleroi",
     postalTitle: "4 digits (Belgium)",
     signupStatsNote:
