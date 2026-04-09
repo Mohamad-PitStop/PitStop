@@ -54,7 +54,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   const className = [
     animClass ? `min-h-screen ${animClass}` : "min-h-screen",
     /* Stacking / compositing : transitions plus stables (Safari / Firefox) */
-    "isolate [transform:translateZ(0)]",
+    "isolate [transform:translateZ(0)] max-w-full overflow-x-hidden",
   ].join(" ")
 
   return (

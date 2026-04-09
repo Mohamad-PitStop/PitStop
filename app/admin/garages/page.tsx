@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import { Navbar } from "@/components/navbar"
-import { CheckCircle, XCircle, Clock, Users, ChevronDown, ChevronUp } from "lucide-react"
+import { CheckCircle, XCircle, Clock, Users, ChevronDown, ChevronUp, Building2 } from "lucide-react"
 
 type GarageMember = { email: string; role: "manager" | "employee"; status: string }
 type Garage = {
@@ -34,18 +35,34 @@ export default function AdminGaragesPage() {
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([])
   const [expandedGarage, setExpandedGarage] = useState<string | null>(null)
   const [transferRef, setTransferRef] = useState<Record<string, string>>({})
+  const [dataLoading, setDataLoading] = useState(false)
 
   useEffect(() => {
-    fetch("/api/auth/me").then((r) => r.json()).then((data) => {
-      if (!data.user || data.user.role !== "admin") { router.push("/"); return }
-      setUser(data.user)
-    })
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.user || data.user.role !== "admin") {
+          router.push("/")
+          return
+        }
+        setUser(data.user)
+      })
   }, [router])
 
-  const loadAll = useCallback(() => {
-    fetch("/api/admin/garages").then((r) => r.json()).then((d) => { if (d.ok) setGarages(d.garages) })
-    fetch("/api/admin/garages/hours-requests").then((r) => r.json()).then((d) => { if (d.ok) setHoursRequests(d.requests) })
-    fetch("/api/admin/payouts").then((r) => r.json()).then((d) => { if (d.ok) setPayoutRequests(d.payouts) })
+  const loadAll = useCallback(async () => {
+    setDataLoading(true)
+    try {
+      const [d1, d2, d3] = await Promise.all([
+        fetch("/api/admin/garages", { credentials: "include" }).then((r) => r.json()),
+        fetch("/api/admin/garages/hours-requests", { credentials: "include" }).then((r) => r.json()),
+        fetch("/api/admin/payouts", { credentials: "include" }).then((r) => r.json()),
+      ])
+      if (d1.ok) setGarages(d1.garages)
+      if (d2.ok) setHoursRequests(d2.requests)
+      if (d3.ok) setPayoutRequests(d3.payouts)
+    } finally {
+      setDataLoading(false)
+    }
   }, [])
 
   useEffect(() => { if (user) loadAll() }, [user, loadAll])
@@ -93,9 +110,40 @@ export default function AdminGaragesPage() {
       <main className="container mx-auto max-w-4xl px-4 py-8 space-y-8">
         <h1 className="text-2xl font-bold">{t("garage.admin.title")}</h1>
 
+        {dataLoading ? (
+          <div className="flex min-h-[12rem] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center text-sm text-muted-foreground">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
+            <p>{t("garage.admin.loading")}</p>
+          </div>
+        ) : null}
+
         {/* Garages list */}
         <section className="space-y-3">
-          {garages.map((g) => (
+          {!dataLoading && garages.length > 0 ? (
+            <h2 className="text-lg font-semibold">{t("garage.admin.garagesList")}</h2>
+          ) : null}
+
+          {!dataLoading && garages.length === 0 ? (
+            <Card className="border-dashed border-primary/25 bg-muted/10">
+              <CardContent className="flex flex-col items-center gap-4 px-6 py-10 text-center sm:flex-row sm:text-left">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Building2 className="h-7 w-7" aria-hidden />
+                </div>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <p className="text-base font-semibold text-foreground">{t("garage.admin.emptyGaragesTitle")}</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{t("garage.admin.emptyGaragesDescription")}</p>
+                  <Button asChild variant="outline" size="sm" className="mt-2 w-full sm:w-auto">
+                    <Link href="/inscription-garage" target="_blank" rel="noopener noreferrer">
+                      {t("garage.admin.emptyGaragesLink")}
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {!dataLoading &&
+            garages.map((g) => (
             <Card key={g.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -141,7 +189,7 @@ export default function AdminGaragesPage() {
                 )}
               </CardContent>
             </Card>
-          ))}
+            ))}
         </section>
 
         {/* Hours change requests */}

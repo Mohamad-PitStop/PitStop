@@ -82,9 +82,13 @@
 }
 
 @layer base {
-  html,
+  /* overflow-x sur body casse position:fixed (barre langues, etc.) sur Safari / Chrome mobile. */
+  html {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
   body {
-    overflow-x: hidden;
     max-width: 100%;
   }
 

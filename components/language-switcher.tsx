@@ -28,17 +28,32 @@ export function LanguageSwitcher({ variant, className }: Props) {
     setMobileDockToBody(true)
   }, [variant])
 
+  const mobileDockStyle =
+    variant === "mobile"
+      ? ({
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: "100%",
+          maxWidth: "100%",
+          zIndex: 45,
+        } as const)
+      : undefined
+
   const inner = (
     <div
+      data-pitstop-lang-dock={variant === "mobile" ? "" : undefined}
       role="group"
       aria-label={t("lang.aria.choose")}
+      style={mobileDockStyle}
       className={cn(
         variant === "header" &&
           "hidden xl:inline-flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5",
         variant === "embedded" &&
           "inline-flex w-full items-center justify-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5",
         variant === "mobile" &&
-          "xl:hidden fixed inset-x-0 bottom-0 z-[45] flex items-center justify-center gap-1 border-t border-border/60 bg-background/95 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.12)] [transform:translateZ(0)]",
+          "xl:hidden flex items-center justify-center gap-1 border-t border-border/60 bg-background/95 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.12)]",
         className
       )}
     >

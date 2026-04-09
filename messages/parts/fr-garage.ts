@@ -246,6 +246,12 @@ export const frGarage = {
     // ── Admin ─────────────────────────────────────────────────────────────
     admin: {
       title: "Gestion des garages",
+      garagesList: "Garages partenaires",
+      loading: "Chargement des données…",
+      emptyGaragesTitle: "Aucun garage pour l’instant",
+      emptyGaragesDescription:
+        "Il n’y a encore aucune fiche garage dans la base. Lorsqu’un professionnel complète l’inscription sur la page publique « Inscription garage », son garage apparaîtra ici pour que vous puissiez l’approuver ou le suivre.",
+      emptyGaragesLink: "Voir la page d’inscription publique",
       approve: "Approuver",
       suspend: "Suspendre",
       pending: "En attente d'approbation",

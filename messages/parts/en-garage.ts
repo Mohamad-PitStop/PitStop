@@ -210,6 +210,12 @@ export const enGarage = {
     },
     admin: {
       title: "Garage management",
+      garagesList: "Partner garages",
+      loading: "Loading data…",
+      emptyGaragesTitle: "No garages yet",
+      emptyGaragesDescription:
+        "There are no garage records yet. When a professional completes signup on the public “Garage signup” page, their garage will show up here for you to approve or manage.",
+      emptyGaragesLink: "Open the public garage signup page",
       approve: "Approve",
       suspend: "Suspend",
       pending: "Pending approval",

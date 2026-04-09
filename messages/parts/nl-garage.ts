@@ -210,6 +210,12 @@ export const nlGarage = {
     },
     admin: {
       title: "Garagebeheer",
+      garagesList: "Partnergarages",
+      loading: "Gegevens laden…",
+      emptyGaragesTitle: "Nog geen garages",
+      emptyGaragesDescription:
+        "Er zijn nog geen garages geregistreerd. Zodra een professional zich aanmeldt via de openbare registratiepagina voor garages, verschijnt de garage hier ter goedkeuring of opvolging.",
+      emptyGaragesLink: "Openbare registratiepagina voor garages",
       approve: "Goedkeuren",
       suspend: "Opschorten",
       pending: "Wacht op goedkeuring",
