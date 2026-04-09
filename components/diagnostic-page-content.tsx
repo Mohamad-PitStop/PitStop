@@ -8,7 +8,7 @@ import { CheckCircle, Info } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import { buildLoginUrl } from "@/lib/login-redirect"
 
-export function DiagnosticPageContent() {
+export function DiagnosticPageContent({ skipGuestGate = false }: { skipGuestGate?: boolean }) {
   const { t } = useTranslation()
   const [sessionUser, setSessionUser] = useState<{ id: string } | null | undefined>(undefined)
   const [guestUsed, setGuestUsed] = useState(false)
@@ -24,6 +24,11 @@ export function DiagnosticPageContent() {
         if (cancelled) return
         if (meData?.user) {
           setSessionUser(meData.user)
+          setEligibilityReady(true)
+          return
+        }
+        if (skipGuestGate) {
+          setSessionUser(null)
           setEligibilityReady(true)
           return
         }
@@ -43,7 +48,7 @@ export function DiagnosticPageContent() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [skipGuestGate])
 
   const onLogin = useCallback(() => {
     window.location.assign(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
@@ -59,7 +64,9 @@ export function DiagnosticPageContent() {
   }, [])
 
   const showGate = eligibilityReady && sessionUser === null && !guestMode
-  const gateLoading = !eligibilityReady || sessionUser === undefined
+  /** Sans skipGuestGate : tant que /me n’a pas répondu, on affiche le portail (spinner ou choix invité). */
+  const gateLoading =
+    !skipGuestGate && (!eligibilityReady || sessionUser === undefined)
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -96,8 +103,9 @@ export function DiagnosticPageContent() {
             </div>
 
             <div className="mx-auto max-w-4xl space-y-8">
-              {sessionUser !== undefined && (sessionUser !== null || guestMode) ? (
-                <VehicleForm guestDiagnosticSession={guestMode} />
+              {(skipGuestGate && sessionUser === undefined) ||
+              (sessionUser !== undefined && (sessionUser !== null || guestMode)) ? (
+                <VehicleForm guestDiagnosticSession={guestMode && !skipGuestGate} />
               ) : null}
 
               <div className="flex items-start gap-3 rounded-lg border border-border/50 bg-secondary/30 p-4">
