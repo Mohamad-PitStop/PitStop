@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useLayoutEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,11 @@ export function SignupWelcomeOverlay() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
+  const [portalReady, setPortalReady] = useState(false)
+
+  useEffect(() => {
+    setPortalReady(true)
+  }, [])
 
   useLayoutEffect(() => {
     if (!TEST_PHASE_SIGNUP_BONUS_ENABLED) return
@@ -44,6 +50,7 @@ export function SignupWelcomeOverlay() {
     if (!TEST_PHASE_SIGNUP_BONUS_ENABLED) return
     try {
       if (sessionStorage.getItem(PENDING_KEY) === "1") {
+        window.scrollTo(0, 0)
         setOpen(true)
       }
     } catch {
@@ -64,11 +71,11 @@ export function SignupWelcomeOverlay() {
     router.replace(url.pathname + url.search, { scroll: false })
   }
 
-  if (!TEST_PHASE_SIGNUP_BONUS_ENABLED || !open) return null
+  if (!TEST_PHASE_SIGNUP_BONUS_ENABLED || !open || !portalReady) return null
 
-  return (
+  const overlay = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300"
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcome-test-title"
@@ -106,4 +113,6 @@ export function SignupWelcomeOverlay() {
       </div>
     </div>
   )
+
+  return createPortal(overlay, document.body)
 }
