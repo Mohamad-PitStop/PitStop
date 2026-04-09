@@ -1,4 +1,4 @@
-/** Formate la liste des communes renvoyées par l’API (noms uniques, lisibles). */
+/** Formate la liste des communes (noms uniques, lisibles). */
 export function formatBelgianMunicipalityLine(names: string[], maxParts = 5): string {
   const u = uniqueBelgianMunicipalityLabels(names.map((n) => n.trim()).filter(Boolean)).sort((a, b) =>
     a.localeCompare(b, "fr-BE", { sensitivity: "base" })
@@ -19,48 +19,7 @@ function belgianMunicipalityDedupeKey(name: string): string {
     .toLowerCase()
 }
 
-/**
- * Détecte une suite de mots répétée N fois (ex. « A A », « A B A B », « X X X » avec apostrophes différentes).
- */
-function dedupeRepeatedWordRuns(raw: string): string {
-  const unified = raw
-    .trim()
-    .replace(/\s+/g, " ")
-    .replace(/['\u2019`]/g, "'")
-  const words = unified.split(" ").filter(Boolean)
-  if (words.length < 2) return unified
-
-  for (let unitLen = 1; unitLen <= Math.floor(words.length / 2); unitLen++) {
-    if (words.length % unitLen !== 0) continue
-    const nrep = words.length / unitLen
-    if (nrep < 2) continue
-    const unit = words.slice(0, unitLen).join(" ")
-    const key0 = belgianMunicipalityDedupeKey(unit)
-    let ok = true
-    for (let r = 1; r < nrep; r++) {
-      const chunk = words.slice(r * unitLen, (r + 1) * unitLen).join(" ")
-      if (belgianMunicipalityDedupeKey(chunk) !== key0) {
-        ok = false
-        break
-      }
-    }
-    if (ok) return unit
-  }
-  return unified
-}
-
-/** Même chaîne répétée collée avec espaces (apostrophes unifiées au préalable). */
-function dedupeDoubledWholeString(raw: string): string {
-  let t = raw.trim().replace(/['\u2019`]/g, "'")
-  for (let i = 0; i < 6; i++) {
-    const m = t.match(/^(.+?)\s+\1$/iu)
-    if (!m) break
-    t = m[1]!.trim()
-  }
-  return t
-}
-
-/** Fusionne les libellés qui désignent la même commune (API ou saisie). */
+/** Fusionne les libellés qui désignent la même commune. */
 function uniqueBelgianMunicipalityLabels(names: string[]): string[] {
   const chosen = new Map<string, string>()
   for (const name of names) {
@@ -84,38 +43,45 @@ function uniqueBelgianMunicipalityLabels(names: string[]): string[] {
   return [...chosen.values()]
 }
 
-/**
- * Corrections ciblées après dédoublonnage (typos / graphie API vs commune officielle).
- */
-function normalizeBelgianMunicipalityFromApi(raw: string): string {
-  const once = dedupeDoubledWholeString(dedupeRepeatedWordRuns(raw))
-  const compact = once
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/['\u2019`]/g, "'")
-    .replace(/[-\s]+/g, "")
-    .toLowerCase()
+/** Jeu bpost / géoréférencement — https://public.opendatasoft.com/explore/dataset/georef-belgium-postal-codes */
+const ODS_BASE =
+  "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-belgium-postal-codes/records"
 
-  if (compact === "brainelalleud") return "Braine-l'Alleud"
-
-  return once.trim()
+type OdsPostalRecord = {
+  smun_name_fr?: string | null
+  smun_name_nl?: string | null
+  mun_name_fr?: string | null
+  mun_name_nl?: string | null
 }
 
-type ZippopotamPlace = { "place name"?: string }
-type ZippopotamResponse = { places?: ZippopotamPlace[] }
+/** Libellé d’affichage : FR prioritaire, sinon NL (sections bilingues / Flandre). */
+function localityLabelFromRecord(r: OdsPostalRecord): string | null {
+  const fr = (r.smun_name_fr ?? r.mun_name_fr)?.trim()
+  if (fr) return fr
+  const nl = (r.smun_name_nl ?? r.mun_name_nl)?.trim()
+  return nl || null
+}
 
+/**
+ * Communes / sections associées à un code postal (source : OpenDataSoft, jeu bpost « georef-belgium-postal-codes »).
+ */
 export async function fetchBelgianMunicipalitiesForPostal(postal: string): Promise<string[]> {
-  const res = await fetch(`https://api.zippopotam.us/be/${encodeURIComponent(postal)}`, {
+  const url = new URL(ODS_BASE)
+  url.searchParams.set("limit", "100")
+  url.searchParams.set("refine", `postcode:${postal}`)
+  url.searchParams.set("select", "postcode,smun_name_fr,smun_name_nl,mun_name_fr,mun_name_nl")
+
+  const res = await fetch(url.toString(), {
     headers: { Accept: "application/json" },
     next: { revalidate: 86_400 },
   })
   if (!res.ok) return []
-  const data = (await res.json()) as ZippopotamResponse
-  const places = Array.isArray(data.places) ? data.places : []
-  const names = places
-    .map((p) => p["place name"])
-    .filter((n): n is string => typeof n === "string" && n.trim().length > 0)
-    .map(normalizeBelgianMunicipalityFromApi)
-    .filter((n) => n.length > 0)
+
+  const data = (await res.json()) as { results?: OdsPostalRecord[] }
+  const rows = Array.isArray(data.results) ? data.results : []
+  const names = rows
+    .map(localityLabelFromRecord)
+    .filter((n): n is string => typeof n === "string" && n.length > 0)
+
   return uniqueBelgianMunicipalityLabels(names)
 }
