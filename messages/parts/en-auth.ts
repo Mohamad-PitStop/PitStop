@@ -34,6 +34,7 @@ export const enAuth = {
     city: "Municipality or city",
     cityPlaceholder: "e.g. Charleroi",
     postalTitle: "4 digits (Belgium)",
+    belgiumOnlyLocation: "Unfortunately, PitStop is only available in Belgium for now.",
     signupStatsNote:
       "This information is used only in aggregate statistics to adapt our partner garage network (see our",
     privacyLink: "privacy policy",

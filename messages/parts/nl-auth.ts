@@ -34,6 +34,7 @@ export const nlAuth = {
     city: "Gemeente of stad",
     cityPlaceholder: "bv. Charleroi",
     postalTitle: "4 cijfers (België)",
+    belgiumOnlyLocation: "PitStop is voorlopig enkel beschikbaar in België.",
     signupStatsNote:
       "Deze gegevens worden alleen als globale statistiek gebruikt om ons partnernetwerk aan te passen (zie onze",
     privacyLink: "privacyverklaring",

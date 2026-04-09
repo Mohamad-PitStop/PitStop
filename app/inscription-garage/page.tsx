@@ -57,11 +57,16 @@ export default function InscriptionGaragePage() {
   const [error, setError] = useState<string | null>(null)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
-  const { markCityEditedByUser, lookupLoading } = useBelgianPostalCityPrefill(postalCode, setCity)
+  const { markCityEditedByUser, lookupLoading, showBelgiumOnlyLocation } = useBelgianPostalCityPrefill(
+    postalCode,
+    city,
+    setCity
+  )
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
+    if (!isEmployee && showBelgiumOnlyLocation) return
     setIsSubmitting(true)
 
     try {
@@ -185,6 +190,14 @@ export default function InscriptionGaragePage() {
                           ) : null}
                         </div>
                       </div>
+                      {showBelgiumOnlyLocation ? (
+                        <p
+                          className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-foreground leading-relaxed"
+                          role="alert"
+                        >
+                          {t("auth.belgiumOnlyLocation")}
+                        </p>
+                      ) : null}
                       <Input placeholder={t("garage.registration.iban")} value={iban} onChange={(e) => setIban(e.target.value)} required />
                       <Input placeholder={t("garage.registration.professionalPhone")} type="tel" value={professionalPhone} onChange={(e) => setProfessionalPhone(e.target.value)} required />
                       <Input placeholder={t("garage.registration.professionalEmail")} type="email" value={professionalEmail} onChange={(e) => setProfessionalEmail(e.target.value)} required />

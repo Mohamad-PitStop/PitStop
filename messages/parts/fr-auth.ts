@@ -36,6 +36,8 @@ export const frAuth = {
     city: "Commune ou ville",
     cityPlaceholder: "ex. Charleroi",
     postalTitle: "4 chiffres (Belgique)",
+    belgiumOnlyLocation:
+      "Malheureusement, PitStop n’est disponible qu’en Belgique pour le moment.",
     signupStatsNote:
       "Ces indications sont utilisées uniquement sous forme de statistiques globales pour adapter notre réseau de garages partenaires (voir notre",
     privacyLink: "politique de confidentialité",

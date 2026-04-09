@@ -30,11 +30,16 @@ function InscriptionForm() {
   const [error, setError] = useState<string | null>(null)
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle")
 
-  const { markCityEditedByUser, lookupLoading } = useBelgianPostalCityPrefill(postalCode, setCity)
+  const { markCityEditedByUser, lookupLoading, showBelgiumOnlyLocation } = useBelgianPostalCityPrefill(
+    postalCode,
+    city,
+    setCity
+  )
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
+    if (showBelgiumOnlyLocation) return
     setIsSubmitting(true)
     try {
       const res = await fetch("/api/auth/signup", {
@@ -204,6 +209,14 @@ function InscriptionForm() {
                         />
                       </div>
                     </div>
+                    {showBelgiumOnlyLocation ? (
+                      <p
+                        className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-foreground leading-relaxed"
+                        role="alert"
+                      >
+                        {t("auth.belgiumOnlyLocation")}
+                      </p>
+                    ) : null}
                     <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
                       {t("auth.signupStatsNote")}{" "}
                       <Link href="/confidentialite" className="text-primary hover:underline">
