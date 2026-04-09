@@ -87,7 +87,7 @@ export default function GarageLayout({ children }: { children: React.ReactNode }
             <p className="text-sm font-medium truncate">{user?.name}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
-          <LanguageSwitcher variant="mobile" />
+          <LanguageSwitcher variant="embedded" />
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

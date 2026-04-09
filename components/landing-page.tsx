@@ -4,14 +4,10 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 import { CheckCircle, ArrowRight, Wrench, Car } from "lucide-react"
 import {
-  LandingDiagnosticTabMobile,
   LandingDiagnosticHeroButton,
   LandingDiagnosticCardLink,
-  LandingVenteLink,
 } from "@/components/landing-diagnostic-links"
 import { marketingFeatureIcons } from "@/lib/marketing-content"
 import { MarketingSteps } from "@/components/marketing-steps"
@@ -45,23 +41,6 @@ export function LandingPage() {
         <LandingStaggerRoot>
           <main className="flex-1 pb-24 md:pb-0">
             <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-24">
-              <div className="absolute right-4 top-4 z-10 sm:hidden">
-                <nav
-                  className="bg-muted text-muted-foreground grid min-h-9 w-[min(100%,24rem)] shrink-0 grid-cols-2 items-stretch gap-0 rounded-lg p-[3px] text-center"
-                  aria-label={t("home.navHome")}
-                >
-                  <LandingDiagnosticTabMobile />
-                  <LandingVenteLink
-                    className={cn(
-                      "inline-flex min-h-[2.25rem] w-full min-w-0 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-foreground hover:text-foreground/90",
-                      !VENTE_TAB_ENABLED && "opacity-75"
-                    )}
-                  >
-                    <Wrench className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
-                    {t("navbar.vente")}
-                  </LandingVenteLink>
-                </nav>
-              </div>
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent" />
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--primary)/0.15),transparent)]" />
 

@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 import { AUTH_SESSION_CHANGED_EVENT } from "@/lib/auth-client-events"
 import { ArrowRight, Wrench } from "lucide-react"
@@ -28,21 +27,6 @@ function useDiagnosticEntryHrefFromSession() {
   }, [pathname])
 
   return href
-}
-
-/** Liens accueil vers le diagnostic : cible /merci ou /credits si solde 0 (phase test). */
-export function LandingDiagnosticTabMobile() {
-  const { t } = useTranslation()
-  const href = useDiagnosticEntryHrefFromSession()
-  return (
-    <Link
-      href={href}
-      prefetch={false}
-      className="inline-flex min-h-[2.25rem] w-full min-w-0 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:text-foreground/90"
-    >
-      {t("navbar.diagnostic")}
-    </Link>
-  )
 }
 
 export function LandingDiagnosticHeroButton() {
@@ -73,25 +57,6 @@ export function LandingDiagnosticCardLink({
   const href = useDiagnosticEntryHrefFromSession()
   return (
     <Link href={href} prefetch={false} className={cn(className)}>
-      {children}
-    </Link>
-  )
-}
-
-export function LandingVenteLink({
-  className,
-  children,
-}: {
-  className?: string
-  children: ReactNode
-}) {
-  const { t } = useTranslation()
-  return (
-    <Link
-      href="/vente"
-      className={cn(className)}
-      title={!VENTE_TAB_ENABLED ? t("navbar.venteSoonTitle") : undefined}
-    >
       {children}
     </Link>
   )

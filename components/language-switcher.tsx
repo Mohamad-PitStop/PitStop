@@ -1,5 +1,7 @@
 "use client"
 
+import { useLayoutEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import type { Locale } from "@/lib/i18n/types"
@@ -12,23 +14,31 @@ const localeLabels: Record<Locale, string> = {
 }
 
 type Props = {
-  /** `header` : à côté du badge (desktop uniquement via classes parent). `mobile` : barre fixe bas d’écran. */
-  variant: "header" | "mobile"
+  /** `header` : dans la navbar (desktop large). `mobile` : barre fixe bas d’écran (< xl), rendue via portail sur `body`. `embedded` : bloc inline (ex. sidebar garage). */
+  variant: "header" | "mobile" | "embedded"
   className?: string
 }
 
 export function LanguageSwitcher({ variant, className }: Props) {
   const { locale, setLocale, t } = useTranslation()
+  const [mobileDockToBody, setMobileDockToBody] = useState(false)
 
-  return (
+  useLayoutEffect(() => {
+    if (variant !== "mobile") return
+    setMobileDockToBody(true)
+  }, [variant])
+
+  const inner = (
     <div
       role="group"
       aria-label={t("lang.aria.choose")}
       className={cn(
         variant === "header" &&
           "hidden xl:inline-flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5",
+        variant === "embedded" &&
+          "inline-flex w-full items-center justify-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5",
         variant === "mobile" &&
-          "xl:hidden fixed bottom-0 left-0 right-0 z-[45] flex items-center justify-center gap-1 border-t border-border/60 bg-background/95 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.12)]",
+          "xl:hidden fixed inset-x-0 bottom-0 z-[45] flex items-center justify-center gap-1 border-t border-border/60 bg-background/95 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.12)] [transform:translateZ(0)]",
         className
       )}
     >
@@ -52,4 +62,10 @@ export function LanguageSwitcher({ variant, className }: Props) {
       ))}
     </div>
   )
+
+  if (variant === "mobile" && mobileDockToBody) {
+    return createPortal(inner, document.body)
+  }
+
+  return inner
 }
