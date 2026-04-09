@@ -54,6 +54,7 @@ export type ReservationRow = {
   stripeSessionId: string | null
   cancelToken: string | null
   userId: string | null
+  garageId: string | null
 }
 
 /** Détail réservation pour annulation (calendrier + Stripe). */
@@ -66,7 +67,7 @@ export async function findReservationByCancelToken(token: string): Promise<Reser
   await ensureReservationMigrations()
   const rows = await prisma.$queryRawUnsafe<ReservationForCancelRow[]>(
     `SELECT id, type, name, phone, email, startAt, endAt, timeZone, status,
-            stripePaymentIntentId, stripeSessionId, cancelToken, userId,
+            stripePaymentIntentId, stripeSessionId, cancelToken, userId, garageId,
             calendarId, calendarEventId
      FROM "Reservation" WHERE "cancelToken" = ? LIMIT 1`,
     token
@@ -78,7 +79,7 @@ export async function findReservationsByUserId(userId: string): Promise<Reservat
   await ensureReservationMigrations()
   const rows = await prisma.$queryRawUnsafe<ReservationRow[]>(
     `SELECT id, type, name, phone, email, startAt, endAt, timeZone, status,
-            stripePaymentIntentId, stripeSessionId, cancelToken, userId
+            stripePaymentIntentId, stripeSessionId, cancelToken, userId, garageId
      FROM "Reservation" WHERE "userId" = ? ORDER BY startAt DESC`,
     userId
   )

@@ -12,12 +12,11 @@ export default async function RendezVousPage({
   const bookingType = isObd ? "obd-scan" : isCarWash ? "lavage-auto" : "rendez-vous"
   const priceMin = params?.priceMin ? Number(params.priceMin) : undefined
   const priceMax = params?.priceMax ? Number(params.priceMax) : undefined
-  const garageName = "ADI\u2011Cars | Garage PitStop Officiel."
-  const garageAddress = "Route de Trazegnies 738, 6031 Charleroi"
+  const garageName = "PitStop Belgique"
+  const garageAddress = ""
   const garagePhoneDisplay = "+32 483 00 00 30"
   const garagePhoneTel = "+32483000030"
-  const mapsEmbedUrl =
-    "https://www.openstreetmap.org/export/embed.html?bbox=4.351%2C50.424%2C4.371%2C50.444&layer=mapnik&marker=50.43432%2C4.36125"
+  const mapsEmbedUrl = ""
 
   return (
     <div className="min-h-screen bg-background">

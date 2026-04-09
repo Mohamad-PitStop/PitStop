@@ -150,6 +150,7 @@ export async function markReadyPayouts(garageId: string): Promise<number> {
      AND "reservationId" IN (
        SELECT "id" FROM "Reservation"
        WHERE datetime("endAt") <= datetime('now', '-30 minutes')
+         AND "status" IN ('confirmed', 'paid')
      )`,
     garageId
   )

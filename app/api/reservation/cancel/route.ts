@@ -6,6 +6,7 @@ import {
   getCancelWindow,
 } from "@/lib/reservation-db"
 import { cancelPayout } from "@/lib/deposit-payout-db"
+import { findGarageById } from "@/lib/garage-db"
 import { deleteCalendarEvent } from "@/lib/google-calendar"
 import nodemailer from "nodemailer"
 import { format } from "date-fns"
@@ -56,13 +57,22 @@ export async function POST(req: Request) {
     const dateLabel = formatDate(reservation.startAt, reservation.timeZone)
 
     if (window === "contact_garage") {
+      let garagePhone: string | null = process.env.GARAGE_PHONE ?? null
+      let garageEmail: string | null = process.env.GARAGE_EMAIL ?? process.env.SMTP_USER ?? null
+      if (reservation.garageId) {
+        const garage = await findGarageById(reservation.garageId)
+        if (garage) {
+          garagePhone = garage.professionalPhone
+          garageEmail = garage.professionalEmail
+        }
+      }
       return Response.json({
         ok: false,
         window: "contact_garage",
         error:
           "L'annulation en ligne n'est plus disponible (moins de 12h avant le rendez-vous). Veuillez contacter directement le garage.",
-        garagePhone: process.env.GARAGE_PHONE ?? null,
-        garageEmail: process.env.GARAGE_EMAIL ?? process.env.SMTP_USER ?? null,
+        garagePhone,
+        garageEmail,
       }, { status: 422 })
     }
 
@@ -133,7 +143,12 @@ export async function POST(req: Request) {
       }
 
       // Email garage/admin
-      const garageEmail = process.env.GARAGE_EMAIL ?? process.env.PARTNER_CONTACT_TO ?? process.env.SMTP_USER
+      let garageNotifyEmail: string | undefined
+      if (reservation.garageId) {
+        const garage = await findGarageById(reservation.garageId)
+        if (garage) garageNotifyEmail = garage.professionalEmail
+      }
+      const garageEmail = garageNotifyEmail ?? process.env.GARAGE_EMAIL ?? process.env.PARTNER_CONTACT_TO ?? process.env.SMTP_USER
       if (garageEmail) {
         await transporter.sendMail({
           from: `"${siteName}" <${process.env.SMTP_USER}>`,
