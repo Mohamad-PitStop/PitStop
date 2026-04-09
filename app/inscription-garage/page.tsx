@@ -1,6 +1,8 @@
 "use client"
 
 import { FormEvent, useState } from "react"
+import { Loader2 } from "lucide-react"
+import { useBelgianPostalCityPrefill } from "@/hooks/use-belgian-postal-city-prefill"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,6 +56,8 @@ export default function InscriptionGaragePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+
+  const { markCityEditedByUser, lookupLoading } = useBelgianPostalCityPrefill(postalCode, setCity)
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -156,8 +160,33 @@ export default function InscriptionGaragePage() {
                       <Input placeholder={t("garage.registration.bceTva")} value={bceTva} onChange={(e) => setBceTva(e.target.value)} required />
                       <Input placeholder={t("garage.registration.street")} value={street} onChange={(e) => setStreet(e.target.value)} required />
                       <div className="grid grid-cols-2 gap-3">
-                        <Input placeholder={t("garage.registration.postalCode")} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required />
-                        <Input placeholder={t("garage.registration.city")} value={city} onChange={(e) => setCity(e.target.value)} required />
+                        <Input
+                          placeholder={t("garage.registration.postalCode")}
+                          inputMode="numeric"
+                          autoComplete="postal-code"
+                          maxLength={4}
+                          value={postalCode}
+                          onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                          required
+                        />
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              placeholder={t("garage.registration.city")}
+                              autoComplete="address-level2"
+                              value={city}
+                              onChange={(e) => {
+                                markCityEditedByUser()
+                                setCity(e.target.value)
+                              }}
+                              required
+                            />
+                            {lookupLoading ? (
+                              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />
+                            ) : null}
+                          </div>
+                          <p className="text-[11px] leading-snug text-muted-foreground">{t("auth.cityAutoFillHint")}</p>
+                        </div>
                       </div>
                       <Input placeholder={t("garage.registration.iban")} value={iban} onChange={(e) => setIban(e.target.value)} required />
                       <Input placeholder={t("garage.registration.professionalPhone")} type="tel" value={professionalPhone} onChange={(e) => setProfessionalPhone(e.target.value)} required />

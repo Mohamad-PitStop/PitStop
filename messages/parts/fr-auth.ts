@@ -34,6 +34,7 @@ export const frAuth = {
     namePlaceholder: "Ex : Marc Dupont",
     postalCode: "Code postal",
     city: "Commune ou ville",
+    cityAutoFillHint: "La commune est proposée automatiquement à partir du code postal ; vous pouvez la modifier.",
     cityPlaceholder: "ex. Charleroi",
     postalTitle: "4 chiffres (Belgique)",
     signupStatsNote:

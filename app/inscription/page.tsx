@@ -1,6 +1,8 @@
 "use client"
 
 import { FormEvent, useState, Suspense } from "react"
+import { Loader2 } from "lucide-react"
+import { useBelgianPostalCityPrefill } from "@/hooks/use-belgian-postal-city-prefill"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
@@ -27,6 +29,8 @@ function InscriptionForm() {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null) // email en attente de vérification
   const [error, setError] = useState<string | null>(null)
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle")
+
+  const { markCityEditedByUser, lookupLoading } = useBelgianPostalCityPrefill(postalCode, setCity)
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -177,9 +181,14 @@ function InscriptionForm() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="city" className="text-sm font-medium text-foreground">
-                          {t("auth.city")}
-                        </label>
+                        <div className="flex items-center gap-2">
+                          <label htmlFor="city" className="text-sm font-medium text-foreground">
+                            {t("auth.city")}
+                          </label>
+                          {lookupLoading ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" aria-hidden />
+                          ) : null}
+                        </div>
                         <Input
                           id="city"
                           autoComplete="address-level2"
@@ -188,8 +197,12 @@ function InscriptionForm() {
                           minLength={2}
                           maxLength={80}
                           value={city}
-                          onChange={(e) => setCity(e.target.value)}
+                          onChange={(e) => {
+                            markCityEditedByUser()
+                            setCity(e.target.value)
+                          }}
                         />
+                        <p className="text-xs text-muted-foreground">{t("auth.cityAutoFillHint")}</p>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
