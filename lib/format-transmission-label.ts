@@ -3,11 +3,30 @@ export function formatTransmissionOptionLabel(value: string, t: (key: string) =>
   const v = value.trim()
   if (!v) return v
   const lower = v.toLowerCase()
+  const normalized = lower
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
 
-  if (lower === "manuelle") return t("trans.manual")
-  if (lower === "automatique") return t("trans.automatic")
-  if (lower === "semi-automatique (robotisee)" || lower === "semi-automatique (robotisée)") {
+  const autoTechKeywords = [
+    "dsg",
+    "dct",
+    "tct",
+    "edc",
+    "pdk",
+    "cvt",
+    "tiptronic",
+    "s tronic",
+    "powershift",
+  ]
+
+  if (normalized.startsWith("manuelle") || normalized.startsWith("manual")) return t("trans.manual")
+  if (normalized.includes("semi") || normalized.includes("robotisee") || normalized.includes("robotized")) {
     return t("trans.semiAutomatic")
   }
+  if (normalized.startsWith("automatique") || normalized.startsWith("automatic")) return t("trans.automatic")
+  if (autoTechKeywords.some((kw) => normalized.includes(kw))) return t("trans.automatic")
+
   return v
 }
