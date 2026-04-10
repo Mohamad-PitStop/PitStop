@@ -676,6 +676,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       const payload = {
         ...formData,
         puissance: formData.puissance.trim() ? `${formData.puissance.trim()} ${puissanceUnite}` : formData.puissance,
+        locale,
       }
       const response = await fetch("/api/diagnostic", {
         method: "POST",

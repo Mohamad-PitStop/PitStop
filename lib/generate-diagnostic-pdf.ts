@@ -5,6 +5,91 @@
  */
 import jsPDF from "jspdf"
 
+// ─── Labels multilingues ──────────────────────────────────────────────────────
+
+type Locale = "fr" | "en" | "nl"
+
+const LABELS = {
+  fr: {
+    reportTitle:      "Rapport de diagnostic automobile",
+    personalUse:      "USAGE PERSONNEL",
+    sectionVehicle:   "Véhicule",
+    sectionDiag:      "Diagnostic",
+    sectionObd:       "Diagnostic OBD requis avant tout",
+    optionA:          "Option A — Scan simple",
+    optionADesc:      "Effacement du code erreur",
+    optionB:          "Option B — Scan + analyse",
+    optionBDesc:      "Devis sur place apres le scan.",
+    sectionConcession:"Passage en concession requis",
+    sectionPrice:     "Fourchette de prix estimée (TVA 21 % incluse)",
+    priceLabel:       "Prix estimé de la prestation :",
+    sectionGarage:    "Prestation garage partenaire (recommandée)",
+    duration:         "Durée estimée",
+    totalCost:        "Coût total",
+    includes:         "INCLUS",
+    sectionDiy:       "Option faire soi-même  (difficulté : Facile)",
+    partsCost:        "Coût pièces",
+    steps:            "ÉTAPES PRINCIPALES",
+    tools:            "OUTILS NÉCESSAIRES",
+    sectionWash:      "Service recommandé",
+    disclaimer:       "Ce diagnostic est fourni a titre indicatif uniquement. Les prix sont des estimations basees sur le marche belge et peuvent varier selon les garages partenaires et la configuration exacte du vehicule. PitStop ne peut etre tenu responsable des decisions prises sur la base de ce rapport. Faites confirmer le diagnostic par un professionnel qualifie.",
+    footer:           "pitstop.be — Rapport de diagnostic automobile",
+    dateLocale:       "fr-BE" as const,
+  },
+  en: {
+    reportTitle:      "Automotive diagnostic report",
+    personalUse:      "PERSONAL USE",
+    sectionVehicle:   "Vehicle",
+    sectionDiag:      "Diagnosis",
+    sectionObd:       "OBD scan required first",
+    optionA:          "Option A — Simple scan",
+    optionADesc:      "Fault code clearing",
+    optionB:          "Option B — Scan + analysis",
+    optionBDesc:      "On-site estimate after the scan.",
+    sectionConcession:"Specialist dealership required",
+    sectionPrice:     "Estimated price range (21% VAT included)",
+    priceLabel:       "Estimated service cost:",
+    sectionGarage:    "Partner garage service (recommended)",
+    duration:         "Estimated duration",
+    totalCost:        "Total cost",
+    includes:         "INCLUDED",
+    sectionDiy:       "DIY option  (difficulty: Easy)",
+    partsCost:        "Parts cost",
+    steps:            "MAIN STEPS",
+    tools:            "TOOLS NEEDED",
+    sectionWash:      "Recommended service",
+    disclaimer:       "This diagnosis is provided for informational purposes only. Prices are estimates based on the Belgian market and may vary depending on the partner garage and exact vehicle configuration. PitStop cannot be held responsible for decisions made based on this report. Always have the diagnosis confirmed by a qualified professional.",
+    footer:           "pitstop.be — Automotive diagnostic report",
+    dateLocale:       "en-GB" as const,
+  },
+  nl: {
+    reportTitle:      "Autodiagnoserapport",
+    personalUse:      "PERSOONLIJK GEBRUIK",
+    sectionVehicle:   "Voertuig",
+    sectionDiag:      "Diagnose",
+    sectionObd:       "OBD-scan eerst vereist",
+    optionA:          "Optie A — Eenvoudige scan",
+    optionADesc:      "Foutcode wissen",
+    optionB:          "Optie B — Scan + analyse",
+    optionBDesc:      "Offerte ter plaatse na de scan.",
+    sectionConcession:"Gespecialiseerde concessie vereist",
+    sectionPrice:     "Geschatte prijsrange (21% BTW inbegrepen)",
+    priceLabel:       "Geschatte servicekosten:",
+    sectionGarage:    "Partnergarage service (aanbevolen)",
+    duration:         "Geschatte duur",
+    totalCost:        "Totale kosten",
+    includes:         "INBEGREPEN",
+    sectionDiy:       "Zelf doen  (moeilijkheid: Makkelijk)",
+    partsCost:        "Onderdelenkosten",
+    steps:            "BELANGRIJKSTE STAPPEN",
+    tools:            "BENODIGDE GEREEDSCHAPPEN",
+    sectionWash:      "Aanbevolen service",
+    disclaimer:       "Deze diagnose wordt uitsluitend ter informatie verstrekt. Prijzen zijn schattingen op basis van de Belgische markt en kunnen variëren afhankelijk van de partnergarage en de exacte voertuigconfiguratie. PitStop kan niet aansprakelijk worden gesteld voor beslissingen die op basis van dit rapport worden genomen. Laat de diagnose altijd bevestigen door een erkende professional.",
+    footer:           "pitstop.be — Autodiagnoserapport",
+    dateLocale:       "nl-BE" as const,
+  },
+} satisfies Record<Locale, Record<string, string>>
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface DiagnosticResult {
@@ -92,12 +177,15 @@ const FOOTER = PH - 9
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 
+// footer/dateLocale injected at call-site via closure (set after L is defined)
+let _footer = "pitstop.be"
+let _dateLocale = "fr-BE"
+
 function newPage(doc: jsPDF): number {
   doc.addPage()
-  // fond page
   doc.setFillColor(...C.pageBg)
   doc.rect(0, 0, PW, PH, "F")
-  drawFooter(doc)
+  drawFooter(doc, _footer, _dateLocale)
   return 18
 }
 
@@ -105,14 +193,14 @@ function guard(doc: jsPDF, y: number, need = 18): number {
   return y + need > PH - 16 ? newPage(doc) : y
 }
 
-function drawFooter(doc: jsPDF) {
+function drawFooter(doc: jsPDF, footer: string, dateLocale: string) {
   doc.setFillColor(...C.navyLight)
   doc.rect(0, PH - 6, PW, 6, "F")
   doc.setFont("helvetica", "normal")
   doc.setFontSize(6.5)
   doc.setTextColor(...C.border)
-  doc.text("pitstop.be — Rapport de diagnostic automobile", ML, FOOTER, { baseline: "middle" })
-  const date = new Date().toLocaleDateString("fr-BE", { day: "2-digit", month: "long", year: "numeric" })
+  doc.text(footer, ML, FOOTER, { baseline: "middle" })
+  const date = new Date().toLocaleDateString(dateLocale, { day: "2-digit", month: "long", year: "numeric" })
   doc.text(date, PW - MR, FOOTER, { align: "right", baseline: "middle" })
 }
 
@@ -183,14 +271,19 @@ function section(doc: jsPDF, label: string, y: number): number {
 
 export function generateDiagnosticPdf(
   diagnostic: DiagnosticResult,
-  vehicleInfo: VehicleInfo
+  vehicleInfo: VehicleInfo,
+  locale: Locale = "fr"
 ): void {
+  const L = LABELS[locale] ?? LABELS.fr
+  _footer = L.footer
+  _dateLocale = L.dateLocale
+
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: true })
 
   // fond de la première page
   doc.setFillColor(...C.pageBg)
   doc.rect(0, 0, PW, PH, "F")
-  drawFooter(doc)
+  drawFooter(doc, L.footer, L.dateLocale)
 
   // ═══════════════════════════════════════════════════════════════════════════
   // EN-TÊTE
@@ -213,7 +306,7 @@ export function generateDiagnosticPdf(
   doc.setFont("helvetica", "normal")
   doc.setFontSize(8.5)
   doc.setTextColor(...C.border)
-  doc.text("Rapport de diagnostic automobile", ML, 25)
+  doc.text(L.reportTitle, ML, 25)
 
   // Label "CONFIDENTIEL" à droite
   doc.setFillColor(...C.navyMid)
@@ -221,7 +314,7 @@ export function generateDiagnosticPdf(
   doc.setFont("helvetica", "bold")
   doc.setFontSize(7)
   doc.setTextColor(...C.border)
-  doc.text("USAGE PERSONNEL", PW - MR - 16, 23.5, { align: "center" })
+  doc.text(L.personalUse, PW - MR - 16, 23.5, { align: "center" })
 
   let y = 48
 
@@ -229,7 +322,7 @@ export function generateDiagnosticPdf(
   // VÉHICULE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  y = section(doc, "Véhicule", y)
+  y = section(doc, L.sectionVehicle, y)
 
   // Fond de carte légère
   doc.setFillColor(...C.cardBg)
@@ -243,7 +336,7 @@ export function generateDiagnosticPdf(
 
   // Pastilles : année — km — carburant — transmission
   const tags: string[] = [vehicleInfo.annee]
-  tags.push(`${parseInt(vehicleInfo.kilometrage, 10).toLocaleString("fr-BE")} km`)
+  tags.push(`${parseInt(vehicleInfo.kilometrage, 10).toLocaleString(L.dateLocale)} km`)
   if (vehicleInfo.variante)    tags.push(vehicleInfo.variante)
   if (vehicleInfo.carburant)   tags.push(vehicleInfo.carburant)
   if (vehicleInfo.transmission) tags.push(vehicleInfo.transmission)
@@ -279,7 +372,7 @@ export function generateDiagnosticPdf(
   // DIAGNOSTIC
   // ═══════════════════════════════════════════════════════════════════════════
 
-  y = section(doc, "Diagnostic", y)
+  y = section(doc, L.sectionDiag, y)
 
   // Badge sévérité
   const sevMap: Record<string, { color: [number, number, number]; bg: [number, number, number] }> = {
@@ -315,7 +408,7 @@ export function generateDiagnosticPdf(
 
   if (diagnostic.obdScanFirst?.required) {
     y = sep(doc, y)
-    y = section(doc, "Diagnostic OBD requis avant tout", y)
+    y = section(doc, L.sectionObd, y)
     y = text(doc, diagnostic.obdScanFirst.explanation, y, { size: 9, color: [60, 70, 100] })
     y += 3
 
@@ -328,23 +421,23 @@ export function generateDiagnosticPdf(
     doc.setFont("helvetica", "bold")
     doc.setFontSize(8)
     doc.setTextColor(...C.navy)
-    doc.text("Option A — Scan simple", ML + 3, y + 6)
+    doc.text(L.optionA, ML + 3, y + 6)
     doc.setFont("helvetica", "normal")
     doc.setFontSize(8.5)
     doc.setTextColor(...C.green)
     doc.text(`${diagnostic.obdScanFirst.scanPrice} EUR`, ML + 3, y + 13)
     doc.setFontSize(7.5)
     doc.setTextColor(...C.muted)
-    doc.text("Effacement du code erreur", ML + 3, y + 18)
+    doc.text(L.optionADesc, ML + 3, y + 18)
 
     doc.setFont("helvetica", "bold")
     doc.setFontSize(8)
     doc.setTextColor(...C.navy)
-    doc.text("Option B — Scan + analyse", ML + hw + 7, y + 6)
+    doc.text(L.optionB, ML + hw + 7, y + 6)
     doc.setFont("helvetica", "normal")
     doc.setFontSize(7.5)
     doc.setTextColor(...C.muted)
-    const obLines = doc.splitTextToSize("Devis sur place apres le scan.", hw - 6) as string[]
+    const obLines = doc.splitTextToSize(L.optionBDesc, hw - 6) as string[]
     doc.text(obLines, ML + hw + 7, y + 12)
 
     y += 23
@@ -352,7 +445,7 @@ export function generateDiagnosticPdf(
 
   if (diagnostic.concessionOnly?.required) {
     y = sep(doc, y)
-    y = section(doc, `Concession specialisee requise — ${diagnostic.concessionOnly.brand}`, y)
+    y = section(doc, `${L.sectionConcession} — ${diagnostic.concessionOnly.brand}`, y)
     y = text(doc, diagnostic.concessionOnly.explanation, y, { size: 9, color: [60, 70, 100] })
     y += 3
   }
@@ -369,7 +462,7 @@ export function generateDiagnosticPdf(
 
   if (showPrice && diagnostic.priceRange) {
     y = sep(doc, y)
-    y = section(doc, "Fourchette de prix estimee (TVA 21 % incluse)", y)
+    y = section(doc, L.sectionPrice, y)
 
     // Bloc navy
     doc.setFillColor(...C.navy)
@@ -382,7 +475,7 @@ export function generateDiagnosticPdf(
     doc.setFont("helvetica", "normal")
     doc.setFontSize(8)
     doc.setTextColor(...C.border)
-    doc.text("Prix estimé de la prestation :", ML + 7, y + 4.5)
+    doc.text(L.priceLabel, ML + 7, y + 4.5)
 
     doc.setFont("helvetica", "bold")
     doc.setFontSize(17)
@@ -405,15 +498,15 @@ export function generateDiagnosticPdf(
     !diagnostic.obdScanFirst?.required
   ) {
     y = sep(doc, y)
-    y = section(doc, "Prestation garage partenaire (recommandee)", y)
+    y = section(doc, L.sectionGarage, y)
 
     // Ligne durée + coût
     const col = ML + CW / 2 + 2
     doc.setFont("helvetica", "normal")
     doc.setFontSize(8)
     doc.setTextColor(...C.muted)
-    doc.text("Duree estimee", ML, y)
-    doc.text("Cout total", col, y)
+    doc.text(L.duration, ML, y)
+    doc.text(L.totalCost, col, y)
     y += 5
 
     doc.setFont("helvetica", "bold")
@@ -431,7 +524,7 @@ export function generateDiagnosticPdf(
     doc.setFont("helvetica", "bold")
     doc.setFontSize(8)
     doc.setTextColor(...C.muted)
-    doc.text("INCLUS", ML, y)
+    doc.text(L.includes, ML, y)
     y += 5
 
     for (const item of diagnostic.garage.includes) {
@@ -455,19 +548,19 @@ export function generateDiagnosticPdf(
 
   if (
     diagnostic.diy &&
-    diagnostic.diy.difficulty.trim().toLowerCase() === "facile" &&
+    ["facile", "easy", "makkelijk"].includes(diagnostic.diy.difficulty.trim().toLowerCase()) &&
     !diagnostic.concessionOnly?.required &&
     !diagnostic.obdScanFirst?.required
   ) {
     y = sep(doc, y)
-    y = section(doc, "Option faire soi-meme  (difficulte : Facile)", y)
+    y = section(doc, L.sectionDiy, y)
 
     const col = ML + CW / 2 + 2
     doc.setFont("helvetica", "normal")
     doc.setFontSize(8)
     doc.setTextColor(...C.muted)
-    doc.text("Duree estimee", ML, y)
-    doc.text("Cout pieces", col, y)
+    doc.text(L.duration, ML, y)
+    doc.text(L.partsCost, col, y)
     y += 5
 
     doc.setFont("helvetica", "bold")
@@ -485,7 +578,7 @@ export function generateDiagnosticPdf(
     doc.setFont("helvetica", "bold")
     doc.setFontSize(8)
     doc.setTextColor(...C.muted)
-    doc.text("ETAPES PRINCIPALES", ML, y)
+    doc.text(L.steps, ML, y)
     y += 5
 
     diagnostic.diy.steps.forEach((step, i) => {
@@ -509,7 +602,7 @@ export function generateDiagnosticPdf(
       doc.setFont("helvetica", "bold")
       doc.setFontSize(8)
       doc.setTextColor(...C.muted)
-      doc.text("OUTILS NECESSAIRES", ML, y)
+      doc.text(L.tools, ML, y)
       y += 5
       y = text(doc, diagnostic.diy.tools.join("  /  "), y, {
         size: 8.5,
@@ -526,7 +619,7 @@ export function generateDiagnosticPdf(
 
   if (diagnostic.serviceRecommendation?.type === "lavage-auto") {
     y = sep(doc, y)
-    y = section(doc, "Service recommande", y)
+    y = section(doc, L.sectionWash, y)
     const title = diagnostic.serviceRecommendation.title ?? "Lavage auto partenaire"
     y = text(doc, title, y, { size: 11, bold: true, color: C.navy })
     if (diagnostic.serviceRecommendation.description) {
@@ -542,9 +635,7 @@ export function generateDiagnosticPdf(
   y = sep(doc, y)
   y = guard(doc, y, 22)
 
-  const disclaimerStr =
-    "Ce diagnostic est fourni a titre indicatif uniquement. Les prix sont des estimations basees sur le marche belge et peuvent varier selon les garages partenaires et la configuration exacte du vehicule. PitStop ne peut etre tenu responsable des decisions prises sur la base de ce rapport. Faites confirmer le diagnostic par un professionnel qualifie."
-  const dLines = doc.splitTextToSize(disclaimerStr, CW - 8) as string[]
+  const dLines = doc.splitTextToSize(L.disclaimer, CW - 8) as string[]
   const dH = dLines.length * 4 + 8
 
   doc.setFillColor(255, 251, 235)

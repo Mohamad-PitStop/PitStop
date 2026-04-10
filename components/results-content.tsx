@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react"
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -349,6 +349,8 @@ export function ResultsContent() {
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null) // base64
   const [isMobile, setIsMobile] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [isRetranslating, setIsRetranslating] = useState(false)
+  const prevLocaleRef = useRef<string | null>(null)
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -440,6 +442,7 @@ export function ResultsContent() {
           ...vehicleInfo,
           followUps: nextFollowUps,
           diagnosticRequestId: diagnostic?.diagnosticRequestId,
+          locale,
         }),
       })
 
@@ -508,6 +511,7 @@ export function ResultsContent() {
           followUps: nextFollowUps,
           diagnosticRequestId: diagnostic?.diagnosticRequestId,
           ...(pendingPhoto ? { photoLevier: pendingPhoto } : {}),
+          locale,
         }),
       })
 
@@ -572,13 +576,56 @@ export function ResultsContent() {
     setPdfLoading(true)
     try {
       const { generateDiagnosticPdf } = await import("@/lib/generate-diagnostic-pdf")
-      generateDiagnosticPdf(diagnostic, vehicleInfo)
+      generateDiagnosticPdf(diagnostic, vehicleInfo, locale)
     } catch (err) {
       console.error("PDF generation error:", err)
     } finally {
       setPdfLoading(false)
     }
   }
+
+  // ── Re-génération du diagnostic lors d'un changement de langue ────────────
+  useEffect(() => {
+    if (prevLocaleRef.current === null) {
+      prevLocaleRef.current = locale
+      return
+    }
+    if (prevLocaleRef.current === locale) return
+    prevLocaleRef.current = locale
+
+    // Ne re-génère pas si on est encore en mode questions ou en chargement initial
+    if (!diagnostic || !vehicleInfo || diagnostic.needsMoreInfo || isLoading) return
+
+    const retranslate = async () => {
+      setIsRetranslating(true)
+      try {
+        const response = await fetch("/api/diagnostic", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...vehicleInfo,
+            diagnosticRequestId: diagnostic.diagnosticRequestId,
+            locale,
+          }),
+        })
+        if (!response.ok) return
+        const data = await response.json()
+        if (data?.error) return
+        setDiagnostic(data)
+        setFollowUps([])
+        sessionStorage.setItem("diagnostic", JSON.stringify(data))
+        sessionStorage.removeItem("followUps")
+      } catch {
+        // garde le diagnostic existant en cas d'erreur réseau
+      } finally {
+        setIsRetranslating(false)
+      }
+    }
+
+    void retranslate()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale])
 
   if (isLoading || !diagnostic || !vehicleInfo) {
     return (
@@ -608,6 +655,18 @@ export function ResultsContent() {
           mode="followup"
           vehicle={`${vehicleInfo.marque} ${vehicleInfo.modele}`}
         />
+      )}
+
+      {isRetranslating && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 text-center px-6">
+            <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <p className="text-sm text-muted-foreground">{t("results.loading")}</p>
+          </div>
+        </div>
       )}
 
       {/* Back button + Abandon */}
@@ -1009,12 +1068,12 @@ export function ResultsContent() {
       {!isConcessionOnly && !isObdScanFirst && !noInterventionNeeded && (diagnostic.diy || diagnostic.garage) && (
         <div
           className={`grid grid-cols-1 gap-6 mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500 ${
-            diagnostic.diy && diagnostic.diy.difficulty.trim().toLowerCase() === "facile" && diagnostic.garage ? "lg:grid-cols-2" : ""
+            diagnostic.diy && ["facile", "easy", "makkelijk"].includes(diagnostic.diy.difficulty.trim().toLowerCase()) && diagnostic.garage ? "lg:grid-cols-2" : ""
           }`}
           style={{ animationDelay: "360ms", animationFillMode: "both" }}
         >
         {/* DIY Card : affiche uniquement si difficulte Facile */}
-        {diagnostic.diy && diagnostic.diy.difficulty.trim().toLowerCase() === "facile" && (
+        {diagnostic.diy && ["facile", "easy", "makkelijk"].includes(diagnostic.diy.difficulty.trim().toLowerCase()) && (
         <Card className={`border-border/50 bg-card ${!diagnostic.diy.possible ? 'opacity-75' : ''}`}>
           <CardHeader>
             <div className="flex items-start justify-between">
