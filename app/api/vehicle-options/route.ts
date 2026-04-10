@@ -25,9 +25,6 @@ const OptionsSchema = z.object({
 const SYSTEM_TEXT = `Tu es une base de données automobile experte couvrant tous les véhicules vendus en Europe.
 Réponds UNIQUEMENT en JSON valide, sans texte autour, sans markdown, sans backticks.`
 
-const ANTHROPIC_PROMPT_CACHE_HEADERS = {
-  "anthropic-beta": "prompt-caching-2024-07-31",
-} as const
 
 const systemMessage: SystemModelMessage = {
   role: "system",
@@ -165,8 +162,7 @@ export async function POST(req: Request) {
     const prompt = buildUserPrompt(body, step)
 
     const { output, usage } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
-      headers: ANTHROPIC_PROMPT_CACHE_HEADERS,
+      model: anthropic("claude-haiku-4-5-20251001"),
       system: [systemMessage],
       prompt,
       output: Output.object({ schema: OptionsSchema }),

@@ -4,10 +4,6 @@ import type { SystemModelMessage } from "@ai-sdk/provider-utils"
 import { fetchAutoScout24MarketSnapshot } from "@/lib/autoscout24-market"
 import { VENTE_TAB_ENABLED } from "@/lib/feature-flags"
 
-const ANTHROPIC_PROMPT_CACHE_HEADERS = {
-  "anthropic-beta": "prompt-caching-2024-07-31",
-} as const
-
 function logAnthropicCacheStats(usage: LanguageModelUsage) {
   const data = usage.raw as
     | {
@@ -180,8 +176,7 @@ ${comparablesLine}
 Analyse pour le rachat par un garage partenaire (prix alignés AutoScout24 Belgique, en dessous du marché car marge garage):`
 
     const { text, usage } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
-      headers: ANTHROPIC_PROMPT_CACHE_HEADERS,
+      model: anthropic("claude-sonnet-4-6"),
       system: [systemMessage],
       prompt,
     })

@@ -21,10 +21,6 @@ import {
   GUEST_USED_MAX_AGE,
 } from "@/lib/guest-diagnostic"
 
-const ANTHROPIC_PROMPT_CACHE_HEADERS = {
-  "anthropic-beta": "prompt-caching-2024-07-31",
-} as const
-
 function logAnthropicCacheStats(usage: LanguageModelUsage) {
   const data = usage.raw as
     | {
@@ -353,7 +349,7 @@ Le client a renseigne sa transmission comme "Automatique". Plusieurs types de bo
 - Si le probleme CONCERNE la boite de vitesses ET que le type n'est pas renseigne (typeBoiteAuto vide) : ne demande PAS au client quel type de boite il a (il ne sait probablement pas). A la place, active requestsGearboxPhoto=true et demande-lui de photographier le levier de vitesses. Sur ce levier, le type de boite est generalement inscrit (ex: "S tronic", "DSG", "PDK", etc.). Formule la demande ainsi dans missingInfo.question : "Pour affiner le diagnostic, j'ai besoin d'identifier votre type de boîte automatique. Pourriez-vous prendre en photo le levier de vitesses de votre véhicule ? Le type de boîte est généralement inscrit dessus (ex: S tronic, DSG, PDK…)."
 - Si une photo est fournie (visible dans la conversation), analyse-la pour identifier le type de boite (inscriptions sur le levier, forme, couleurs). Utilise cette identification pour le diagnostic. Si tu n'arrives pas a lire le type depuis la photo, continue le diagnostic sans bloquer : mentionne juste l'incertitude sur le type exact.
 
-REGLES DE PRIX BELGIQUE : garage independant 65-85 euros/h, concession 100-140 euros/h, TVA 21% incluse, fourchettes de prix precises et realistes avec ecart maximum de 100 euros. PRIX DES PIECES : base tes estimations de prix des pieces sur les prix constates sur le site AutoDoc (ordre de grandeur realiste, adapte au vehicule). POLITIQUE PIECES CONSOMMABLES : pour les reparations de consommables (filtres, plaquettes, disques, courroies, balais, bougies, fluides, batterie, etc.), ne propose pas les pieces d'origine/OEM de prime abord. Par defaut, propose des pieces de revendeurs tiers (qualite equivalente, homologuees). Ensuite seulement, precise explicitement qu'une option pieces d'origine est possible sur demande du client, avec un surcout potentiel. DEFAUTS CONNUS : Renault Clio 4 : boite EDC hesitations et a-coups defaut de conception reconnu, chaine 0.9 TCe etirement premature. VW Golf 7 : boite DSG7 a-coups, pompe a eau avant 100000km. Peugeot 308 : chaine 1.2 PureTech etirement critique. Ford Focus 3 : boite Powershift a-coups. BMW Serie 3 E90 : chaine N47 diesel casse moteur. Quand le symptome du client correspond clairement a un defaut connu sur ce modele, mentionne obligatoirement "defaut connu sur ce modele" puis l'explication. En revanche, ne cite pas un defaut connu du modele si le probleme decrit par le client n'y est manifestement pas lie : pas de digression inutile (ex : ne pas parler de la boite EDC si les symptomes evoquent plutot train roulant ou equilibrage des roues).
+REGLES DE PRIX BELGIQUE (OBLIGATOIRE) : garage independant 65-85 euros/h, concession 100-140 euros/h, TVA 21% incluse. CONTRAINTE ABSOLUE SUR LES FOURCHETTES : l'ecart entre min et max de TOUTES les fourchettes (priceRange, diy.costRange, garage.costRange) doit etre STRICTEMENT <= 100 euros. Exemples corrects : { min: 150, max: 220 }, { min: 80, max: 150 }. Exemples INTERDITS : { min: 100, max: 250 }, { min: 50, max: 300 }. Si tu es incertain, pose une question (needsMoreInfo=true) plutot que de donner une fourchette trop large. PRIX DES PIECES : base tes estimations de prix des pieces sur les prix constates sur le site AutoDoc (ordre de grandeur realiste, adapte au vehicule). POLITIQUE PIECES CONSOMMABLES : pour les reparations de consommables (filtres, plaquettes, disques, courroies, balais, bougies, fluides, batterie, etc.), ne propose pas les pieces d'origine/OEM de prime abord. Par defaut, propose des pieces de revendeurs tiers (qualite equivalente, homologuees). Ensuite seulement, precise explicitement qu'une option pieces d'origine est possible sur demande du client, avec un surcout potentiel. DEFAUTS CONNUS : Renault Clio 4 : boite EDC hesitations et a-coups defaut de conception reconnu, chaine 0.9 TCe etirement premature. VW Golf 7 : boite DSG7 a-coups, pompe a eau avant 100000km. Peugeot 308 : chaine 1.2 PureTech etirement critique. Ford Focus 3 : boite Powershift a-coups. BMW Serie 3 E90 : chaine N47 diesel casse moteur. Quand le symptome du client correspond clairement a un defaut connu sur ce modele, mentionne obligatoirement "defaut connu sur ce modele" puis l'explication. En revanche, ne cite pas un defaut connu du modele si le probleme decrit par le client n'y est manifestement pas lie : pas de digression inutile (ex : ne pas parler de la boite EDC si les symptomes evoquent plutot train roulant ou equilibrage des roues).
 
 UTILISATION BASE AUTODOC (IMPORTANT): si le prompt inclut une section "Connaissances mecaniques AutoDoc", utilise-la en PRIORITE ABSOLUE comme source de vérité sur les pannes fréquentes pour ce modèle/moteur précis. C'est le point de départ de ton étape 1 (pannes probables sur ce modèle). N'invente rien au-delà de ce qui est cohérent avec ces extraits, et priorise toujours la cohérence avec le symptome client. Si aucun extrait AutoDoc n'est fourni, utilise ta connaissance interne du modèle pour l'étape 1.
 
@@ -516,10 +512,10 @@ mentionnant les variantes concernées.
       })
     }
 
-    const { output: diagnostic1, usage: usage1 } = await generateText({
+    const { output: diagnostic1, usage: usage1, finishReason: finishReason1 } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
-      headers: ANTHROPIC_PROMPT_CACHE_HEADERS,
       system: [systemMessage],
+      maxTokens: 20000,
       ...(photoLevier
         ? {
             messages: [{
@@ -534,6 +530,14 @@ mentionnant les variantes concernées.
       output: Output.object({ schema: DiagnosticSchema })
     })
     logAnthropicCacheStats(usage1)
+
+    if (finishReason1 === "length") {
+      if (diagId) await updateDiagnosticResult(diagId, JSON.stringify({}), "completed")
+      return NextResponse.json(
+        { error: "DESCRIPTION_TOO_LONG", message: "Votre description est trop longue. Merci de la raccourcir pour lancer le diagnostic." },
+        { status: 400 }
+      )
+    }
 
     if (!diagnostic1) {
       throw new Error("No diagnostic generated")
@@ -558,8 +562,8 @@ mentionnant les variantes concernées.
 
     const { output: diagnostic2, usage: usage2 } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
-      headers: ANTHROPIC_PROMPT_CACHE_HEADERS,
       system: [systemMessage],
+      maxTokens: 20000,
       prompt: refinementPrompt,
       output: Output.object({ schema: DiagnosticSchema })
     })
