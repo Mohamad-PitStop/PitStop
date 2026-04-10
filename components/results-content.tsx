@@ -351,6 +351,8 @@ export function ResultsContent() {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [isRetranslating, setIsRetranslating] = useState(false)
   const prevLocaleRef = useRef<string | null>(null)
+  /** Cache en mémoire des diagnostics déjà générés par locale (évite les re-calls inutiles) */
+  const localeCacheRef = useRef<Map<string, DiagnosticResult>>(new Map())
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -382,7 +384,10 @@ export function ResultsContent() {
       const storedFollowUps = sessionStorage.getItem("followUps")
 
       if (storedDiagnostic && storedVehicle) {
-        setDiagnostic(JSON.parse(storedDiagnostic))
+        const parsed = JSON.parse(storedDiagnostic) as DiagnosticResult
+        // Peupler le cache avec la locale courante (locale du diagnostic initial)
+        localeCacheRef.current.set(locale, parsed)
+        setDiagnostic(parsed)
         setVehicleInfo(JSON.parse(storedVehicle))
         applyStoredFollowUps(storedFollowUps)
         setIsLoading(false)
@@ -406,6 +411,7 @@ export function ResultsContent() {
           sessionStorage.setItem("vehicleInfo", vehStr)
           if (data.followUps) sessionStorage.setItem("followUps", data.followUps)
           else sessionStorage.removeItem("followUps")
+          localeCacheRef.current.set(locale, data.diagnostic)
           setDiagnostic(data.diagnostic)
           setVehicleInfo(data.vehicleInfo)
           applyStoredFollowUps(data.followUps ?? null)
@@ -596,7 +602,19 @@ export function ResultsContent() {
     // Ne re-génère pas si on est encore en mode questions ou en chargement initial
     if (!diagnostic || !vehicleInfo || diagnostic.needsMoreInfo || isLoading) return
 
+    // Cas "rien à faire" : Claude est non-déterministe sur ce type de réponse.
+    // On ne re-génère pas pour éviter un contenu différent à chaque changement de langue.
+    if (isNoInterventionResult(diagnostic)) return
+
     const retranslate = async () => {
+      // Vérifier le cache en mémoire d'abord
+      const cached = localeCacheRef.current.get(locale)
+      if (cached) {
+        setDiagnostic(cached)
+        sessionStorage.setItem("diagnostic", JSON.stringify(cached))
+        return
+      }
+
       setIsRetranslating(true)
       try {
         const response = await fetch("/api/diagnostic", {
@@ -612,6 +630,8 @@ export function ResultsContent() {
         if (!response.ok) return
         const data = await response.json()
         if (data?.error) return
+        // Mettre en cache pour cette locale
+        localeCacheRef.current.set(locale, data)
         setDiagnostic(data)
         setFollowUps([])
         sessionStorage.setItem("diagnostic", JSON.stringify(data))
