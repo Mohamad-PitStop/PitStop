@@ -26,6 +26,8 @@ import {
   Star,
   Sparkles,
   X,
+  Download,
+  Calendar,
 } from "lucide-react"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
 import { useTranslation } from "@/lib/i18n/locale-context"
@@ -207,12 +209,14 @@ function GuestBookingButton({
   variant = "default",
   children,
   diagnosticId,
+  comingSoon = false,
 }: {
   href: string
   className?: string
   variant?: "default" | "outline"
   children: ReactNode
   diagnosticId?: string | null
+  comingSoon?: boolean
 }) {
   const { t } = useTranslation()
   const [isGuest, setIsGuest] = useState(false)
@@ -226,6 +230,40 @@ function GuestBookingButton({
     }
   }, [])
 
+  // ── Mode "coming soon" : modale identique pour tous les utilisateurs ──────
+  if (comingSoon) {
+    return (
+      <>
+        <Button type="button" variant={variant} size="lg" className={className} onClick={() => setOpen(true)}>
+          {children}
+        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary shrink-0" />
+                Bientôt disponible
+              </DialogTitle>
+              <DialogDescription className="pt-1 leading-relaxed">
+                Merci d&apos;avoir utilisé PitStop ! 🎉
+                <br /><br />
+                La prise de rendez-vous avec nos garages partenaires sera disponible très prochainement. Nous travaillons activement à l&apos;intégration de nouveaux partenaires en Belgique.
+                <br /><br />
+                En attendant, vous pouvez consulter votre rapport de diagnostic et le télécharger en PDF pour le présenter à votre garage.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => setOpen(false)} className="w-full">
+                Compris, merci !
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    )
+  }
+
+  // ── Comportement existant (invité vs connecté) ────────────────────────────
   function armGuestFlow() {
     try {
       sessionStorage.setItem(SS_POST_VERIFY_REDIRECT, href)
@@ -310,6 +348,7 @@ export function ResultsContent() {
   const [pendingDetails, setPendingDetails] = useState("")
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null) // base64
   const [isMobile, setIsMobile] = useState(false)
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -526,6 +565,19 @@ export function ResultsContent() {
 
   const toggleChoice = (value: string) => {
     setPendingChoices((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]))
+  }
+
+  const handleDownloadPdf = async () => {
+    if (!diagnostic || !vehicleInfo) return
+    setPdfLoading(true)
+    try {
+      const { generateDiagnosticPdf } = await import("@/lib/generate-diagnostic-pdf")
+      generateDiagnosticPdf(diagnostic, vehicleInfo)
+    } catch (err) {
+      console.error("PDF generation error:", err)
+    } finally {
+      setPdfLoading(false)
+    }
   }
 
   if (isLoading || !diagnostic || !vehicleInfo) {
@@ -867,6 +919,7 @@ export function ResultsContent() {
               href={`/rendez-vous?type=obd-scan${diagnostic.obdScanFirst?.scanPrice ? `&priceMin=${diagnostic.obdScanFirst.scanPrice}` : ""}`}
               className="w-full"
               diagnosticId={diagnostic.diagnosticRequestId ?? null}
+              comingSoon
             >
               {t("results.planObd")}
             </GuestBookingButton>
@@ -919,6 +972,7 @@ export function ResultsContent() {
               href="/rendez-vous?type=lavage-auto"
               className="w-full"
               diagnosticId={diagnostic.diagnosticRequestId ?? null}
+              comingSoon
             >
               {t("results.bookWash")}
             </GuestBookingButton>
@@ -1089,6 +1143,7 @@ export function ResultsContent() {
                 href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 font-semibold"
                 diagnosticId={diagnostic.diagnosticRequestId ?? null}
+                comingSoon
               >
                 {t("results.bookRdV")}
               </GuestBookingButton>
@@ -1124,6 +1179,7 @@ export function ResultsContent() {
                 href={`/rendez-vous${diagnostic.priceRange?.min ? `?priceMin=${diagnostic.priceRange.min}${diagnostic.priceRange?.max ? `&priceMax=${diagnostic.priceRange.max}` : ""}` : ""}`}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                 diagnosticId={diagnostic.diagnosticRequestId ?? null}
+                comingSoon
               >
                 {t("results.bookRdV")}
               </GuestBookingButton>
@@ -1150,6 +1206,22 @@ export function ResultsContent() {
           )}
         </div>
       </div>
+
+      {/* Télécharger le rapport PDF */}
+      {!diagnostic.needsMoreInfo && (
+        <div className="mt-6 mb-2 flex justify-center animate-in fade-in duration-500" style={{ animationDelay: "600ms", animationFillMode: "both" }}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="gap-2 border-border/60 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+            onClick={handleDownloadPdf}
+            disabled={pdfLoading}
+          >
+            <Download className="h-4 w-4" />
+            {pdfLoading ? "Génération en cours…" : "Télécharger le rapport PDF"}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
