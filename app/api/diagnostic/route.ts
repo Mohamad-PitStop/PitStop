@@ -515,7 +515,7 @@ mentionnant les variantes concernées.
     const { output: diagnostic1, usage: usage1, finishReason: finishReason1 } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
       system: [systemMessage],
-      maxTokens: 20000,
+      maxOutputTokens: 20000,
       ...(photoLevier
         ? {
             messages: [{
@@ -563,7 +563,7 @@ mentionnant les variantes concernées.
     const { output: diagnostic2, usage: usage2 } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
       system: [systemMessage],
-      maxTokens: 20000,
+      maxOutputTokens: 20000,
       prompt: refinementPrompt,
       output: Output.object({ schema: DiagnosticSchema })
     })
