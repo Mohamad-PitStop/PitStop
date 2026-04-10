@@ -95,6 +95,18 @@ export const enPagesA = {
   fuel: {
     essence: "Petrol",
     diesel: "Diesel",
+    hybride: "Hybrid",
+    hybrideRechargeable: "Plug-in hybrid",
+    electrique: "Electric",
+    gpl: "LPG",
+    gnv: "CNG",
+    ethanolE85: "Ethanol (E85)",
+    hydrogene: "Hydrogen",
+  },
+  trans: {
+    manual: "Manual",
+    automatic: "Automatic",
+    semiAutomatic: "Semi-automatic (automated manual)",
   },
   exceptionBrand: {
     title: "Official dealer required",

@@ -95,6 +95,18 @@ export const nlPagesA = {
   fuel: {
     essence: "Benzine",
     diesel: "Diesel",
+    hybride: "Hybride",
+    hybrideRechargeable: "Plug-in hybride",
+    electrique: "Elektrisch",
+    gpl: "LPG",
+    gnv: "CNG",
+    ethanolE85: "Ethanol (E85)",
+    hydrogene: "Waterstof",
+  },
+  trans: {
+    manual: "Handgeschakeld",
+    automatic: "Automaat",
+    semiAutomatic: "Semi-automaat (gerobotiseerd)",
   },
   exceptionBrand: {
     title: "Gespecialiseerde concessie vereist",

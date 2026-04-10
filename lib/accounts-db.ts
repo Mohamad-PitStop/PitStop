@@ -1,5 +1,6 @@
 import { randomUUID, createHash } from "node:crypto"
 import { prisma } from "@/lib/prisma"
+import { ensurePromoTables, recordPromoUsageInTransaction } from "@/lib/promo-db"
 
 export type UserRole = "admin" | "tester" | "user" | "user_friend" | "garagiste"
 
@@ -285,14 +286,17 @@ async function ensureStripeCreditAppliedTable() {
 /**
  * Crédite le compte une seule fois par clé Stripe (PaymentIntent ou Checkout Session).
  * Évite les doublons si le webhook est rejoué après un échec partiel ou livré en double.
+ * Si `promo` est fourni, consomme le code promo dans la même transaction (uniquement quand les crédits sont réellement ajoutés).
  * @returns true si des crédits viennent d’être ajoutés, false si ce paiement était déjà traité.
  */
 export async function applyStripeCreditPurchaseOnce(
   idempotencyKey: string,
   userId: string,
-  credits: number
+  credits: number,
+  promo?: { promoCodeId: string; ipHash: string }
 ): Promise<boolean> {
   await ensureStripeCreditAppliedTable()
+  if (promo) await ensurePromoTables()
   return await prisma.$transaction(async (tx) => {
     const existing = await tx.$queryRawUnsafe<Array<{ id: string }>>(
       `SELECT "id" FROM "StripeCreditApplied" WHERE "id" = ? LIMIT 1`,
@@ -310,6 +314,14 @@ export async function applyStripeCreditPurchaseOnce(
       userId,
       credits
     )
+    if (promo) {
+      await recordPromoUsageInTransaction(tx, {
+        promoCodeId: promo.promoCodeId,
+        ipHash: promo.ipHash,
+        userId,
+        context: "credits",
+      })
+    }
     return true
   })
 }

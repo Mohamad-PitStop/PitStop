@@ -97,6 +97,18 @@ export const frPagesA = {
   fuel: {
     essence: "Essence",
     diesel: "Diesel",
+    hybride: "Hybride",
+    hybrideRechargeable: "Hybride rechargeable",
+    electrique: "Électrique",
+    gpl: "GPL",
+    gnv: "GNV",
+    ethanolE85: "Éthanol (E85)",
+    hydrogene: "Hydrogène",
+  },
+  trans: {
+    manual: "Manuelle",
+    automatic: "Automatique",
+    semiAutomatic: "Semi-automatique (robotisée)",
   },
   exceptionBrand: {
     title: "Concession spécialisée requise",

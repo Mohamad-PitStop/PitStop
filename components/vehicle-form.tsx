@@ -17,6 +17,7 @@ import {
 import { useCarsApi } from "@/hooks/use-cars-api"
 import { isExceptionBrand } from "@/lib/exception-brands"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
+import { formatTransmissionOptionLabel } from "@/lib/format-transmission-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
@@ -1265,7 +1266,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                       readOnly
                       name="transmission"
                       id="transmission"
-                      value={formData.transmission}
+                      value={formatTransmissionOptionLabel(formData.transmission, t)}
                       className="h-11 bg-muted/50 border-input text-foreground"
                     />
                   ) : fallbackTrans ? (
@@ -1300,7 +1301,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                       </option>
                       {transList.map((trans) => (
                         <option key={trans} value={trans} className="bg-[#0a1628]">
-                          {trans}
+                          {formatTransmissionOptionLabel(trans, t)}
                         </option>
                       ))}
                     </select>

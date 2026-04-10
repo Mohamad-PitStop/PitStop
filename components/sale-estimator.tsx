@@ -31,6 +31,7 @@ import {
 import { useCarsApi } from "@/hooks/use-cars-api"
 import { isExceptionBrand } from "@/lib/exception-brands"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
+import { formatTransmissionOptionLabel } from "@/lib/format-transmission-label"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 
@@ -926,7 +927,7 @@ export function SaleEstimator() {
                     readOnly
                     name="transmission"
                     id="transmission"
-                    value={form.transmission}
+                    value={formatTransmissionOptionLabel(form.transmission, t)}
                     className="h-11 bg-muted/50 border-input text-foreground"
                   />
                 ) : fallbackTrans ? (
@@ -959,7 +960,7 @@ export function SaleEstimator() {
                     </option>
                     {transList.map((trans) => (
                       <option key={trans} value={trans} className="bg-[#0a1628]">
-                        {trans}
+                        {formatTransmissionOptionLabel(trans, t)}
                       </option>
                     ))}
                   </select>

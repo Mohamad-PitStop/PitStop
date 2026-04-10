@@ -6,10 +6,10 @@ import {
   findPromoCodeByCode,
   hasIpUsedPromo,
   hasUserUsedPromo,
-  recordPromoUsage,
   applyPromoDiscount,
   formatDiscount,
   assertPromoUsableByAccount,
+  hashIpForPromoUsage,
 } from "@/lib/promo-db"
 import { getClientIp } from "@/lib/rate-limit"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
@@ -78,17 +78,12 @@ export async function POST(req: Request) {
         intent: body.intent,
         credits: String(pkg.credits),
         ...(userId ? { userId } : {}),
-        ...(promoId ? { promoId } : {}),
+        ...(promoId ? { promoId, promoIpHash: hashIpForPromoUsage(ip) } : {}),
       },
     })
 
     if (!paymentIntent.client_secret) {
       throw new Error("Stripe n'a pas renvoyé de client_secret")
-    }
-
-    // Record promo usage immediately (prevents multi-use before webhook)
-    if (promoId) {
-      await recordPromoUsage({ promoCodeId: promoId, ip, userId: userId ?? null, context: "credits" })
     }
 
     return Response.json({

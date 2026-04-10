@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Car, Calendar, Gauge, Search, RotateCcw, Eye } from "lucide-react"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 import { buildLoginUrl } from "@/lib/login-redirect"
+import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
+import { formatTransmissionOptionLabel } from "@/lib/format-transmission-label"
 import { useTranslation } from "@/lib/i18n/locale-context"
 
 type DiagnosticStatus = "in_progress" | "completed" | "abandoned"
@@ -235,12 +237,12 @@ export default function MesDiagnosticsPage() {
                       </span>
                       {d.carburant && (
                         <span className="text-xs bg-muted text-muted-foreground rounded-full px-2 py-0.5">
-                          {d.carburant}
+                          {formatCarburantOptionLabel(d.carburant, t)}
                         </span>
                       )}
                       {d.transmission && (
                         <span className="text-xs bg-muted text-muted-foreground rounded-full px-2 py-0.5">
-                          {d.transmission}
+                          {formatTransmissionOptionLabel(d.transmission, t)}
                         </span>
                       )}
                       <StatusBadge status={d.status} />

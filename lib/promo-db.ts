@@ -20,7 +20,7 @@ const PROMO_ABUSE_WINDOW_DAYS = 60
 
 let ensured = false
 
-async function ensurePromoTables() {
+export async function ensurePromoTables() {
   if (ensured) return
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "PromoCode" (
@@ -62,7 +62,7 @@ async function ensurePromoTables() {
   ensured = true
 }
 
-function hashIp(ip: string): string {
+export function hashIpForPromoUsage(ip: string): string {
   return createHash("sha256").update(`pitstop-promo:${ip}`).digest("hex")
 }
 
@@ -142,7 +142,7 @@ export async function setPromoCodeActive(id: string, active: boolean): Promise<v
 
 export async function hasIpUsedPromo(promoCodeId: string, ip: string): Promise<boolean> {
   await ensurePromoTables()
-  const ipHash = hashIp(ip)
+  const ipHash = hashIpForPromoUsage(ip)
   const since = new Date(Date.now() - PROMO_ABUSE_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString()
   const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(
     `SELECT "id" FROM "PromoCodeUsage" WHERE "promoCodeId" = ? AND "ipHash" = ? AND "createdAt" >= ? LIMIT 1`,
@@ -160,21 +160,67 @@ export async function hasUserUsedPromo(promoCodeId: string, userId: string): Pro
   return rows.length > 0
 }
 
+/** Enregistre une utilisation dans une transaction Prisma (ex. crédits + promo atomiques). */
+export async function recordPromoUsageInTransaction(
+  tx: { $executeRawUnsafe: typeof prisma.$executeRawUnsafe },
+  opts: { promoCodeId: string; ipHash: string; userId: string | null; context: string }
+): Promise<void> {
+  await tx.$executeRawUnsafe(
+    `INSERT INTO "PromoCodeUsage" ("id", "promoCodeId", "ipHash", "userId", "context") VALUES (?, ?, ?, ?, ?)`,
+    randomUUID(),
+    opts.promoCodeId,
+    opts.ipHash,
+    opts.userId,
+    opts.context
+  )
+  await tx.$executeRawUnsafe(
+    `UPDATE "PromoCode" SET "usedCount" = "usedCount" + 1 WHERE "id" = ?`,
+    opts.promoCodeId
+  )
+}
+
 export async function recordPromoUsage(opts: {
   promoCodeId: string
   ip: string
   userId?: string | null
   context: string
+  /** Empreinte IP déjà calculée (ex. reprise depuis les métadonnées Stripe au webhook). */
+  ipHash?: string
 }): Promise<void> {
   await ensurePromoTables()
-  await prisma.$executeRawUnsafe(
-    `INSERT INTO "PromoCodeUsage" ("id", "promoCodeId", "ipHash", "userId", "context") VALUES (?, ?, ?, ?, ?)`,
-    randomUUID(), opts.promoCodeId, hashIp(opts.ip), opts.userId ?? null, opts.context
+  const ipHash = opts.ipHash ?? hashIpForPromoUsage(opts.ip)
+  await recordPromoUsageInTransaction(prisma, {
+    promoCodeId: opts.promoCodeId,
+    ipHash,
+    userId: opts.userId ?? null,
+    context: opts.context,
+  })
+}
+
+/**
+ * Consomme le code une seule fois par identifiant Stripe (session ou PaymentIntent),
+ * pour les réservations : évite un doublon si le webhook est rejoué après un échec partiel.
+ */
+export async function recordPromoUsageOnceForStripeDedupe(opts: {
+  promoCodeId: string
+  ipHash: string
+  userId: string | null
+  /** Ex. booking:checkout_session:cs_xxx ou booking:payment_intent:pi_xxx */
+  dedupeContext: string
+}): Promise<void> {
+  await ensurePromoTables()
+  const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(
+    `SELECT "id" FROM "PromoCodeUsage" WHERE "promoCodeId" = ? AND "context" = ? LIMIT 1`,
+    opts.promoCodeId,
+    opts.dedupeContext
   )
-  await prisma.$executeRawUnsafe(
-    `UPDATE "PromoCode" SET "usedCount" = "usedCount" + 1 WHERE "id" = ?`,
-    opts.promoCodeId
-  )
+  if (rows.length > 0) return
+  await recordPromoUsageInTransaction(prisma, {
+    promoCodeId: opts.promoCodeId,
+    ipHash: opts.ipHash,
+    userId: opts.userId,
+    context: opts.dedupeContext,
+  })
 }
 
 export function applyPromoDiscount(amountCents: number, promo: PromoCodeRow): number {

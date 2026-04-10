@@ -6,8 +6,8 @@ import {
   findPromoCodeByCode,
   hasIpUsedPromo,
   hasUserUsedPromo,
-  recordPromoUsage,
   applyPromoDiscount,
+  hashIpForPromoUsage,
 } from "@/lib/promo-db"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { getClientIp } from "@/lib/rate-limit"
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
         depositAmountCents: String(amount),
         ...(body.priceMin != null ? { priceMinEuros: String(body.priceMin) } : {}),
         ...(body.priceMax != null ? { priceMaxEuros: String(body.priceMax) } : {}),
-        ...(promoId ? { promoId } : {}),
+        ...(promoId ? { promoId, promoIpHash: hashIpForPromoUsage(ip) } : {}),
       },
     })
 
@@ -144,16 +144,6 @@ export async function POST(req: Request) {
       where: { id: reservation.id },
       data: { stripeSessionId: session.id },
     })
-
-    // Record promo usage at checkout creation time
-    if (promoId) {
-      await recordPromoUsage({
-        promoCodeId: promoId,
-        ip,
-        userId: user?.id ?? null,
-        context: "booking",
-      })
-    }
 
     return Response.json({ ok: true, url: session.url, cancelToken })
   } catch (error) {

@@ -12,6 +12,8 @@ import { creditPackageLabel, creditPackageSaving } from "@/lib/credit-package-i1
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 import { buildLoginUrl } from "@/lib/login-redirect"
+import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
+import { formatTransmissionOptionLabel } from "@/lib/format-transmission-label"
 import { Input } from "@/components/ui/input"
 import {
   Car,
@@ -702,12 +704,12 @@ export default function ProfilPage() {
                               </span>
                               {d.carburant && (
                                 <span className="text-xs bg-muted text-muted-foreground rounded-full px-2 py-0.5">
-                                  {d.carburant}
+                                  {formatCarburantOptionLabel(d.carburant, t)}
                                 </span>
                               )}
                               {d.transmission && (
                                 <span className="text-xs bg-muted text-muted-foreground rounded-full px-2 py-0.5">
-                                  {d.transmission}
+                                  {formatTransmissionOptionLabel(d.transmission, t)}
                                 </span>
                               )}
                               <StatusBadge status={d.status} />

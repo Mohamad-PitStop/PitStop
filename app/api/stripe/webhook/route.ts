@@ -5,6 +5,7 @@ import { getStripe } from "@/lib/stripe"
 import { createCalendarEvent, getBusyIntervals } from "@/lib/google-calendar"
 import { applyStripeCreditPurchaseOnce } from "@/lib/accounts-db"
 import { createDepositPayout } from "@/lib/deposit-payout-db"
+import { hashIpForPromoUsage, recordPromoUsageOnceForStripeDedupe } from "@/lib/promo-db"
 
 export const runtime = "nodejs"
 
@@ -166,8 +167,20 @@ export async function POST(req: Request) {
       if (intent === "credit_purchase") {
         const userId = session.metadata?.userId
         const credits = parseInt(session.metadata?.credits ?? "0", 10)
+        const promoId = session.metadata?.promoId
+        const promoIpHashMeta = session.metadata?.promoIpHash
         if (userId && credits > 0) {
-          await applyStripeCreditPurchaseOnce(`checkout_session:${session.id}`, userId, credits)
+          const promo =
+            promoId != null && promoId !== ""
+              ? {
+                  promoCodeId: promoId,
+                  ipHash:
+                    promoIpHashMeta && promoIpHashMeta !== ""
+                      ? promoIpHashMeta
+                      : hashIpForPromoUsage(`legacy_checkout_session:${session.id}`),
+                }
+              : undefined
+          await applyStripeCreditPurchaseOnce(`checkout_session:${session.id}`, userId, credits, promo)
         }
       } else {
         // Flux réservation existant
@@ -186,6 +199,21 @@ export async function POST(req: Request) {
           },
           { paidAmountCents: paidCents }
         )
+
+        const promoId = session.metadata?.promoId
+        const promoIpHashMeta = session.metadata?.promoIpHash
+        if (promoId && promoIpHashMeta) {
+          const reservation = await prisma.reservation.findUnique({
+            where: { id: reservationId },
+            select: { userId: true },
+          })
+          await recordPromoUsageOnceForStripeDedupe({
+            promoCodeId: promoId,
+            ipHash: promoIpHashMeta,
+            userId: reservation?.userId ?? null,
+            dedupeContext: `booking:checkout_session:${session.id}`,
+          })
+        }
       }
     } else if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
@@ -194,8 +222,20 @@ export async function POST(req: Request) {
       if (intent === "credit_purchase") {
         const userId = paymentIntent.metadata?.userId
         const credits = parseInt(paymentIntent.metadata?.credits ?? "0", 10)
+        const promoId = paymentIntent.metadata?.promoId
+        const promoIpHashMeta = paymentIntent.metadata?.promoIpHash
         if (userId && credits > 0) {
-          await applyStripeCreditPurchaseOnce(`payment_intent:${paymentIntent.id}`, userId, credits)
+          const promo =
+            promoId != null && promoId !== ""
+              ? {
+                  promoCodeId: promoId,
+                  ipHash:
+                    promoIpHashMeta && promoIpHashMeta !== ""
+                      ? promoIpHashMeta
+                      : hashIpForPromoUsage(`legacy_payment_intent:${paymentIntent.id}`),
+                }
+              : undefined
+          await applyStripeCreditPurchaseOnce(`payment_intent:${paymentIntent.id}`, userId, credits, promo)
         }
       } else {
         // Flux réservation existant
@@ -207,6 +247,21 @@ export async function POST(req: Request) {
           { stripePaymentIntentId: paymentIntent.id },
           { paidAmountCents: paymentIntent.amount }
         )
+
+        const promoId = paymentIntent.metadata?.promoId
+        const promoIpHashMeta = paymentIntent.metadata?.promoIpHash
+        if (promoId && promoIpHashMeta) {
+          const reservation = await prisma.reservation.findUnique({
+            where: { id: reservationId },
+            select: { userId: true },
+          })
+          await recordPromoUsageOnceForStripeDedupe({
+            promoCodeId: promoId,
+            ipHash: promoIpHashMeta,
+            userId: reservation?.userId ?? null,
+            dedupeContext: `booking:payment_intent:${paymentIntent.id}`,
+          })
+        }
       }
     }
 

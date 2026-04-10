@@ -6,8 +6,8 @@ import {
   findPromoCodeByCode,
   hasIpUsedPromo,
   hasUserUsedPromo,
-  recordPromoUsage,
   applyPromoDiscount,
+  hashIpForPromoUsage,
 } from "@/lib/promo-db"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { getClientIp } from "@/lib/rate-limit"
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
         depositAmountCents: String(amount),
         ...(body.priceMin != null ? { priceMinEuros: String(body.priceMin) } : {}),
         ...(body.priceMax != null ? { priceMaxEuros: String(body.priceMax) } : {}),
-        ...(promoId ? { promoId } : {}),
+        ...(promoId ? { promoId, promoIpHash: hashIpForPromoUsage(ip) } : {}),
       },
     })
 
@@ -159,16 +159,6 @@ export async function POST(req: Request) {
 
     if (!paymentIntent.client_secret) {
       throw new Error("Stripe n'a pas renvoyé de client_secret")
-    }
-
-    // Record promo usage immediately
-    if (promoId) {
-      await recordPromoUsage({
-        promoCodeId: promoId,
-        ip,
-        userId: user?.id ?? null,
-        context: "booking",
-      })
     }
 
     return Response.json({
