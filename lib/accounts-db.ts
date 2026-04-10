@@ -329,15 +329,19 @@ export async function applyStripeCreditPurchaseOnce(
 /**
  * Déduit 1 crédit si l'utilisateur en a au moins un.
  * @returns true si le crédit a été déduit, false si le solde était 0.
+ *
+ * Note: avec certains drivers Prisma (ex. LibSQL), `$executeRawUnsafe` ne renvoie pas
+ * toujours un « row count » fiable ; on utilise `RETURNING` pour savoir si l’UPDATE a réellement touché une ligne.
  */
 export async function deductCredit(userId: string): Promise<boolean> {
   await ensureAccountsTable()
-  const result = await prisma.$executeRawUnsafe(
+  const rows = await prisma.$queryRawUnsafe<Array<{ diagnosticCredits: number }>>(
     `UPDATE "UserAccount" SET "diagnosticCredits" = "diagnosticCredits" - 1
-     WHERE "id" = ? AND "diagnosticCredits" > 0`,
+     WHERE "id" = ? AND "diagnosticCredits" > 0
+     RETURNING "diagnosticCredits"`,
     userId
   )
-  return (result as unknown as number) > 0
+  return rows.length > 0
 }
 
 export async function getAllAccounts(): Promise<Array<{ id: string; name: string; email: string; role: UserRole; createdAt: string }>> {

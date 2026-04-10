@@ -161,19 +161,26 @@ function isNoInterventionDiagnostic(d: z.infer<typeof DiagnosticSchema>): boolea
   const priceClear = pr === null || pr === undefined || (pr.min === 0 && pr.max === 0)
   if (!priceClear) return false
 
+  /** Phrases explicites uniquement (évite les faux positifs du type « pas de prestation X » / « impossible sans OBD »). */
+  const noGarageWorkRe =
+    /\b(aucune intervention|pas d['’]intervention|rien à faire|tout va bien|aucune réparation nécessaire|aucun travail à prévoir|véhicule en bon état|no repair needed|nothing to repair|no work required|vehicle (is )?fine|geen reparatie nodig|niets te repareren)\b/i
+
   const g = d.garage
   if (g) {
     if (g.costRange.min !== 0 || g.costRange.max !== 0) return false
-    const block = `${g.estimatedTime}\n${(g.includes ?? []).join("\n")}`.toLowerCase()
-    if (
-      /aucune intervention|pas d.intervention|non nécessaire|sans intervention|rien à faire|aucune prestation|pas de prestation|aucun frais|pas de frais|tout va bien|rien à prévoir/.test(block)
-    ) return true
+    const block = `${g.estimatedTime}\n${(g.includes ?? []).join("\n")}`
+    if (noGarageWorkRe.test(block)) return true
   }
 
   const diy = d.diy
   if (!g && diy && !diy.possible && diy.costRange.min === 0 && diy.costRange.max === 0) {
-    const blob = [diy.difficulty, diy.estimatedTime, ...(diy.steps ?? [])].join(" ").toLowerCase()
-    if (/pas applicable|n'est pas applicable|impossible|aucune intervention|non applicable/.test(blob)) return true
+    const blob = [diy.difficulty, diy.estimatedTime, ...(diy.steps ?? [])].join(" ")
+    if (
+      /\b(pas applicable|n'est pas applicable|non applicable|not applicable|niet van toepassing|aucune intervention)\b/i.test(
+        blob
+      )
+    )
+      return true
   }
 
   return false
@@ -233,6 +240,9 @@ const DiagnosticInputSchema = z.object({
 
 export async function POST(req: Request) {
   let guestFirstCall = false
+  /** Crédit débité en début de requête : à rembourser si l’API échoue avant une réponse 200 utile. */
+  let heldBillableCredit = false
+  let billableRefundUserId: string | null = null
   try {
     const body = DiagnosticInputSchema.parse(await req.json())
     const { marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, followUps } = body
@@ -306,6 +316,8 @@ export async function POST(req: Request) {
           { status: 402 }
         )
       }
+      heldBillableCredit = true
+      billableRefundUserId = user!.id
     }
 
     const systemTextEN = `You are PitStop, a virtual automotive expert with 25 years of experience, trained by professional Belgian mechanics. If the make or model is approximate, identify the vehicle automatically without asking for confirmation. Respond ONLY in English.
@@ -622,6 +634,11 @@ mentionnant les variantes concernées.
 
     if (finishReason1 === "length") {
       if (diagId) await updateDiagnosticResult(diagId, JSON.stringify({}), "completed")
+      if (heldBillableCredit && billableRefundUserId) {
+        await addCredits(billableRefundUserId, 1)
+        heldBillableCredit = false
+        billableRefundUserId = null
+      }
       return NextResponse.json(
         { error: "DESCRIPTION_TOO_LONG", message: "Votre description est trop longue. Merci de la raccourcir pour lancer le diagnostic." },
         { status: 400 }
@@ -677,6 +694,15 @@ mentionnant les variantes concernées.
     if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res2, diagId)
     return res2
   } catch (error) {
+    if (heldBillableCredit && billableRefundUserId) {
+      try {
+        await addCredits(billableRefundUserId, 1)
+      } catch (refundErr) {
+        console.error("Diagnostic: échec du remboursement du crédit après erreur:", refundErr)
+      }
+      heldBillableCredit = false
+      billableRefundUserId = null
+    }
     if (error instanceof z.ZodError) {
       return Response.json({ error: "Données du formulaire invalides." }, { status: 400 })
     }

@@ -173,15 +173,14 @@ function isNoInterventionResult(d: DiagnosticResult): boolean {
   const priceClear = pr === null || (pr.min === 0 && pr.max === 0)
   if (!priceClear) return false
 
+  const noGarageWorkRe =
+    /\b(aucune intervention|pas d['’]intervention|rien à faire|tout va bien|aucune réparation nécessaire|aucun travail à prévoir|véhicule en bon état|no repair needed|nothing to repair|no work required|vehicle (is )?fine|geen reparatie nodig|niets te repareren)\b/i
+
   const g = d.garage
   if (g) {
     if (g.costRange.min !== 0 || g.costRange.max !== 0) return false
-    const block = `${g.estimatedTime}\n${(g.includes ?? []).join("\n")}`.toLowerCase()
-    if (
-      /aucune intervention|pas d.intervention|non nécessaire|sans intervention|rien à faire|aucune prestation|pas de prestation|aucun frais|pas de frais|tout va bien|rien à prévoir/.test(
-        block
-      )
-    ) {
+    const block = `${g.estimatedTime}\n${(g.includes ?? []).join("\n")}`
+    if (noGarageWorkRe.test(block)) {
       return true
     }
   }
@@ -194,8 +193,12 @@ function isNoInterventionResult(d: DiagnosticResult): boolean {
     diy.costRange.min === 0 &&
     diy.costRange.max === 0
   ) {
-    const blob = [diy.difficulty, diy.estimatedTime, ...diy.steps].join(" ").toLowerCase()
-    if (/pas applicable|n'est pas applicable|impossible|aucune intervention|non applicable/.test(blob)) {
+    const blob = [diy.difficulty, diy.estimatedTime, ...diy.steps].join(" ")
+    if (
+      /\b(pas applicable|n'est pas applicable|non applicable|not applicable|niet van toepassing|aucune intervention)\b/i.test(
+        blob
+      )
+    ) {
       return true
     }
   }
