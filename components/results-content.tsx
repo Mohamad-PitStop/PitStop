@@ -602,10 +602,6 @@ export function ResultsContent() {
     // Ne re-génère pas si on est encore en mode questions ou en chargement initial
     if (!diagnostic || !vehicleInfo || diagnostic.needsMoreInfo || isLoading) return
 
-    // Cas "rien à faire" : Claude est non-déterministe sur ce type de réponse.
-    // On ne re-génère pas pour éviter un contenu différent à chaque changement de langue.
-    if (isNoInterventionResult(diagnostic)) return
-
     const retranslate = async () => {
       // Vérifier le cache en mémoire d'abord
       const cached = localeCacheRef.current.get(locale)
