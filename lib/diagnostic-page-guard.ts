@@ -1,25 +1,8 @@
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
-import { getUserFromAuthCookie } from "@/lib/auth-session"
-import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
-
 /**
- * À appeler en tête de `app/diagnostic/page.tsx` : sans compte, le choix connexion / invité est géré côté client.
- * Avec compte : 0 crédit → /credits ou /merci.
+ * La page diagnostic est accessible à tous les utilisateurs connectés, quel que soit leur solde.
+ * Les utilisateurs sans crédits voient un message inline dans le formulaire qui leur permet d'acheter
+ * sans être redirigés. Les non-connectés sont gérés côté client (DiagnosticGuestGate).
  */
 export async function ensureDiagnosticPageAccess(): Promise<void> {
-  const h = await headers()
-  const user = await getUserFromAuthCookie(h.get("cookie"))
-
-  if (!user) return
-
-  const privileged = user.role === "admin" || user.role === "tester"
-  if (privileged) return
-
-  if (user.diagnosticCredits > 0) return
-
-  if (CREDIT_PURCHASES_ENABLED) {
-    redirect("/credits")
-  }
-  redirect("/merci?from=diagnostic")
+  // No-op : plus de redirection basée sur le solde.
 }

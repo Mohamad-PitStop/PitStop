@@ -13,9 +13,11 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 function PaymentFormInner({
   returnUrl,
   buttonLabel,
+  onSuccess,
 }: {
   returnUrl: string
   buttonLabel: string
+  onSuccess?: () => void
 }) {
   const { t } = useTranslation()
   const stripe = useStripe()
@@ -28,15 +30,18 @@ function PaymentFormInner({
     if (!stripe || !elements) return
     setIsConfirming(true)
     setError(null)
-    const { error: confirmError } = await stripe.confirmPayment({
+    const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: returnUrl,
-      },
+      confirmParams: { return_url: returnUrl },
+      redirect: "if_required",
     })
     if (confirmError) {
       setError(confirmError.message ?? t("stripeForm.paymentErrorFallback"))
       setIsConfirming(false)
+      return
+    }
+    if (paymentIntent?.status === "succeeded" && onSuccess) {
+      onSuccess()
     }
   }
 
@@ -64,11 +69,13 @@ export function StripePaymentForm({
   clientSecret,
   returnUrl,
   buttonLabel,
+  onSuccess,
 }: {
   clientSecret: string
   returnUrl: string
   /** Libellé du bouton de paiement (obligatoire : varie selon l’écran / la langue). */
   buttonLabel: string
+  onSuccess?: () => void
 }) {
   const { t, locale } = useTranslation()
 
@@ -100,7 +107,7 @@ export function StripePaymentForm({
 
   return (
     <Elements stripe={stripePromise} options={options}>
-      <PaymentFormInner returnUrl={returnUrl} buttonLabel={buttonLabel} />
+      <PaymentFormInner returnUrl={returnUrl} buttonLabel={buttonLabel} onSuccess={onSuccess} />
     </Elements>
   )
 }

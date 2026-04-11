@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X, Mic, RefreshCw, Send } from "lucide-react"
+import { Search, Car, Calendar, Gauge, FileText, Fuel, Settings2, ChevronDown, ChevronUp, Loader2, X, Mic, RefreshCw, Send, Zap } from "lucide-react"
 import { getAvailableYearsForModel } from "@/lib/vehicle-year-catalog"
 import { carBrands, carModels } from "@/lib/vehicle-model-catalog"
 import {
@@ -21,6 +21,9 @@ import { formatTransmissionOptionLabel } from "@/lib/format-transmission-label"
 import { dedupeModelsByVariantBase, filterFrenchModelLabels } from "@/lib/merge-verified-models"
 import { postVehicleOptions } from "@/lib/vehicle-options-client"
 import { DiagnosticLoader } from "@/components/diagnostic-loader"
+import { StripePaymentForm } from "@/components/stripe-payment-form"
+import { CREDIT_PACKAGES } from "@/lib/credit-packages"
+import { creditPackageLabel } from "@/lib/credit-package-i18n"
 import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { buildLoginUrl } from "@/lib/login-redirect"
 import { SS_GUEST_ACTIVE, SS_GUEST_DIAG_ID } from "@/lib/guest-diagnostic"
@@ -76,6 +79,19 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   const [authError, setAuthError] = useState<string | null>(null)
   const [authUser, setAuthUser] = useState<{ id: string; email: string; name: string; role: string; diagnosticCredits: number } | null>(null)
   const [authSessionReady, setAuthSessionReady] = useState(false)
+
+  // ── Message "pas de crédits" + modal d'achat ────────────────────────────────
+  const [noCreditsVisible, setNoCreditsVisible] = useState(false)
+  const [noCreditsShowBtn, setNoCreditsShowBtn] = useState(false)
+  const noCreditsTimerMsg = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const noCreditsTimerBtn = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const noCreditsRef = useRef<HTMLDivElement>(null)
+
+  const [buyModalOpen, setBuyModalOpen] = useState(false)
+  const [buyLoadingPkg, setBuyLoadingPkg] = useState<string | null>(null)
+  const [buyClientSecret, setBuyClientSecret] = useState<string | null>(null)
+  const [buySelectedPkg, setBuySelectedPkg] = useState<(typeof CREDIT_PACKAGES)[number] | null>(null)
+  const [buyFinalAmount, setBuyFinalAmount] = useState<number | null>(null)
 
   // ── Reconnaissance vocale ────────────────────────────────────────────────────
   const [isVoiceActive, setIsVoiceActive] = useState(false)
@@ -550,7 +566,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         return
       }
       if (CREDIT_PURCHASES_ENABLED) {
-        router.push("/credits")
+        showNoCreditsMessage()
       } else {
         router.push("/merci?from=diagnostic")
       }
@@ -565,6 +581,69 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
   }
 
+  function showNoCreditsMessage() {
+    setNoCreditsVisible(true)
+    setNoCreditsShowBtn(true)
+    if (noCreditsTimerBtn.current) clearTimeout(noCreditsTimerBtn.current)
+    if (noCreditsTimerMsg.current) clearTimeout(noCreditsTimerMsg.current)
+    noCreditsTimerBtn.current = setTimeout(() => setNoCreditsShowBtn(false), 3000)
+    noCreditsTimerMsg.current = setTimeout(() => setNoCreditsVisible(false), 5000)
+  }
+
+  function openBuyModal() {
+    sessionStorage.setItem("pendingFormData", JSON.stringify(formData))
+    setNoCreditsVisible(false)
+    setBuyModalOpen(true)
+    setBuyClientSecret(null)
+    setBuySelectedPkg(null)
+    setBuyFinalAmount(null)
+  }
+
+  function closeBuyModal() {
+    setBuyModalOpen(false)
+    setBuyClientSecret(null)
+    setBuySelectedPkg(null)
+    setBuyFinalAmount(null)
+    setBuyLoadingPkg(null)
+  }
+
+  async function handleBuyPkg(packageId: string) {
+    setBuyLoadingPkg(packageId)
+    try {
+      const res = await fetch("/api/credits/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId, intent: "credit_purchase" }),
+      })
+      const data = await res.json().catch(() => null)
+      if (data?.ok && data?.clientSecret) {
+        setBuySelectedPkg(CREDIT_PACKAGES.find((p) => p.id === packageId) ?? null)
+        setBuyClientSecret(data.clientSecret)
+        setBuyFinalAmount(data.finalAmount ?? null)
+      }
+    } finally {
+      setBuyLoadingPkg(null)
+    }
+  }
+
+  function handleBuySuccess() {
+    closeBuyModal()
+    // Rafraîchir le solde
+    function refreshCredits() {
+      fetch("/api/credits/balance")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok) setAuthUser((prev) => (prev ? { ...prev, diagnosticCredits: data.credits } : null))
+        })
+        .catch(() => null)
+    }
+    refreshCredits()
+    const delays = [2000, 5000, 10000]
+    const timers = delays.map((ms) => setTimeout(refreshCredits, ms))
+    // Pas de cleanup nécessaire pour un callback one-shot
+    void timers
+  }
+
   // Fermer le combobox marque si clic en dehors
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -575,6 +654,21 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
   }, [])
+
+  // Dismiss message "pas de crédits" si clic en dehors
+  useEffect(() => {
+    if (!noCreditsVisible) return
+    const handler = (e: MouseEvent) => {
+      if (noCreditsRef.current && !noCreditsRef.current.contains(e.target as Node)) {
+        setNoCreditsVisible(false)
+        setNoCreditsShowBtn(false)
+        if (noCreditsTimerMsg.current) clearTimeout(noCreditsTimerMsg.current)
+        if (noCreditsTimerBtn.current) clearTimeout(noCreditsTimerBtn.current)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [noCreditsVisible])
 
   // Focus automatique sur la barre de recherche quand le combobox s'ouvre
   useEffect(() => {
@@ -1575,8 +1669,122 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         </form>
 
         {authError && <p className="mt-3 text-sm text-destructive">{authError}</p>}
+
+        {noCreditsVisible && (
+          <div
+            ref={noCreditsRef}
+            className="mt-3 animate-in fade-in slide-in-from-bottom-2 duration-200 rounded-lg border border-amber-400/50 bg-amber-400/15 px-4 py-3 text-sm text-amber-900 dark:text-amber-100"
+          >
+            <p className="font-medium">Solde insuffisant : 0 crédits disponibles</p>
+            {noCreditsShowBtn && (
+              <button
+                type="button"
+                onClick={openBuyModal}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-3 py-1.5 transition-colors animate-in fade-in duration-150"
+              >
+                <Zap className="h-3 w-3" />
+                Acheter
+              </button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
+
+    {/* Modal d'achat de crédits */}
+    {buyModalOpen && (
+      <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4">
+        <div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={closeBuyModal}
+        />
+        <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-300" style={{ backgroundColor: "#E8EEF8" }}>
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>
+                {buyClientSecret ? "Paiement sécurisé" : "Recharger mes crédits"}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: "#1a2d5a" }}>
+                {buyClientSecret && buySelectedPkg
+                  ? `${creditPackageLabel(t, buySelectedPkg.id)} — ${
+                      buyFinalAmount != null
+                        ? `${(buyFinalAmount / 100).toFixed(2).replace(".", ",")} €`
+                        : buySelectedPkg.priceLabel
+                    }`
+                  : "Choisissez un pack pour continuer votre diagnostic"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={buyClientSecret ? () => { setBuyClientSecret(null); setBuySelectedPkg(null); setBuyFinalAmount(null) } : closeBuyModal}
+              className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
+              style={{ color: "#1a2d5a" }}
+              aria-label="Fermer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {!buyClientSecret ? (
+            <div className="grid grid-cols-2 gap-3">
+              {CREDIT_PACKAGES.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  type="button"
+                  onClick={() => handleBuyPkg(pkg.id)}
+                  disabled={buyLoadingPkg !== null}
+                  className={`relative flex flex-col rounded-xl border p-3 text-left transition-all hover:shadow-md disabled:opacity-60 ${
+                    pkg.highlight
+                      ? "border-orange-400 ring-1 ring-orange-400/30 bg-white/80"
+                      : "border-[#b8c8e0] bg-white/60 hover:border-[#88a8d0]"
+                  }`}
+                >
+                  {pkg.highlight && (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
+                      Meilleur choix
+                    </span>
+                  )}
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Zap className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                    <span className="text-xs font-semibold" style={{ color: "#0D1B3E" }}>
+                      {creditPackageLabel(t, pkg.id)}
+                    </span>
+                  </div>
+                  {pkg.originalPrice && (
+                    <p className="text-[10px] text-[#6b80a8] line-through">{pkg.originalPrice}</p>
+                  )}
+                  <p className="text-lg font-bold leading-tight" style={{ color: "#0D1B3E" }}>
+                    {buyLoadingPkg === pkg.id ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-orange-500" />
+                    ) : (
+                      pkg.priceLabel
+                    )}
+                  </p>
+                  {pkg.badge && (
+                    <span className="mt-0.5 inline-block bg-green-500/15 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                      {pkg.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <StripePaymentForm
+                clientSecret={buyClientSecret}
+                returnUrl={typeof window !== "undefined" ? `${window.location.origin}/diagnostic` : "/diagnostic"}
+                buttonLabel={`Payer ${
+                  buyFinalAmount != null
+                    ? `${(buyFinalAmount / 100).toFixed(2).replace(".", ",")} €`
+                    : buySelectedPkg?.priceLabel ?? ""
+                }`}
+                onSuccess={handleBuySuccess}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    )}
     </>
   )
 }
