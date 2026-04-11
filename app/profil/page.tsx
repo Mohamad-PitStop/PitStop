@@ -228,6 +228,8 @@ export default function ProfilPage() {
       .catch(() => null)
   }, [CREDIT_PURCHASES_ENABLED, user])
 
+  const [selectedPkgFinalAmount, setSelectedPkgFinalAmount] = useState<number | null>(null)
+
   const handleBuy = async (packageId: string) => {
     if (!CREDIT_PURCHASES_ENABLED) return
     setLoadingPkg(packageId)
@@ -245,6 +247,7 @@ export default function ProfilPage() {
       if (data?.ok && data?.clientSecret) {
         setSelectedPkg(CREDIT_PACKAGES.find((p) => p.id === packageId) ?? null)
         setClientSecret(data.clientSecret)
+        setSelectedPkgFinalAmount(data.finalAmount ?? null)
       }
     } finally {
       setLoadingPkg(null)
@@ -546,9 +549,18 @@ export default function ProfilPage() {
                 {/* Achat de crédits (désactivable : `CREDIT_PURCHASES_ENABLED` dans `lib/feature-flags.ts`) */}
                 {CREDIT_PURCHASES_ENABLED ? (
                   <>
+                    {user?.role === "user_friend" && (
+                      <div className="flex items-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/10 px-3 py-2 text-xs text-violet-400 font-medium">
+                        <span>🎁</span>
+                        <span>Tarif ami appliqué : −50 % sur tous les packs</span>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {CREDIT_PACKAGES.map((pkg) => {
                         const savingLine = creditPackageSaving(t, pkg.id)
+                        const isFriendUser = user?.role === "user_friend"
+                        const friendAmountCents = Math.round(pkg.amountCents * 0.5)
+                        const friendPriceLabel = `${(friendAmountCents / 100).toFixed(2).replace(".", ",")} €`
                         return (
                         <div
                           key={pkg.id}
@@ -571,19 +583,31 @@ export default function ProfilPage() {
                             <span className="text-xs font-medium">{creditPackageLabel(t, pkg.id)}</span>
                           </div>
                           <div className="mb-3">
-                            {pkg.originalPrice && (
-                              <p className="text-[10px] text-muted-foreground line-through">{pkg.originalPrice}</p>
-                            )}
-                            <p className="text-lg font-bold leading-tight">{pkg.priceLabel}</p>
-                            {savingLine ? (
-                              <p className="text-[10px] font-medium text-green-600 dark:text-green-400 mt-0.5">
-                                {savingLine}
-                              </p>
-                            ) : null}
-                            {pkg.badge && (
-                              <span className="inline-block mt-0.5 bg-green-500/10 text-green-700 dark:text-green-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                                {pkg.badge}
-                              </span>
+                            {isFriendUser ? (
+                              <>
+                                <p className="text-[10px] text-muted-foreground line-through">{pkg.priceLabel}</p>
+                                <p className="text-lg font-bold leading-tight text-violet-400">{friendPriceLabel}</p>
+                                <span className="inline-block mt-0.5 bg-violet-500/10 text-violet-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                                  −50 % tarif ami
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                {pkg.originalPrice && (
+                                  <p className="text-[10px] text-muted-foreground line-through">{pkg.originalPrice}</p>
+                                )}
+                                <p className="text-lg font-bold leading-tight">{pkg.priceLabel}</p>
+                                {savingLine ? (
+                                  <p className="text-[10px] font-medium text-green-600 dark:text-green-400 mt-0.5">
+                                    {savingLine}
+                                  </p>
+                                ) : null}
+                                {pkg.badge && (
+                                  <span className="inline-block mt-0.5 bg-green-500/10 text-green-700 dark:text-green-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                                    {pkg.badge}
+                                  </span>
+                                )}
+                              </>
                             )}
                           </div>
                           <Button
@@ -870,19 +894,27 @@ export default function ProfilPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => { setClientSecret(null); setSelectedPkg(null) }}
+            onClick={() => { setClientSecret(null); setSelectedPkg(null); setSelectedPkgFinalAmount(null) }}
           />
           <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#c8d8f0] p-6 shadow-2xl" style={{ backgroundColor: "#E8EEF8" }}>
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <p className="text-base font-semibold" style={{ color: "#0D1B3E" }}>{t("profilePage.stripeModalTitle")}</p>
                 <p className="text-sm mt-0.5" style={{ color: "#1a2d5a" }}>
-                  {creditPackageLabel(t, selectedPkg.id)} : {selectedPkg.priceLabel}
+                  {creditPackageLabel(t, selectedPkg.id)} :{" "}
+                  {selectedPkgFinalAmount != null && selectedPkgFinalAmount !== selectedPkg.amountCents ? (
+                    <>
+                      <span className="line-through text-[#1a2d5a]/50 mr-1">{selectedPkg.priceLabel}</span>
+                      <span className="text-violet-500 font-semibold">{(selectedPkgFinalAmount / 100).toFixed(2).replace(".", ",")} €</span>
+                    </>
+                  ) : (
+                    selectedPkg.priceLabel
+                  )}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => { setClientSecret(null); setSelectedPkg(null) }}
+                onClick={() => { setClientSecret(null); setSelectedPkg(null); setSelectedPkgFinalAmount(null) }}
                 className="rounded-full p-1.5 transition-colors hover:bg-[#c8d8f0]"
                 style={{ color: "#1a2d5a" }}
                 aria-label={t("creditsPage.closeAria")}
@@ -895,7 +927,11 @@ export default function ProfilPage() {
             <StripePaymentForm
               clientSecret={clientSecret}
               returnUrl={returnUrl}
-              buttonLabel={t("creditsPage.payButton", { amount: selectedPkg.priceLabel })}
+              buttonLabel={t("creditsPage.payButton", {
+                amount: selectedPkgFinalAmount != null
+                  ? `${(selectedPkgFinalAmount / 100).toFixed(2).replace(".", ",")} €`
+                  : selectedPkg.priceLabel,
+              })}
             />
             <p className="mt-3 text-xs font-medium" style={{ color: "#7a2e2e" }}>
               {t("creditsPage.nonRefundableNote")}

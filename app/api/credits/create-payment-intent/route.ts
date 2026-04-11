@@ -50,6 +50,12 @@ export async function POST(req: Request) {
     let promoId: string | null = null
     let appliedDiscountLabel: string | null = null
 
+    // Réduction ami −50% (appliquée avant promo pour éviter les cumulss)
+    if (user.role === "user_friend") {
+      finalAmount = Math.round(finalAmount * 0.5)
+      appliedDiscountLabel = "−50 % (tarif ami)"
+    }
+
     if (body.promoCode) {
       const promo = await findPromoCodeByCode(body.promoCode)
       if (!promo || !promo.active || (promo.maxUses != null && promo.usedCount >= promo.maxUses)) {

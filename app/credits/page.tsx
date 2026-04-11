@@ -394,9 +394,19 @@ export default function CreditsPage() {
               </div>
             )}
 
+            {user?.role === "user_friend" && (
+              <div className="flex items-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/10 px-4 py-2.5 text-sm text-violet-400 font-medium">
+                <span>🎁</span>
+                <span>Tarif ami appliqué : −50 % sur tous les packs</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
               {CREDIT_PACKAGES.map((pkg) => {
                 const savingLine = creditPackageSaving(t, pkg.id)
+                const isFriendUser = user?.role === "user_friend"
+                const friendAmountCents = Math.round(pkg.amountCents * 0.5)
+                const friendPriceLabel = `${(friendAmountCents / 100).toFixed(2).replace(".", ",")} €`
                 return (
                 <Card
                   key={pkg.id}
@@ -425,25 +435,39 @@ export default function CreditsPage() {
 
                   <CardContent className="flex flex-col flex-1 gap-4">
                     <div>
-                      {pkg.originalPrice && (
-                        <p className="text-xs text-muted-foreground line-through">{pkg.originalPrice}</p>
-                      )}
-                      <p className="text-2xl font-bold">{pkg.priceLabel}</p>
-                      {savingLine ? (
-                        <p className="text-xs font-medium text-green-600 dark:text-green-400">
-                          {savingLine}
-                        </p>
-                      ) : null}
-                      {pkg.badge && (
-                        <span className="inline-block mt-1 bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          {pkg.badge}
-                        </span>
+                      {isFriendUser ? (
+                        <>
+                          <p className="text-xs text-muted-foreground line-through">{pkg.priceLabel}</p>
+                          <p className="text-2xl font-bold text-violet-400">{friendPriceLabel}</p>
+                          <span className="inline-block mt-1 bg-violet-500/10 text-violet-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            −50 % tarif ami
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          {pkg.originalPrice && (
+                            <p className="text-xs text-muted-foreground line-through">{pkg.originalPrice}</p>
+                          )}
+                          <p className="text-2xl font-bold">{pkg.priceLabel}</p>
+                          {savingLine ? (
+                            <p className="text-xs font-medium text-green-600 dark:text-green-400">
+                              {savingLine}
+                            </p>
+                          ) : null}
+                          {pkg.badge && (
+                            <span className="inline-block mt-1 bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              {pkg.badge}
+                            </span>
+                          )}
+                        </>
                       )}
                     </div>
 
                     <p className="text-xs text-muted-foreground flex-1">
                       {t("creditsPage.perDiagnostic", {
-                        price: (pkg.amountCents / pkg.credits / 100).toFixed(2).replace(".", ","),
+                        price: isFriendUser
+                          ? (friendAmountCents / pkg.credits / 100).toFixed(2).replace(".", ",")
+                          : (pkg.amountCents / pkg.credits / 100).toFixed(2).replace(".", ","),
                       })}
                     </p>
 

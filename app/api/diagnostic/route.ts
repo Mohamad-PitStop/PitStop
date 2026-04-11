@@ -246,12 +246,10 @@ function isNoInterventionDiagnostic(d: z.infer<typeof DiagnosticSchema>): boolea
 
 function buildDiagnosticResponse(
   diagnostic: z.infer<typeof DiagnosticSchema>,
-  applyDiscount = false,
   diagnosticRequestId: string | null = null,
   creditRefunded = false
 ) {
-  const payload = applyDiscount ? applyFriendDiscount(diagnostic) : diagnostic
-  return NextResponse.json({ ...payload, diagnosticRequestId, creditRefunded })
+  return NextResponse.json({ ...diagnostic, diagnosticRequestId, creditRefunded })
 }
 
 function applyGuestFirstSuccessCookies(res: NextResponse, diagId: string) {
@@ -718,7 +716,7 @@ mentionnant les variantes concernées.
         creditRefunded = true
       }
       const calibrated1 = applyPriceCalibration(diagnostic1, String(marque), carburant, String(probleme))
-      const res1 = buildDiagnosticResponse(calibrated1, isFriend, diagId, creditRefunded)
+      const res1 = buildDiagnosticResponse(calibrated1, diagId, creditRefunded)
       if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res1, diagId)
       return res1
     }
@@ -750,7 +748,7 @@ mentionnant les variantes concernées.
       creditRefunded = true
     }
     const calibrated2 = applyPriceCalibration(finalDiagnostic, String(marque), carburant, String(probleme))
-    const res2 = buildDiagnosticResponse(calibrated2, isFriend, diagId, creditRefunded)
+    const res2 = buildDiagnosticResponse(calibrated2, diagId, creditRefunded)
     if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res2, diagId)
     return res2
   } catch (error) {
