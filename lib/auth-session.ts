@@ -42,7 +42,7 @@ export async function createAuthSession(userId: string): Promise<string> {
   return token
 }
 
-/** Données compte exposées au client (sans localisation d’inscription). */
+/** Données compte exposées au client. */
 export type SessionUser = {
   id: string
   name: string
@@ -50,6 +50,7 @@ export type SessionUser = {
   role: UserRole
   diagnosticCredits: number
   garageId: string | null
+  signupPostalCode: string | null
 }
 
 export async function getUserFromAuthCookie(cookieHeader: string | null): Promise<SessionUser | null> {
@@ -71,6 +72,7 @@ export async function getUserFromAuthCookie(cookieHeader: string | null): Promis
     role: row.role,
     diagnosticCredits: row.diagnosticCredits,
     garageId: row.garageId ?? null,
+    signupPostalCode: row.signupPostalCode ?? null,
   }
 }
 

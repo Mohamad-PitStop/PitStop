@@ -107,6 +107,7 @@ export const enPagesA = {
     manual: "Manual",
     automatic: "Automatic",
     semiAutomatic: "Semi-automatic (automated manual)",
+    gearsSuffix: "-speed",
   },
   exceptionBrand: {
     title: "Official dealer required",

@@ -222,5 +222,7 @@ export const enSurface = {
       "Delete your account permanently? This cannot be undone. Remaining credits are not refunded.",
     deleteFailed: "Could not delete account right now.",
     exportFailed: "Export failed",
+    postalCodeLabel: "Postal code",
+    postalCodePh: "E.g. 1000",
   },
 } as const

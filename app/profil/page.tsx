@@ -40,6 +40,7 @@ type AuthUser = {
   email: string
   role: string
   diagnosticCredits: number
+  signupPostalCode: string | null
 }
 
 type DiagnosticStatus = "in_progress" | "completed" | "abandoned"
@@ -127,6 +128,7 @@ export default function ProfilPage() {
   const [editMode, setEditMode] = useState(false)
   const [editName, setEditName] = useState("")
   const [editEmail, setEditEmail] = useState("")
+  const [editPostalCode, setEditPostalCode] = useState("")
   const [editSubmitting, setEditSubmitting] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [editSuccess, setEditSuccess] = useState(false)
@@ -277,6 +279,7 @@ export default function ProfilPage() {
   const openEditMode = () => {
     setEditName(user?.name ?? "")
     setEditEmail(user?.email ?? "")
+    setEditPostalCode(user?.signupPostalCode ?? "")
     setEditError(null)
     setEditSuccess(false)
     setEditMode(true)
@@ -290,13 +293,17 @@ export default function ProfilPage() {
       const res = await fetch("/api/auth/update-profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim(), email: editEmail.trim() }),
+        body: JSON.stringify({
+          name: editName.trim(),
+          email: editEmail.trim(),
+          postalCode: editPostalCode.trim(),
+        }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) throw new Error(data?.error ?? t("profilePage.updateError"))
       setEditSuccess(true)
       setEditMode(false)
-      setUser((prev) => prev ? { ...prev, name: editName.trim(), email: editEmail.trim() } : prev)
+      setUser((prev) => prev ? { ...prev, name: editName.trim(), email: editEmail.trim(), signupPostalCode: editPostalCode.trim() || null } : prev)
     } catch (err) {
       setEditError(err instanceof Error ? err.message : t("common.errorUnknown"))
     } finally {
@@ -421,6 +428,12 @@ export default function ProfilPage() {
                       <span className="text-muted-foreground">{t("common.email")}</span>
                       <span className="font-medium">{user.email}</span>
                     </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{t("profilePage.postalCodeLabel")}</span>
+                      <span className="font-medium">
+                        {user.signupPostalCode || <span className="text-muted-foreground/60">—</span>}
+                      </span>
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={handleEditProfile} className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4 space-y-3">
@@ -442,6 +455,15 @@ export default function ProfilPage() {
                         onChange={(e) => setEditEmail(e.target.value)}
                         required
                         maxLength={160}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">{t("profilePage.postalCodeLabel")}</label>
+                      <Input
+                        value={editPostalCode}
+                        onChange={(e) => setEditPostalCode(e.target.value)}
+                        placeholder={t("profilePage.postalCodePh")}
+                        maxLength={20}
                       />
                     </div>
                     {editError && <p className="text-xs text-destructive">{editError}</p>}

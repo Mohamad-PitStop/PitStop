@@ -21,7 +21,13 @@ export function formatTransmissionOptionLabel(value: string, t: (key: string) =>
     "powershift",
   ]
 
-  if (normalized.startsWith("manuelle") || normalized.startsWith("manual")) return t("trans.manual")
+  if (normalized.startsWith("manuelle") || normalized.startsWith("manual")) {
+    const gearMatch = normalized.match(/\b(\d+)\b/)
+    const gearCount = gearMatch ? gearMatch[1] : null
+    const base = t("trans.manual")
+    if (gearCount) return `${base} ${gearCount}${t("trans.gearsSuffix")}`
+    return base
+  }
   if (normalized.includes("semi") || normalized.includes("robotisee") || normalized.includes("robotized")) {
     return t("trans.semiAutomatic")
   }

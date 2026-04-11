@@ -11,6 +11,7 @@ const RATE_LIMIT = { name: "update-profile", maxRequests: 5, windowSeconds: 60 *
 const Schema = z.object({
   name: z.string().trim().min(2).max(120).optional(),
   email: z.string().trim().email().max(160).optional(),
+  postalCode: z.string().trim().max(20).optional(),
 })
 
 export async function PATCH(req: Request) {
@@ -26,7 +27,7 @@ export async function PATCH(req: Request) {
 
     const body = Schema.parse(await req.json())
 
-    if (!body.name && !body.email) {
+    if (!body.name && !body.email && body.postalCode === undefined) {
       return NextResponse.json({ ok: false, error: "Aucun champ à mettre à jour." }, { status: 400 })
     }
 
@@ -48,7 +49,11 @@ export async function PATCH(req: Request) {
       }
     }
 
-    await updateAccountProfile(user.id, { name: body.name, email: body.email })
+    await updateAccountProfile(user.id, {
+      name: body.name,
+      email: body.email,
+      postalCode: body.postalCode,
+    })
 
     return NextResponse.json({ ok: true })
   } catch (error) {

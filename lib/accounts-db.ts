@@ -512,7 +512,7 @@ export async function updateAccountPassword(userId: string, passwordHash: string
 
 export async function updateAccountProfile(
   userId: string,
-  input: { name?: string; email?: string }
+  input: { name?: string; email?: string; postalCode?: string }
 ): Promise<void> {
   await ensureAccountsTable()
   if (input.name) {
@@ -526,6 +526,13 @@ export async function updateAccountProfile(
     await prisma.$executeRawUnsafe(
       `UPDATE "UserAccount" SET "email" = ? WHERE "id" = ?`,
       input.email,
+      userId
+    )
+  }
+  if (input.postalCode !== undefined) {
+    await prisma.$executeRawUnsafe(
+      `UPDATE "UserAccount" SET "signupPostalCode" = ? WHERE "id" = ?`,
+      input.postalCode,
       userId
     )
   }

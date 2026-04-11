@@ -107,6 +107,7 @@ export const nlPagesA = {
     manual: "Handgeschakeld",
     automatic: "Automaat",
     semiAutomatic: "Semi-automaat (gerobotiseerd)",
+    gearsSuffix: "-bak",
   },
   exceptionBrand: {
     title: "Gespecialiseerde concessie vereist",

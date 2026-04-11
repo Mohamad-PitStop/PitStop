@@ -223,5 +223,7 @@ export const nlSurface = {
       "Uw account definitief verwijderen? Dit kan niet ongedaan worden gemaakt. Resterende credits worden niet terugbetaald.",
     deleteFailed: "Account kan nu niet worden verwijderd.",
     exportFailed: "Exporteren mislukt",
+    postalCodeLabel: "Postcode",
+    postalCodePh: "Bijv. 1000",
   },
 } as const

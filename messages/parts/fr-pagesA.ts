@@ -109,6 +109,7 @@ export const frPagesA = {
     manual: "Manuelle",
     automatic: "Automatique",
     semiAutomatic: "Semi-automatique (robotisée)",
+    gearsSuffix: "v",
   },
   exceptionBrand: {
     title: "Concession spécialisée requise",

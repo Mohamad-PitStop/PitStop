@@ -227,5 +227,7 @@ export const frSurface = {
       "Voulez-vous vraiment supprimer définitivement votre compte ? Cette action est irréversible. Les crédits restants ne sont pas remboursables.",
     deleteFailed: "Suppression impossible pour le moment.",
     exportFailed: "Export impossible",
+    postalCodeLabel: "Code postal",
+    postalCodePh: "Ex: 1000",
   },
 } as const
