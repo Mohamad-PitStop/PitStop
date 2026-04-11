@@ -38,6 +38,8 @@ export const frVehicleForm = {
       "Une erreur est survenue lors de l'analyse. Veuillez réessayer ou réessayer plus tard.",
     techError: "Une erreur technique est survenue. Veuillez réessayer.",
     sectionTitle: "Informations du véhicule",
+    savedVehiclesLabel: "Mes véhicules",
+    savedVehiclesPlaceholder: "Pré-remplir depuis mon garage…",
     labelMarque: "Marque",
     labelModele: "Modèle",
     labelVariante: "Variante / Finition",

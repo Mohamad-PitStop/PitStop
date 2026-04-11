@@ -36,6 +36,8 @@ export const enVehicleForm = {
     analysisError: "Something went wrong during analysis. Please try again later.",
     techError: "A technical error occurred. Please try again.",
     sectionTitle: "Vehicle information",
+    savedVehiclesLabel: "My vehicles",
+    savedVehiclesPlaceholder: "Pre-fill from my garage…",
     labelMarque: "Make",
     labelModele: "Model",
     labelVariante: "Variant / trim",

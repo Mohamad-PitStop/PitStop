@@ -6,6 +6,8 @@ import { createCalendarEvent, getBusyIntervals } from "@/lib/google-calendar"
 import { applyStripeCreditPurchaseOnce } from "@/lib/accounts-db"
 import { createDepositPayout } from "@/lib/deposit-payout-db"
 import { hashIpForPromoUsage, recordPromoUsageOnceForStripeDedupe } from "@/lib/promo-db"
+import { sendReservationConfirmedEmail } from "@/lib/email-reservation-confirmed"
+import { createGarageReview } from "@/lib/garage-review-db"
 
 export const runtime = "nodejs"
 
@@ -58,6 +60,17 @@ async function confirmReservationAfterPayment(
   if (!reservation) throw new Error("Réservation introuvable.")
 
   if (reservation.status === "confirmed" && reservation.calendarEventId) return
+
+  // Créer un enregistrement GarageReview si la réservation est liée à un garage
+  if (reservation.garageId) {
+    const { randomUUID } = await import("node:crypto")
+    createGarageReview({
+      reservationId: reservation.id,
+      garageId: reservation.garageId,
+      userId: reservation.userId ?? null,
+      token: randomUUID(),
+    }).catch((err) => console.error("createGarageReview: erreur silencieuse:", err))
+  }
 
   await prisma.reservation.update({
     where: { id: reservation.id },
@@ -200,6 +213,22 @@ export async function POST(req: Request) {
           { paidAmountCents: paidCents }
         )
 
+        // Email de confirmation au client (silencieux en cas d'échec)
+        const resForEmail = await prisma.reservation.findUnique({ where: { id: reservationId } })
+        if (resForEmail?.email) {
+          sendReservationConfirmedEmail({
+            to: resForEmail.email,
+            name: resForEmail.name,
+            type: resForEmail.type,
+            startAt: resForEmail.startAt,
+            endAt: resForEmail.endAt,
+            timeZone: resForEmail.timeZone,
+            vehicleMarque: resForEmail.vehicleMarque,
+            vehicleModele: resForEmail.vehicleModele,
+            cancelToken: resForEmail.cancelToken,
+          }).catch((err) => console.error("Email RDV confirmé (checkout): échec silencieux:", err))
+        }
+
         const promoId = session.metadata?.promoId
         const promoIpHashMeta = session.metadata?.promoIpHash
         if (promoId && promoIpHashMeta) {
@@ -247,6 +276,22 @@ export async function POST(req: Request) {
           { stripePaymentIntentId: paymentIntent.id },
           { paidAmountCents: paymentIntent.amount }
         )
+
+        // Email de confirmation au client (silencieux en cas d'échec)
+        const resForEmail = await prisma.reservation.findUnique({ where: { id: reservationId } })
+        if (resForEmail?.email) {
+          sendReservationConfirmedEmail({
+            to: resForEmail.email,
+            name: resForEmail.name,
+            type: resForEmail.type,
+            startAt: resForEmail.startAt,
+            endAt: resForEmail.endAt,
+            timeZone: resForEmail.timeZone,
+            vehicleMarque: resForEmail.vehicleMarque,
+            vehicleModele: resForEmail.vehicleModele,
+            cancelToken: resForEmail.cancelToken,
+          }).catch((err) => console.error("Email RDV confirmé (payment_intent): échec silencieux:", err))
+        }
 
         const promoId = paymentIntent.metadata?.promoId
         const promoIpHashMeta = paymentIntent.metadata?.promoIpHash

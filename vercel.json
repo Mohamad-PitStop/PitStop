@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/purge-diagnostics",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/send-rating-emails",
+      "schedule": "0 * * * *"
     }
   ]
 }

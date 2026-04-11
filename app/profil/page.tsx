@@ -31,6 +31,7 @@ import {
   XOctagon,
   Gift,
   Eye,
+  Plus,
 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/locale-context"
 
@@ -67,6 +68,18 @@ type Reservation = {
   timeZone: string
   status: string
   cancelToken: string | null
+}
+
+type UserVehicle = {
+  id: string
+  nickname: string | null
+  marque: string
+  modele: string
+  variante: string | null
+  carburant: string | null
+  transmission: string | null
+  annee: string | null
+  kilometrage: string | null
 }
 
 function truncate(text: string, max = 120) {
@@ -142,6 +155,16 @@ export default function ProfilPage() {
   const [giftError, setGiftError] = useState<string | null>(null)
   const [giftSuccess, setGiftSuccess] = useState<string | null>(null)
 
+  // Mon garage
+  const [vehicles, setVehicles] = useState<UserVehicle[]>([])
+  const [garageAddOpen, setGarageAddOpen] = useState(false)
+  const [garageAddSubmitting, setGarageAddSubmitting] = useState(false)
+  const [garageAddError, setGarageAddError] = useState<string | null>(null)
+  const [garageDeleteError, setGarageDeleteError] = useState<string | null>(null)
+  const [garageForm, setGarageForm] = useState({
+    nickname: "", marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "",
+  })
+
   const refreshUser = () => {
     fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
@@ -193,12 +216,13 @@ export default function ProfilPage() {
       window.history.replaceState({}, "", "/profil")
     }
 
-    // Load user + diagnostics + reservations in parallel
+    // Load user + diagnostics + reservations + vehicles in parallel
     Promise.all([
       fetch("/api/auth/me", { credentials: "include" }).then((r) => r.json()).catch(() => null),
       fetch("/api/mes-diagnostics").then((r) => r.ok ? r.json() : null).catch(() => null),
       fetch("/api/mes-reservations").then((r) => r.ok ? r.json() : null).catch(() => null),
-    ]).then(([userData, diagData, resData]) => {
+      fetch("/api/user-vehicles").then((r) => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([userData, diagData, resData, vehiclesData]) => {
       if (!userData?.user) {
         router.replace(buildLoginUrl("/profil"))
         return
@@ -206,6 +230,7 @@ export default function ProfilPage() {
       setUser({ ...userData.user, diagnosticCredits: userData.user.diagnosticCredits ?? 0 })
       setDiagnostics(diagData?.diagnostics ?? [])
       setReservations(resData?.reservations ?? [])
+      setVehicles(vehiclesData?.vehicles ?? [])
     }).finally(() => setLoading(false))
   }, [router])
 
@@ -332,6 +357,50 @@ export default function ProfilPage() {
       // Erreur silencieuse : l'utilisateur peut réessayer
     } finally {
       setDownloadingData(false)
+    }
+  }
+
+  const handleGarageAdd = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setGarageAddError(null)
+    setGarageAddSubmitting(true)
+    try {
+      const res = await fetch("/api/user-vehicles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nickname: garageForm.nickname.trim() || undefined,
+          marque: garageForm.marque.trim(),
+          modele: garageForm.modele.trim(),
+          variante: garageForm.variante.trim() || undefined,
+          carburant: garageForm.carburant.trim() || undefined,
+          transmission: garageForm.transmission.trim() || undefined,
+          annee: garageForm.annee.trim() || undefined,
+          kilometrage: garageForm.kilometrage.trim() || undefined,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.vehicle) {
+        throw new Error(data?.error === "max_vehicles_reached" ? t("profilePage.garageMaxReached") : t("profilePage.garageAddError"))
+      }
+      setVehicles((prev) => [...prev, data.vehicle])
+      setGarageAddOpen(false)
+      setGarageForm({ nickname: "", marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "" })
+    } catch (err) {
+      setGarageAddError(err instanceof Error ? err.message : t("profilePage.garageAddError"))
+    } finally {
+      setGarageAddSubmitting(false)
+    }
+  }
+
+  const handleGarageDelete = async (vehicleId: string) => {
+    setGarageDeleteError(null)
+    try {
+      const res = await fetch(`/api/user-vehicles?id=${encodeURIComponent(vehicleId)}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      setVehicles((prev) => prev.filter((v) => v.id !== vehicleId))
+    } catch {
+      setGarageDeleteError(t("profilePage.garageDeleteError"))
     }
   }
 
@@ -487,6 +556,85 @@ export default function ProfilPage() {
                       </Button>
                     </div>
                   </form>
+                )}
+              </section>
+            )}
+
+            {/* Mon garage */}
+            {user && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold">{t("profilePage.garageTitle")}</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("profilePage.garageSubtitle")}</p>
+                  </div>
+                  {vehicles.length < 3 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 h-7 text-xs shrink-0"
+                      onClick={() => { setGarageAddOpen(true); setGarageAddError(null) }}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {t("profilePage.garageAddBtn")}
+                    </Button>
+                  )}
+                </div>
+
+                {garageDeleteError && (
+                  <p className="text-xs text-destructive">{garageDeleteError}</p>
+                )}
+
+                {vehicles.length === 0 ? (
+                  <div className="rounded-xl border border-border/50 bg-muted/20 px-5 py-6 text-center space-y-3">
+                    <Car className="h-8 w-8 text-muted-foreground/30 mx-auto" />
+                    <p className="text-sm text-muted-foreground">{t("profilePage.garageEmpty")}</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 text-xs h-7"
+                      onClick={() => { setGarageAddOpen(true); setGarageAddError(null) }}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {t("profilePage.garageAddBtn")}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {vehicles.map((v) => (
+                      <div key={v.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="text-sm font-medium truncate">
+                            {v.nickname ? (
+                              <><span className="text-foreground">{v.nickname}</span>{" "}
+                              <span className="text-muted-foreground font-normal text-xs">— {v.marque} {v.modele}</span></>
+                            ) : (
+                              <span>{v.marque} {v.modele}</span>
+                            )}
+                            {v.variante ? <span className="text-muted-foreground font-normal"> · {v.variante}</span> : null}
+                          </p>
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                            {v.annee && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{v.annee}</span>}
+                            {v.kilometrage && <span className="flex items-center gap-1"><Gauge className="h-3 w-3" />{Number(v.kilometrage).toLocaleString(dateLocaleTag)} km</span>}
+                            {v.carburant && <span>{formatCarburantOptionLabel(v.carburant, t)}</span>}
+                            {v.transmission && <span>{formatTransmissionOptionLabel(v.transmission, t)}</span>}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label={t("profilePage.garageDeleteAria")}
+                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/10"
+                          onClick={() => void handleGarageDelete(v.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {vehicles.length >= 3 && (
+                  <p className="text-xs text-muted-foreground">{t("profilePage.garageMaxReached")}</p>
                 )}
               </section>
             )}
@@ -936,6 +1084,75 @@ export default function ProfilPage() {
             <p className="mt-3 text-xs font-medium" style={{ color: "#7a2e2e" }}>
               {t("creditsPage.nonRefundableNote")}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal ajout véhicule */}
+      {garageAddOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setGarageAddOpen(false)} />
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl animate-in slide-in-from-bottom-4 duration-200">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-base font-semibold">{t("profilePage.garageAddTitle")}</h3>
+              <button
+                type="button"
+                onClick={() => setGarageAddOpen(false)}
+                className="rounded-full p-1.5 transition-colors hover:bg-muted text-muted-foreground"
+                aria-label={t("results.cancel")}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form onSubmit={(e) => void handleGarageAdd(e)} className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageNicknameLabel")}</label>
+                <Input value={garageForm.nickname} onChange={(e) => setGarageForm((f) => ({ ...f, nickname: e.target.value }))} placeholder={t("profilePage.garageNicknamePh")} maxLength={50} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageMarqueLabel")} *</label>
+                  <Input value={garageForm.marque} onChange={(e) => setGarageForm((f) => ({ ...f, marque: e.target.value }))} placeholder={t("profilePage.garageMarquePh")} required maxLength={100} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageModeleLabel")} *</label>
+                  <Input value={garageForm.modele} onChange={(e) => setGarageForm((f) => ({ ...f, modele: e.target.value }))} placeholder={t("profilePage.garageModelePh")} required maxLength={100} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageVarianteLabel")}</label>
+                <Input value={garageForm.variante} onChange={(e) => setGarageForm((f) => ({ ...f, variante: e.target.value }))} placeholder={t("profilePage.garageVariantePh")} maxLength={100} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageAnneeLabel")}</label>
+                  <Input value={garageForm.annee} onChange={(e) => setGarageForm((f) => ({ ...f, annee: e.target.value }))} placeholder={t("profilePage.garageAnneePh")} maxLength={10} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageKmLabel")}</label>
+                  <Input value={garageForm.kilometrage} onChange={(e) => setGarageForm((f) => ({ ...f, kilometrage: e.target.value }))} placeholder={t("profilePage.garageKmPh")} maxLength={20} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageCarburantLabel")}</label>
+                  <Input value={garageForm.carburant} onChange={(e) => setGarageForm((f) => ({ ...f, carburant: e.target.value }))} placeholder={t("profilePage.garageCarburantPh")} maxLength={50} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageTransmissionLabel")}</label>
+                  <Input value={garageForm.transmission} onChange={(e) => setGarageForm((f) => ({ ...f, transmission: e.target.value }))} placeholder={t("profilePage.garageTransmissionPh")} maxLength={100} />
+                </div>
+              </div>
+              {garageAddError && <p className="text-xs text-destructive">{garageAddError}</p>}
+              <div className="flex gap-2 pt-1">
+                <Button type="submit" size="sm" disabled={garageAddSubmitting} className="flex-1">
+                  {garageAddSubmitting ? "…" : t("profilePage.garageSaveBtn")}
+                </Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => setGarageAddOpen(false)} disabled={garageAddSubmitting}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

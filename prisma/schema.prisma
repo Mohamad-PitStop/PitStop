@@ -322,3 +322,41 @@ model CreditGiftRedemption {
   @@index([userId])
 }
 
+model UserVehicle {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  userId       String
+  nickname     String?
+  marque       String
+  modele       String
+  variante     String?
+  carburant    String?
+  transmission String?
+  annee        String?
+  kilometrage  String?
+
+  @@index([userId])
+}
+
+model GarageReview {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  reservationId String    @unique
+  garageId      String
+  userId        String?
+  token         String    @unique
+  rating        Int?
+  comment       String?
+  submittedAt   DateTime?
+  emailSentAt   DateTime?
+
+  @@index([garageId])
+  @@index([token])
+}
+
+model ReviewEmailSent {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  reservationId String   @unique
+}
+

@@ -63,8 +63,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   const [loadingFuel, setLoadingFuel] = useState(false)
   const [loadingTrans, setLoadingTrans] = useState(false)
 
-  const [fallbackVariant, setFallbackVariant] = useState(false)
-  const [fallbackYear, setFallbackYear] = useState(false)
   const [fallbackFuel, setFallbackFuel] = useState(false)
   const [fallbackTrans, setFallbackTrans] = useState(false)
 
@@ -79,6 +77,13 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   const [authError, setAuthError] = useState<string | null>(null)
   const [authUser, setAuthUser] = useState<{ id: string; email: string; name: string; role: string; diagnosticCredits: number } | null>(null)
   const [authSessionReady, setAuthSessionReady] = useState(false)
+
+  // ── Véhicules sauvegardés (garage personnel) ─────────────────────────────────
+  const [savedVehicles, setSavedVehicles] = useState<Array<{
+    id: string; nickname: string | null; marque: string; modele: string
+    variante: string | null; carburant: string | null; transmission: string | null
+    annee: string | null; kilometrage: string | null
+  }>>([])
 
   // ── Message "pas de crédits" + modal d'achat ────────────────────────────────
   const [noCreditsVisible, setNoCreditsVisible] = useState(false)
@@ -232,7 +237,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   const loadYears = useCallback(
     async (ctx: { marque: string; modele: string; variante: string }, gen: number) => {
       setLoadingYear(true)
-      setFallbackYear(false)
       try {
         const r = await postVehicleOptions({
           marque: ctx.marque,
@@ -241,7 +245,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         })
         if (gen !== cascadeGen.current) return
         if (r.error) {
-          setFallbackYear(true)
+          // API indisponible → catalogue local, toujours en dropdown
           setYearList(sortYearsDesc(getAvailableYearsForModel(ctx.marque, ctx.modele, "", "")))
           return
         }
@@ -341,7 +345,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
 
     ;(async () => {
       setLoadingVariant(true)
-      setFallbackVariant(false)
       setVariantUiSkipped(true)
       setFormData((prev) => ({
         ...prev,
@@ -366,10 +369,11 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       setLoadingVariant(false)
 
       if (r.error) {
-        console.error("variantes: saisie manuelle")
-        setFallbackVariant(true)
-        setVariantUiSkipped(false)
+        // API indisponible → on saute la variante et on continue la cascade normalement
+        setVariantUiSkipped(true)
         setVariantList([])
+        setFormData((prev) => ({ ...prev, variante: "" }))
+        await loadYears({ marque: formData.marque, modele: formData.modele, variante: "" }, gen)
         return
       }
 
@@ -581,6 +585,25 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
   }
 
+  function applyVehicle(v: typeof savedVehicles[number]) {
+    setFormData((prev) => ({
+      ...prev,
+      marque: v.marque,
+      modele: v.modele,
+      variante: v.variante ?? "",
+      carburant: v.carburant ?? "",
+      transmission: v.transmission ?? "",
+      annee: v.annee ?? "",
+      kilometrage: v.kilometrage ?? "",
+    }))
+    // Déclenche la cascade de chargement des options
+    setVariantUiSkipped(v.variante == null)
+    setVariantList(v.variante ? [v.variante] : [])
+    if (v.carburant) { setFuelList([v.carburant]); setFuelLocked(true) } else { setFuelList([]); setFuelLocked(false) }
+    if (v.transmission) { setTransList([v.transmission]); setTransLocked(true) } else { setTransList([]); setTransLocked(false) }
+    if (v.annee) setYearList([v.annee])
+  }
+
   function showNoCreditsMessage() {
     setNoCreditsVisible(true)
     setNoCreditsShowBtn(true)
@@ -710,6 +733,15 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     }
   }, [router, guestDiagnosticSession])
 
+  // Charger les véhicules sauvegardés après auth
+  useEffect(() => {
+    if (!authSessionReady || !authUser) return
+    fetch("/api/user-vehicles")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.vehicles) setSavedVehicles(data.vehicles) })
+      .catch(() => null)
+  }, [authSessionReady, authUser])
+
   // Retour Stripe (achat de crédits connecté) : rafraîchir le solde et restaurer le formulaire
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -832,8 +864,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     setYearList([])
     setFuelList([])
     setTransList([])
-    setFallbackVariant(false)
-    setFallbackYear(false)
     setFallbackFuel(false)
     setFallbackTrans(false)
     setFuelLocked(false)
@@ -962,12 +992,11 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   const availableModels = dedupeModelsByVariantBase(filterFrenchModelLabels(baseModels))
   const isException = isExceptionBrand(formData.marque)
 
-  /** Plusieurs variantes API ou saisie manuelle (erreur API) : toujours champ texte, pas de liste déroulante */
+  /** Plusieurs variantes API : champ texte de sélection */
   const showVariantField =
-    isModeleDone && (fallbackVariant || (!variantUiSkipped && variantList.length > 1))
+    isModeleDone && !variantUiSkipped && variantList.length > 1
   const yearSelectDisabled = !isModeleDone || loadingVariant || loadingYear
   const yearOptionsForSelect = yearList
-  const showYearFallbackInput = fallbackYear && !loadingYear
 
   // Auto-ouvrir les infos complémentaires si plusieurs types de boîte auto existent
   useEffect(() => {
@@ -993,6 +1022,29 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     <Card className="w-full max-w-2xl mx-auto border-border/50 bg-card shadow-xl pt-3">
       <CardContent className="pt-3">
         <form onSubmit={openAuthDialog} onInvalid={handleInvalid} className="space-y-5">
+          {/* Sélecteur véhicules sauvegardés */}
+          {authUser && savedVehicles.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Car className="h-3.5 w-3.5" />
+                {t("vehicleForm.savedVehiclesLabel")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {savedVehicles.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => applyVehicle(v)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-medium text-foreground hover:border-primary/50 hover:bg-primary/10 transition-colors"
+                  >
+                    <Car className="h-3 w-3 text-primary shrink-0" />
+                    {v.nickname ? `${v.nickname} (${v.marque} ${v.modele})` : `${v.marque} ${v.modele}`}
+                    {v.annee ? ` · ${v.annee}` : ""}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <p className="text-sm font-medium text-foreground text-left">{t("vehicleForm.sectionTitle")}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -1232,46 +1284,29 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                     {t("vehicleForm.labelAnnee")}
                     {(loadingVariant || loadingYear) && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   </label>
-                  {showYearFallbackInput ? (
-                    <Input
-                      id="annee"
-                      name="annee"
-                      type="number"
-                      placeholder={t("vehicleForm.manualPlaceholder")}
-                      min={1980}
-                      max={new Date().getFullYear()}
-                      value={formData.annee}
-                      onChange={handleChange}
-                      onInput={clearValidity}
-                      required
-                      disabled={yearSelectDisabled}
-                      className="h-11 bg-secondary/50 border-input focus:border-primary disabled:opacity-50"
-                    />
-                  ) : (
-                    <select
-                      id="annee"
-                      name="annee"
-                      value={formData.annee}
-                      onChange={handleChange}
-                      onInput={clearValidity}
-                      required
-                      disabled={yearSelectDisabled || yearOptionsForSelect.length === 0}
-                      className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed [&>option]:bg-[#0a1628] [&>option]:text-foreground"
-                    >
-                      <option value="" className="bg-[#0a1628]">
-                        {loadingYear || loadingVariant
-                          ? t("common.loading")
-                          : yearOptionsForSelect.length > 0
-                            ? t("vehicleForm.selectYear")
-                            : t("vehicleForm.noYearAvailable")}
+                  <select
+                    id="annee"
+                    name="annee"
+                    value={formData.annee}
+                    onChange={handleChange}
+                    onInput={clearValidity}
+                    required
+                    disabled={yearSelectDisabled || yearOptionsForSelect.length === 0}
+                    className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed [&>option]:bg-[#0a1628] [&>option]:text-foreground"
+                  >
+                    <option value="" className="bg-[#0a1628]">
+                      {loadingYear || loadingVariant
+                        ? t("common.loading")
+                        : yearOptionsForSelect.length > 0
+                          ? t("vehicleForm.selectYear")
+                          : t("vehicleForm.noYearAvailable")}
+                    </option>
+                    {yearOptionsForSelect.map((year) => (
+                      <option key={year} value={year} className="bg-[#0a1628]">
+                        {year}
                       </option>
-                      {yearOptionsForSelect.map((year) => (
-                        <option key={year} value={year} className="bg-[#0a1628]">
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="kilometrage" className="text-sm font-medium text-foreground flex items-center gap-2">

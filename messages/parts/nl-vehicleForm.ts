@@ -36,6 +36,8 @@ export const nlVehicleForm = {
     analysisError: "Er ging iets mis bij de analyse. Probeer het later opnieuw.",
     techError: "Er is een technische fout opgetreden. Probeer opnieuw.",
     sectionTitle: "Voertuiggegevens",
+    savedVehiclesLabel: "Mijn voertuigen",
+    savedVehiclesPlaceholder: "Voorinvullen vanuit mijn garage…",
     labelMarque: "Merk",
     labelModele: "Model",
     labelVariante: "Variant / afwerking",
