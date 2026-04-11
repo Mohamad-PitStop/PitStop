@@ -229,6 +229,20 @@ export async function deleteDiagnosticsByUserId(userId: string): Promise<void> {
   })
 }
 
+/**
+ * Supprime tous les diagnostics créés il y a plus d'un an.
+ * Retourne le nombre de lignes supprimées.
+ */
+export async function deleteExpiredDiagnostics(): Promise<number> {
+  const db = getDb()
+  const result = await db.execute({
+    sql: `DELETE FROM DiagnosticRequest
+          WHERE "createdAt" < datetime('now', '-1 year')`,
+    args: [],
+  })
+  return result.rowsAffected ?? 0
+}
+
 function mapRow(row: Record<string, unknown>): DiagnosticRow {
   return {
     id: String(row.id),

@@ -42,7 +42,16 @@ function PaymentFormInner({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement options={{ layout: "tabs" }} />
+      <PaymentElement
+        options={{
+          layout: {
+            type: "accordion",
+            defaultCollapsed: false,
+            radios: true,
+            spacedAccordionItems: true,
+          },
+        }}
+      />
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
       <Button type="submit" size="lg" className="w-full" disabled={!stripe || isConfirming}>
         {isConfirming ? t("stripeForm.processing") : buttonLabel}
