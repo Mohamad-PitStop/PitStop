@@ -12,10 +12,11 @@ app.prepare().then(() => {
     cert: fs.readFileSync('./localhost.crt'),
   };
 
+  const port = process.env.PORT || 3000;
   https.createServer(options, (req, res) => {
     handle(req, res);
-  }).listen(3000, (err) => {
+  }).listen(port, (err) => {
     if (err) throw err;
-    console.log('> Ready on https://localhost:3000');
+    console.log(`> Ready on https://localhost:${port}`);
   });
 });

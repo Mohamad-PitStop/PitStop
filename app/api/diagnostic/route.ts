@@ -150,6 +150,64 @@ function applyFriendDiscount(diagnostic: z.infer<typeof DiagnosticSchema>): z.in
   }
 }
 
+// ── Calibration des prix (viabilité garages partenaires) ────────────────────
+const SEGMENT_BUDGET   = ["dacia", "lada", "tata", "mg", "dfsk", "omoda", "byd", "chery", "geely", "great wall", "haval", "jaecoo", "lynk", "nio", "xpeng", "zeekr", "aiways"]
+const SEGMENT_PREMIUM  = ["bmw", "mercedes", "mercedes-benz", "audi", "volvo", "lexus", "jaguar", "genesis", "infiniti", "acura", "lincoln", "cadillac", "alfa romeo", "lancia", "ds", "tesla"]
+const SEGMENT_LUXE     = ["porsche", "land rover", "range rover", "maserati", "bentley", "ferrari", "lamborghini", "aston martin", "rolls-royce", "bugatti", "mclaren", "lotus", "pagani", "koenigsegg"]
+
+function getSegmentMultiplier(marque: string): number {
+  const m = marque.toLowerCase().trim()
+  if (SEGMENT_LUXE.some(b => m.includes(b)))    return 1.55
+  if (SEGMENT_PREMIUM.some(b => m.includes(b))) return 1.25
+  if (SEGMENT_BUDGET.some(b => m.includes(b)))  return 0.95
+  return 1.0
+}
+
+function isTimingBeltJob(probleme: string): boolean {
+  return /courroie\s*(de\s*)?distrib|timing[\s-]belt|distributieriem|courroie[\s-]distrib/i.test(probleme)
+}
+
+function isDieselFuel(carburant: string | null | undefined): boolean {
+  if (!carburant) return false
+  const c = carburant.toLowerCase()
+  return ["diesel", "dci", "tdi", "hdi", "cdti", "jtd", "crdi", "bluehdi", "d4d", "tdci"].some(k => c.includes(k))
+}
+
+function calibrateRange(
+  range: { min: number; max: number } | null | undefined,
+  multiplier: number,
+  extra: number
+): { min: number; max: number } | null | undefined {
+  if (!range) return range
+  return {
+    min: Math.round(range.min * multiplier) + extra,
+    max: Math.round(range.max * multiplier) + extra,
+  }
+}
+
+function applyPriceCalibration(
+  diagnostic: z.infer<typeof DiagnosticSchema>,
+  marque: string,
+  carburant: string | null | undefined,
+  probleme: string
+): z.infer<typeof DiagnosticSchema> {
+  if (!diagnostic.priceRange && !diagnostic.garage && !diagnostic.diy) return diagnostic
+  const multiplier   = getSegmentMultiplier(marque)
+  const timingDiesel = isTimingBeltJob(probleme) && isDieselFuel(carburant) ? 50 : 0
+  const extra        = 50 + timingDiesel
+  return {
+    ...diagnostic,
+    priceRange: calibrateRange(diagnostic.priceRange, multiplier, extra) as { min: number; max: number } | null,
+    garage: diagnostic.garage
+      ? { ...diagnostic.garage, costRange: calibrateRange(diagnostic.garage.costRange, multiplier, extra) as { min: number; max: number } }
+      : diagnostic.garage,
+    diy: diagnostic.diy
+      ? { ...diagnostic.diy, costRange: calibrateRange(diagnostic.diy.costRange, multiplier, extra) as { min: number; max: number } }
+      : diagnostic.diy,
+  }
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 /** Miroir serveur de isNoInterventionResult (client) : rien à réparer, pas de devis. */
 function isNoInterventionDiagnostic(d: z.infer<typeof DiagnosticSchema>): boolean {
   if (d.needsMoreInfo) return false
@@ -659,7 +717,8 @@ mentionnant les variantes concernées.
         await addCredits(user.id, 1)
         creditRefunded = true
       }
-      const res1 = buildDiagnosticResponse(diagnostic1, isFriend, diagId, creditRefunded)
+      const calibrated1 = applyPriceCalibration(diagnostic1, String(marque), carburant, String(probleme))
+      const res1 = buildDiagnosticResponse(calibrated1, isFriend, diagId, creditRefunded)
       if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res1, diagId)
       return res1
     }
@@ -690,7 +749,8 @@ mentionnant les variantes concernées.
       await addCredits(user.id, 1)
       creditRefunded = true
     }
-    const res2 = buildDiagnosticResponse(finalDiagnostic, isFriend, diagId, creditRefunded)
+    const calibrated2 = applyPriceCalibration(finalDiagnostic, String(marque), carburant, String(probleme))
+    const res2 = buildDiagnosticResponse(calibrated2, isFriend, diagId, creditRefunded)
     if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res2, diagId)
     return res2
   } catch (error) {

@@ -29,9 +29,9 @@ function VentePageFull() {
             </div>
 
             <div className="mx-auto mb-8 flex max-w-3xl justify-center md:mb-10">
-              <div className="inline-flex max-w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-2 py-1.5 text-center text-[12px] font-medium leading-tight text-primary sm:px-4 sm:py-2 sm:text-sm sm:leading-normal">
+              <div className="flex min-h-[2rem] items-center justify-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-center text-[12px] font-medium leading-snug text-primary sm:gap-2 sm:px-5 sm:py-2 sm:text-sm">
                 <CheckCircle className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
-                {t("vente.badge")}
+                <span>{t("vente.badge")}</span>
               </div>
             </div>
 

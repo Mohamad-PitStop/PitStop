@@ -1549,7 +1549,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                 type="submit"
                 size="lg"
                 disabled={isLoading}
-                className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30"
+                className="w-full h-12 min-h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">

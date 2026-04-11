@@ -19,7 +19,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 const tabNavWidthClass = "w-[min(100%,18rem)] sm:w-[20rem] min-[1100px]:w-[22rem] xl:w-[26rem]"
 
 const tabBase =
-  "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] w-full min-w-0 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+  "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] w-full min-w-[5rem] items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 
 const tabInactive = "text-foreground dark:text-muted-foreground hover:text-foreground/90"
 const tabActive = "bg-background text-foreground shadow-sm border-input dark:bg-input/30 dark:text-foreground"
@@ -62,7 +62,7 @@ function TabNav({
         <Wrench className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
         {t("navbar.vente")}
         {!VENTE_TAB_ENABLED && (
-          <span className="ml-0.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400 leading-none">
+          <span className="ml-0.5 inline-flex items-center justify-center w-[4.5rem] h-4 rounded-full bg-amber-500/20 text-[10px] font-semibold text-amber-400 leading-none">
             {t("navbar.soon")}
           </span>
         )}
@@ -212,7 +212,7 @@ function NavMenu({
                   </div>
                   {CREDIT_PURCHASES_ENABLED && (
                     <Link href="/credits" onClick={close}>
-                      <Button size="sm" className="h-6 px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white">
+                      <Button size="sm" className="h-6 min-w-[4rem] px-2.5 text-[11px] bg-orange-500 hover:bg-orange-600 text-white">
                         {t("navbar.buy")}
                       </Button>
                     </Link>
@@ -267,7 +267,7 @@ function NavMenu({
               {!isConnexionPage && (
                 <div className="border-t border-border/40 px-3 py-2.5">
                   <Link href="/connexion" onClick={close}>
-                    <Button size="sm" className="w-full h-8 text-xs">
+                    <Button size="sm" className="w-full h-8 min-h-8 text-xs">
                       {t("navbar.login")}
                     </Button>
                   </Link>
@@ -351,7 +351,7 @@ export function Navbar() {
         )}
 
         {/* Badge Phase de test */}
-        <span className="hidden sm:inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 sm:text-xs">
+        <span className="hidden sm:inline-flex shrink-0 items-center justify-center h-6 w-[7.5rem] text-center whitespace-nowrap rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 sm:text-xs">
           {t("navbar.phaseTest")}
         </span>
 

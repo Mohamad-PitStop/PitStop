@@ -52,9 +52,20 @@ export function DiagnosticLoader({ vehicle, mode = "initial" }: DiagnosticLoader
     return () => timers.forEach(clearTimeout)
   }, [steps])
 
+  useEffect(() => {
+    if (visible) {
+      document.documentElement.style.overflow = "hidden"
+      document.body.style.overflow = "hidden"
+      return () => {
+        document.documentElement.style.overflow = ""
+        document.body.style.overflow = ""
+      }
+    }
+  }, [visible])
+
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/96 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+      className={`fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background/96 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
     >
       <div className="flex w-full max-w-xs flex-col items-center gap-6 px-6 text-center">
         <div className="relative h-16 w-16">

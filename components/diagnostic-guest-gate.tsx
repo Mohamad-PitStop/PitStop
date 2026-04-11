@@ -51,7 +51,7 @@ export function DiagnosticGuestGate({ open, guestUsed, loading, onLogin, onConti
               {t("guestDiag.usedTitle")}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t("guestDiag.usedBody")}</p>
-            <Button className="mt-6 w-full" onClick={onLogin}>
+            <Button className="mt-6 w-full min-h-10" onClick={onLogin}>
               {t("guestDiag.usedLogin")}
             </Button>
           </>
@@ -67,10 +67,10 @@ export function DiagnosticGuestGate({ open, guestUsed, loading, onLogin, onConti
             <p className="mt-2 text-xs text-muted-foreground">{t("guestDiag.guestNote")}</p>
             {err ? <p className="mt-3 text-sm text-destructive">{err}</p> : null}
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <Button variant="outline" className="w-full sm:flex-1" onClick={onLogin}>
+              <Button variant="outline" className="w-full sm:flex-1 min-h-10" onClick={onLogin}>
                 {t("guestDiag.loginCta")}
               </Button>
-              <Button className="w-full sm:flex-1" disabled={guestLoading} onClick={() => void handleGuest()}>
+              <Button className="w-full sm:flex-1 min-h-10" disabled={guestLoading} onClick={() => void handleGuest()}>
                 {guestLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("guestDiag.guestCta")}
               </Button>
             </div>

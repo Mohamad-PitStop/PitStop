@@ -62,9 +62,9 @@ export function LandingPage() {
                 </LandingStaggerItem>
 
                 <LandingStaggerItem index={3}>
-                  <p className="mb-8 inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+                  <p className="mb-8 flex min-h-[2.5rem] items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 py-2 text-sm font-medium text-primary text-center">
                     <CheckCircle className="h-4 w-4 shrink-0" aria-hidden />
-                    {t("home.trustBadge")}
+                    <span>{t("home.trustBadge")}</span>
                   </p>
                 </LandingStaggerItem>
 
