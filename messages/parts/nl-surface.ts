@@ -229,6 +229,7 @@ export const nlSurface = {
     garageSubtitle: "Tot 3 voertuigen. Ze worden gebruikt om het diagnoseformulier voor in te vullen.",
     garageAddBtn: "Voertuig toevoegen",
     garageAddTitle: "Voertuig toevoegen",
+    garageEditTitle: "Voertuig bewerken",
     garageNicknameLabel: "Bijnaam (optioneel)",
     garageNicknamePh: "Bijv. Mijn blauwe Polo",
     garageMarqueLabel: "Merk",

@@ -43,6 +43,7 @@ export const frVehicleForm = {
     labelMarque: "Marque",
     labelModele: "Modèle",
     labelVariante: "Variante / Finition",
+    variantePh: "Ex : Sport, Prestige, GTI, 320d…",
     optional: "(optionnel)",
     labelAnnee: "Année",
     labelKm: "Kilométrage",

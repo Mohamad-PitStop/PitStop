@@ -228,6 +228,7 @@ export const enSurface = {
     garageSubtitle: "Up to 3 vehicles. They will be used to pre-fill the diagnostic form.",
     garageAddBtn: "Add a vehicle",
     garageAddTitle: "Add a vehicle",
+    garageEditTitle: "Edit vehicle",
     garageNicknameLabel: "Nickname (optional)",
     garageNicknamePh: "E.g. My blue Polo",
     garageMarqueLabel: "Make",

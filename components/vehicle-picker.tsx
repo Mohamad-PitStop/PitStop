@@ -18,6 +18,7 @@ import {
   Fuel,
   Settings2,
   ChevronDown,
+  ChevronUp,
   Loader2,
   X,
 } from "lucide-react"
@@ -42,6 +43,11 @@ export type VehiclePickerData = {
   transmission: string
   annee: string
   kilometrage: string
+  cylindree: string
+  puissance: string
+  nombrePortes: string
+  typeCarrosserie: string
+  typeBoiteAuto: string
 }
 
 function sortYearsDesc(years: string[]): string[] {
@@ -50,22 +56,25 @@ function sortYearsDesc(years: string[]): string[] {
 
 const EMPTY: VehiclePickerData = {
   marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "",
+  cylindree: "", puissance: "", nombrePortes: "", typeCarrosserie: "", typeBoiteAuto: "",
 }
 
 export function VehiclePicker({
   onChange,
+  initialData,
 }: {
   onChange: (data: VehiclePickerData) => void
+  initialData?: VehiclePickerData
 }) {
   const { t } = useTranslation()
   const { makes: apiMakes, models: apiModels, loadingMakes, loadingModels, fetchModels } = useCarsApi()
 
-  const [data, setData] = useState<VehiclePickerData>(EMPTY)
+  const [data, setData] = useState<VehiclePickerData>(() => initialData ?? EMPTY)
 
   const [variantList, setVariantList] = useState<string[]>([])
-  const [yearList, setYearList] = useState<string[]>([])
-  const [fuelList, setFuelList] = useState<string[]>([])
-  const [transList, setTransList] = useState<string[]>([])
+  const [yearList, setYearList] = useState<string[]>(() => initialData?.annee ? [initialData.annee] : [])
+  const [fuelList, setFuelList] = useState<string[]>(() => initialData?.carburant ? [initialData.carburant] : [])
+  const [transList, setTransList] = useState<string[]>(() => initialData?.transmission ? [initialData.transmission] : [])
 
   const [loadingVariant, setLoadingVariant] = useState(false)
   const [loadingYear, setLoadingYear] = useState(false)
@@ -75,8 +84,23 @@ export function VehiclePicker({
   const [fallbackFuel, setFallbackFuel] = useState(false)
   const [fallbackTrans, setFallbackTrans] = useState(false)
   const [variantUiSkipped, setVariantUiSkipped] = useState(true)
-  const [fuelLocked, setFuelLocked] = useState(false)
-  const [transLocked, setTransLocked] = useState(false)
+  const [fuelLocked, setFuelLocked] = useState(() => !!initialData?.carburant)
+  const [transLocked, setTransLocked] = useState(() => !!initialData?.transmission)
+
+  const [hasMultipleAutoTypes, setHasMultipleAutoTypes] = useState(false)
+  const [extraOpen, setExtraOpen] = useState(() =>
+    !!(initialData?.cylindree || initialData?.puissance || initialData?.nombrePortes || initialData?.typeCarrosserie || initialData?.typeBoiteAuto)
+  )
+  const [puissanceUnite, setPuissanceUnite] = useState<"ch" | "kW">("ch")
+
+  // Empêcher la cascade API au montage si des données initiales sont déjà présentes
+  const skipCascadeRef = useRef(!!initialData?.marque)
+  useEffect(() => {
+    if (skipCascadeRef.current) {
+      const id = setTimeout(() => { skipCascadeRef.current = false }, 0)
+      return () => clearTimeout(id)
+    }
+  }, [])
 
   const [marqueOpen, setMarqueOpen] = useState(false)
   const [marqueSearch, setMarqueSearch] = useState("")
@@ -92,8 +116,10 @@ export function VehiclePicker({
   const isModeleDone = isMarqueDone && !!data.modele
   const isAnneeDone = isModeleDone && !!data.annee
   const isCarburantDone = isAnneeDone && (!!data.carburant || fuelLocked)
+  const isTransmissionDone = isCarburantDone && (!!data.transmission || transLocked)
+  const isKilometrageDone = isTransmissionDone && !!data.kilometrage
 
-  const showVariantField = isModeleDone && !variantUiSkipped && variantList.length > 1
+  const showVariantField = isModeleDone
   const isException = isExceptionBrand(data.marque)
 
   // Notify parent on every change
@@ -181,6 +207,7 @@ export function VehiclePicker({
           return
         }
         setTransList(r.options)
+        setHasMultipleAutoTypes(r.hasMultipleAutoTypes ?? false)
         if (r.options.length === 1) {
           setData((prev) => ({ ...prev, transmission: r.options[0] }))
           setTransLocked(true)
@@ -194,6 +221,7 @@ export function VehiclePicker({
 
   // Modele → cascade
   useEffect(() => {
+    if (skipCascadeRef.current) return
     if (!data.marque || !data.modele || isExceptionBrand(data.marque)) {
       setVariantList([]); setYearList([]); setFuelList([]); setTransList([])
       return
@@ -203,8 +231,8 @@ export function VehiclePicker({
     ;(async () => {
       setLoadingVariant(true)
       setVariantUiSkipped(true)
-      setData((prev) => ({ ...prev, variante: "", annee: "", carburant: "", transmission: "", kilometrage: "" }))
-      setFuelLocked(false); setTransLocked(false)
+      setData((prev) => ({ ...prev, variante: "", annee: "", carburant: "", transmission: "", kilometrage: "", cylindree: "", puissance: "", nombrePortes: "", typeCarrosserie: "", typeBoiteAuto: "" }))
+      setFuelLocked(false); setTransLocked(false); setHasMultipleAutoTypes(false)
 
       const r = await postVehicleOptions({ marque: data.marque, modele: data.modele })
       if (cancelled || gen !== cascadeGen.current) return
@@ -231,6 +259,7 @@ export function VehiclePicker({
 
   // Annee → carburants
   useEffect(() => {
+    if (skipCascadeRef.current) return
     if (!data.annee?.trim() || !isModeleDone) return
     const gen = ++cascadeGen.current
     void loadFuels({ marque: data.marque, modele: data.modele, variante: data.variante, annee: data.annee }, gen)
@@ -238,6 +267,7 @@ export function VehiclePicker({
 
   // Carburant → transmissions
   useEffect(() => {
+    if (skipCascadeRef.current) return
     if (!data.carburant?.trim() || !data.annee?.trim() || !isModeleDone) return
     const gen = ++cascadeGen.current
     void loadTransmissions({ marque: data.marque, modele: data.modele, variante: data.variante, annee: data.annee, carburant: data.carburant }, gen)
@@ -249,6 +279,7 @@ export function VehiclePicker({
     setVariantList([]); setYearList([]); setFuelList([]); setTransList([])
     setFallbackFuel(false); setFallbackTrans(false)
     setFuelLocked(false); setTransLocked(false)
+    setHasMultipleAutoTypes(false)
     setManualModelEntry(false); setModelDraft("")
     setMarqueOpen(false); setMarqueSearch("")
   }
@@ -290,6 +321,13 @@ export function VehiclePicker({
     setData((prev) => ({ ...prev, modele: v, variante: "", carburant: "", transmission: "", annee: "", kilometrage: "" }))
     setModelDraft(v)
   }
+
+  // Auto-ouvrir le volet si plusieurs types de boîte auto
+  useEffect(() => {
+    if (hasMultipleAutoTypes && data.transmission === "Automatique") {
+      setExtraOpen(true)
+    }
+  }, [hasMultipleAutoTypes, data.transmission])
 
   const baseModels = apiModels.length > 0 ? apiModels : (carModels[data.marque] ?? [])
   const availableMakes = apiMakes.length > 0 ? apiMakes : carBrands
@@ -443,18 +481,15 @@ export function VehiclePicker({
                 <Settings2 className="h-4 w-4 text-primary" />
                 {t("vehicleForm.labelVariante")}
                 <span className="text-xs text-muted-foreground">{t("vehicleForm.optional")}</span>
-                {loadingVariant && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
               </label>
-              <select
+              <Input
                 name="variante"
+                placeholder={t("vehicleForm.variantePh")}
                 value={data.variante}
                 onChange={handleChange}
-                disabled={loadingVariant}
-                className="h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 [&>option]:bg-[#0a1628] [&>option]:text-foreground"
-              >
-                <option value="">{t("vehicleForm.selectVariante") ?? t("vehicleForm.optional")}</option>
-                {variantList.map((v) => <option key={v} value={v}>{v}</option>)}
-              </select>
+                maxLength={100}
+                className="h-11 bg-background border-input focus:border-primary"
+              />
             </div>
           )}
 
@@ -561,6 +596,103 @@ export function VehiclePicker({
                 </select>
               )}
             </div>
+          </div>
+
+          {/* Informations complémentaires */}
+          <div className="rounded-lg border border-border/60 bg-muted/20 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setExtraOpen((o) => !o)}
+              className="w-full flex items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/30 transition-colors"
+            >
+              <span>{t("vehicleForm.extraTitle")}</span>
+              {extraOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {extraOpen && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 pb-4 pt-1">
+                {hasMultipleAutoTypes && data.transmission === "Automatique" && (
+                  <div className="md:col-span-2 space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                      <Settings2 className="h-3.5 w-3.5 text-primary" />
+                      {t("vehicleForm.typeBoiteLabel")}
+                      <span className="text-muted-foreground">{t("vehicleForm.optional")}</span>
+                    </label>
+                    <Input
+                      name="typeBoiteAuto"
+                      placeholder={t("vehicleForm.typeBoitePh")}
+                      value={data.typeBoiteAuto}
+                      onChange={handleChange}
+                      maxLength={100}
+                      disabled={!isKilometrageDone}
+                      className="h-10 bg-background text-sm"
+                    />
+                    <p className="text-[11px] text-muted-foreground">{t("vehicleForm.typeBoiteHint")}</p>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">{t("vehicleForm.cylindree")}</label>
+                  <Input
+                    name="cylindree"
+                    placeholder={t("vehicleForm.cylindreePh")}
+                    value={data.cylindree}
+                    onChange={handleChange}
+                    maxLength={80}
+                    className="h-10 bg-background text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">{t("vehicleForm.puissance")}</label>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      name="puissance"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder={t("vehicleForm.puissancePh")}
+                      value={data.puissance}
+                      onChange={handleChange}
+                      maxLength={10}
+                      className="h-10 bg-background text-sm flex-1"
+                    />
+                    <div className="flex rounded-lg border border-input overflow-hidden shrink-0">
+                      {(["ch", "kW"] as const).map((u) => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() => setPuissanceUnite(u)}
+                          className={`px-2.5 h-10 text-xs font-medium transition-colors ${puissanceUnite === u ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"}`}
+                        >
+                          {u}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">{t("vehicleForm.portes")}</label>
+                  <Input
+                    name="nombrePortes"
+                    type="number"
+                    min="2"
+                    max="6"
+                    placeholder={t("vehicleForm.portesPh")}
+                    value={data.nombrePortes}
+                    onChange={handleChange}
+                    className="h-10 bg-background text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">{t("vehicleForm.carrosserie")}</label>
+                  <Input
+                    name="typeCarrosserie"
+                    placeholder={t("vehicleForm.carrosseriePh")}
+                    value={data.typeCarrosserie}
+                    onChange={handleChange}
+                    maxLength={80}
+                    className="h-10 bg-background text-sm"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}

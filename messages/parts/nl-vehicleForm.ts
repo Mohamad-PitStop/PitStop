@@ -41,6 +41,7 @@ export const nlVehicleForm = {
     labelMarque: "Merk",
     labelModele: "Model",
     labelVariante: "Variant / afwerking",
+    variantePh: "Bv. Sport, Prestige, GTI, 320d…",
     optional: "(optioneel)",
     labelAnnee: "Jaar",
     labelKm: "Kilometerstand",

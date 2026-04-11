@@ -24,7 +24,6 @@ import { DiagnosticLoader } from "@/components/diagnostic-loader"
 import { StripePaymentForm } from "@/components/stripe-payment-form"
 import { CREDIT_PACKAGES } from "@/lib/credit-packages"
 import { creditPackageLabel } from "@/lib/credit-package-i18n"
-import { CREDIT_PURCHASES_ENABLED } from "@/lib/feature-flags"
 import { buildLoginUrl } from "@/lib/login-redirect"
 import { SS_GUEST_ACTIVE, SS_GUEST_DIAG_ID } from "@/lib/guest-diagnostic"
 
@@ -83,6 +82,8 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     id: string; nickname: string | null; marque: string; modele: string
     variante: string | null; carburant: string | null; transmission: string | null
     annee: string | null; kilometrage: string | null
+    cylindree: string | null; puissance: string | null; nombrePortes: string | null
+    typeCarrosserie: string | null; typeBoiteAuto: string | null
   }>>([])
 
   // ── Message "pas de crédits" + modal d'achat ────────────────────────────────
@@ -216,6 +217,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   }
 
   const cascadeGen = useRef(0)
+  const skipCascadeRef = useRef(false)
 
   // ── Combobox marque ─────────────────────────────────────────────────────────
   const [marqueOpen, setMarqueOpen] = useState(false)
@@ -332,6 +334,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
 
   /** Dès le modèle : variantes puis chaîne années */
   useEffect(() => {
+    if (skipCascadeRef.current) return
     if (!formData.marque || !formData.modele || isExceptionBrand(formData.marque)) {
       setVariantList([])
       setYearList([])
@@ -405,6 +408,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
 
   /** Année → carburants */
   useEffect(() => {
+    if (skipCascadeRef.current) return
     if (!formData.annee?.trim() || !isModeleDone) return
     const gen = ++cascadeGen.current
     void loadFuels(
@@ -420,6 +424,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
 
   /** Carburant → transmissions */
   useEffect(() => {
+    if (skipCascadeRef.current) return
     if (!formData.carburant?.trim() || !formData.annee?.trim() || !isModeleDone) return
     const gen = ++cascadeGen.current
     void loadTransmissions(
@@ -569,11 +574,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         void runDiagnostic()
         return
       }
-      if (CREDIT_PURCHASES_ENABLED) {
-        showNoCreditsMessage()
-      } else {
-        router.push("/merci?from=diagnostic")
-      }
+      showNoCreditsMessage()
       return
     }
 
@@ -586,6 +587,16 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   }
 
   function applyVehicle(v: typeof savedVehicles[number]) {
+    // Bloquer tous les useEffect de cascade : les données viennent du garage, pas besoin d'API
+    skipCascadeRef.current = true
+    cascadeGen.current += 1
+
+    // Puissance : extraire la valeur numérique et l'unité si stockée ensemble ("110 ch" / "81 kW")
+    const rawPuissance = v.puissance ?? ""
+    const puissanceMatch = rawPuissance.match(/^(\d+)\s*(ch|kW)?$/i)
+    const puissanceVal = puissanceMatch ? puissanceMatch[1] : rawPuissance
+    const puissanceUnit = puissanceMatch?.[2]?.toLowerCase() === "kw" ? "kW" : "ch"
+
     setFormData((prev) => ({
       ...prev,
       marque: v.marque,
@@ -595,13 +606,37 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       transmission: v.transmission ?? "",
       annee: v.annee ?? "",
       kilometrage: v.kilometrage ?? "",
+      cylindree: v.cylindree ?? "",
+      puissance: puissanceVal,
+      nombrePortes: v.nombrePortes ?? "",
+      typeCarrosserie: v.typeCarrosserie ?? "",
+      typeBoiteAuto: v.typeBoiteAuto ?? "",
     }))
-    // Déclenche la cascade de chargement des options
-    setVariantUiSkipped(v.variante == null)
-    setVariantList(v.variante ? [v.variante] : [])
-    if (v.carburant) { setFuelList([v.carburant]); setFuelLocked(true) } else { setFuelList([]); setFuelLocked(false) }
-    if (v.transmission) { setTransList([v.transmission]); setTransLocked(true) } else { setTransList([]); setTransLocked(false) }
-    if (v.annee) setYearList([v.annee])
+    setPuissanceUnite(puissanceUnit)
+
+    // Alimenter les listes directement depuis les données sauvegardées
+    setVariantUiSkipped(true)
+    setVariantList([])
+    setYearList(v.annee ? [v.annee] : [])
+    setFuelList(v.carburant ? [v.carburant] : [])
+    setFuelLocked(!!v.carburant)
+    setTransList(v.transmission ? [v.transmission] : [])
+    setTransLocked(!!v.transmission)
+    setLoadingVariant(false)
+    setLoadingYear(false)
+    setLoadingFuel(false)
+    setLoadingTrans(false)
+    setFallbackFuel(false)
+    setFallbackTrans(false)
+    setHasMultipleAutoTypes(false)
+
+    // Ouvrir le volet infos complémentaires si des données y sont présentes
+    if (v.cylindree || v.puissance || v.nombrePortes || v.typeCarrosserie || v.typeBoiteAuto) {
+      setExtraOpen(true)
+    }
+
+    // Relâcher le verrou après que React ait appliqué tous les effets de ce cycle
+    setTimeout(() => { skipCascadeRef.current = false }, 0)
   }
 
   function showNoCreditsMessage() {
@@ -1037,7 +1072,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                     onClick={() => applyVehicle(v)}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-medium text-foreground hover:border-primary/50 hover:bg-primary/10 transition-colors"
                   >
-                    <Car className="h-3 w-3 text-primary shrink-0" />
+                    <Car className="h-3.5 w-3.5 text-primary shrink-0" />
                     {v.nickname ? `${v.nickname} (${v.marque} ${v.modele})` : `${v.marque} ${v.modele}`}
                     {v.annee ? ` · ${v.annee}` : ""}
                   </button>

@@ -233,6 +233,7 @@ export const frSurface = {
     garageSubtitle: "Jusqu'à 3 véhicules. Ils serviront à pré-remplir le formulaire de diagnostic.",
     garageAddBtn: "Ajouter un véhicule",
     garageAddTitle: "Ajouter un véhicule",
+    garageEditTitle: "Modifier le véhicule",
     garageNicknameLabel: "Surnom (optionnel)",
     garageNicknamePh: "Ex: Ma Polo bleue",
     garageMarqueLabel: "Marque",

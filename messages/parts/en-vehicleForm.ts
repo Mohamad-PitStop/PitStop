@@ -41,6 +41,7 @@ export const enVehicleForm = {
     labelMarque: "Make",
     labelModele: "Model",
     labelVariante: "Variant / trim",
+    variantePh: "e.g. Sport, Prestige, GTI, 320d…",
     optional: "(optional)",
     labelAnnee: "Year",
     labelKm: "Mileage",

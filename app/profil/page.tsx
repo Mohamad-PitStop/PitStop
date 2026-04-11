@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from "react"
+import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -81,6 +82,11 @@ type UserVehicle = {
   transmission: string | null
   annee: string | null
   kilometrage: string | null
+  cylindree: string | null
+  puissance: string | null
+  nombrePortes: string | null
+  typeCarrosserie: string | null
+  typeBoiteAuto: string | null
 }
 
 function truncate(text: string, max = 120) {
@@ -159,11 +165,12 @@ export default function ProfilPage() {
   // Mon garage
   const [vehicles, setVehicles] = useState<UserVehicle[]>([])
   const [garageAddOpen, setGarageAddOpen] = useState(false)
+  const [garageEditVehicle, setGarageEditVehicle] = useState<UserVehicle | null>(null)
   const [garageAddSubmitting, setGarageAddSubmitting] = useState(false)
   const [garageAddError, setGarageAddError] = useState<string | null>(null)
   const [garageDeleteError, setGarageDeleteError] = useState<string | null>(null)
   const [garageNickname, setGarageNickname] = useState("")
-  const [garagePickerData, setGaragePickerData] = useState<VehiclePickerData>({ marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "" })
+  const [garagePickerData, setGaragePickerData] = useState<VehiclePickerData>({ marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "", cylindree: "", puissance: "", nombrePortes: "", typeCarrosserie: "", typeBoiteAuto: "" })
 
   const refreshUser = () => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -360,15 +367,21 @@ export default function ProfilPage() {
     }
   }
 
-  // Bloquer le scroll du body quand la modale garage est ouverte
+  // Bloquer le scroll quand un modal garage est ouvert
+  const isGarageModalOpen = garageAddOpen || garageEditVehicle !== null
   useEffect(() => {
-    if (garageAddOpen) {
+    if (isGarageModalOpen) {
       document.body.style.overflow = "hidden"
+      document.documentElement.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
+      document.documentElement.style.overflow = ""
     }
-    return () => { document.body.style.overflow = "" }
-  }, [garageAddOpen])
+    return () => {
+      document.body.style.overflow = ""
+      document.documentElement.style.overflow = ""
+    }
+  }, [isGarageModalOpen])
 
   const handleGaragePickerChange = useCallback((data: VehiclePickerData) => {
     setGaragePickerData(data)
@@ -383,18 +396,24 @@ export default function ProfilPage() {
     setGarageAddError(null)
     setGarageAddSubmitting(true)
     try {
+      const p = garagePickerData
       const res = await fetch("/api/user-vehicles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nickname: garageNickname.trim() || undefined,
-          marque: garagePickerData.marque.trim(),
-          modele: garagePickerData.modele.trim(),
-          variante: garagePickerData.variante.trim() || undefined,
-          carburant: garagePickerData.carburant.trim() || undefined,
-          transmission: garagePickerData.transmission.trim() || undefined,
-          annee: garagePickerData.annee.trim() || undefined,
-          kilometrage: garagePickerData.kilometrage.trim() || undefined,
+          marque: p.marque.trim(),
+          modele: p.modele.trim(),
+          variante: p.variante.trim() || undefined,
+          carburant: p.carburant.trim() || undefined,
+          transmission: p.transmission.trim() || undefined,
+          annee: p.annee.trim() || undefined,
+          kilometrage: p.kilometrage.trim() || undefined,
+          cylindree: p.cylindree.trim() || undefined,
+          puissance: p.puissance.trim() || undefined,
+          nombrePortes: p.nombrePortes.trim() || undefined,
+          typeCarrosserie: p.typeCarrosserie.trim() || undefined,
+          typeBoiteAuto: p.typeBoiteAuto.trim() || undefined,
         }),
       })
       const data = await res.json().catch(() => null)
@@ -402,9 +421,75 @@ export default function ProfilPage() {
         throw new Error(data?.error === "max_vehicles_reached" ? t("profilePage.garageMaxReached") : t("profilePage.garageAddError"))
       }
       setVehicles((prev) => [...prev, data.vehicle])
-      setGarageAddOpen(false)
-      setGarageNickname("")
-      setGaragePickerData({ marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "" })
+      closeGarageModal()
+    } catch (err) {
+      setGarageAddError(err instanceof Error ? err.message : t("profilePage.garageAddError"))
+    } finally {
+      setGarageAddSubmitting(false)
+    }
+  }
+
+  const closeGarageModal = () => {
+    setGarageAddOpen(false)
+    setGarageEditVehicle(null)
+    setGarageNickname("")
+    setGaragePickerData({ marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "", cylindree: "", puissance: "", nombrePortes: "", typeCarrosserie: "", typeBoiteAuto: "" })
+    setGarageAddError(null)
+  }
+
+  const openGarageEdit = (v: UserVehicle) => {
+    setGarageEditVehicle(v)
+    setGarageNickname(v.nickname ?? "")
+    setGaragePickerData({
+      marque: v.marque,
+      modele: v.modele,
+      variante: v.variante ?? "",
+      carburant: v.carburant ?? "",
+      transmission: v.transmission ?? "",
+      annee: v.annee ?? "",
+      kilometrage: v.kilometrage ?? "",
+      cylindree: v.cylindree ?? "",
+      puissance: v.puissance ?? "",
+      nombrePortes: v.nombrePortes ?? "",
+      typeCarrosserie: v.typeCarrosserie ?? "",
+      typeBoiteAuto: v.typeBoiteAuto ?? "",
+    })
+    setGarageAddError(null)
+  }
+
+  const handleGarageEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!garageEditVehicle || !garagePickerData.marque.trim() || !garagePickerData.modele.trim()) {
+      setGarageAddError(t("profilePage.garageAddError"))
+      return
+    }
+    setGarageAddError(null)
+    setGarageAddSubmitting(true)
+    try {
+      const p = garagePickerData
+      const res = await fetch(`/api/user-vehicles?id=${encodeURIComponent(garageEditVehicle.id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nickname: garageNickname.trim() || undefined,
+          marque: p.marque.trim(),
+          modele: p.modele.trim(),
+          variante: p.variante.trim() || undefined,
+          carburant: p.carburant.trim() || undefined,
+          transmission: p.transmission.trim() || undefined,
+          annee: p.annee.trim() || undefined,
+          kilometrage: p.kilometrage.trim() || undefined,
+          cylindree: p.cylindree.trim() || undefined,
+          puissance: p.puissance.trim() || undefined,
+          nombrePortes: p.nombrePortes.trim() || undefined,
+          typeCarrosserie: p.typeCarrosserie.trim() || undefined,
+          typeBoiteAuto: p.typeBoiteAuto.trim() || undefined,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.vehicle) throw new Error(t("profilePage.garageAddError"))
+      setVehicles((prev) => prev.map((v) => v.id === garageEditVehicle.id ? data.vehicle : v))
+      closeGarageModal()
     } catch (err) {
       setGarageAddError(err instanceof Error ? err.message : t("profilePage.garageAddError"))
     } finally {
@@ -605,8 +690,8 @@ export default function ProfilPage() {
                 )}
 
                 {vehicles.length === 0 ? (
-                  <div className="rounded-xl border border-border/50 bg-muted/20 px-5 py-6 text-center space-y-3">
-                    <Car className="h-8 w-8 text-muted-foreground/30 mx-auto" />
+                  <div className="rounded-xl border border-border/50 px-5 py-6 text-center space-y-3">
+                    <Car size={44} strokeWidth={1} className="mx-auto text-muted-foreground" style={{ opacity: 0.4, display: "block" }} />
                     <p className="text-sm text-muted-foreground">{t("profilePage.garageEmpty")}</p>
                     <Button
                       size="sm"
@@ -621,8 +706,15 @@ export default function ProfilPage() {
                 ) : (
                   <div className="space-y-2">
                     {vehicles.map((v) => (
-                      <div key={v.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
-                        <div className="min-w-0 space-y-0.5">
+                      <div
+                        key={v.id}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/20 px-4 py-3 cursor-pointer hover:border-primary/40 hover:bg-muted/30 transition-colors group"
+                        onClick={() => openGarageEdit(v)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") openGarageEdit(v) }}
+                      >
+                        <div className="min-w-0 space-y-0.5 flex-1">
                           <p className="text-sm font-medium truncate">
                             {v.nickname ? (
                               <><span className="text-foreground">{v.nickname}</span>{" "}
@@ -639,14 +731,19 @@ export default function ProfilPage() {
                             {v.transmission && <span>{formatTransmissionOptionLabel(v.transmission, t)}</span>}
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          aria-label={t("profilePage.garageDeleteAria")}
-                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/10"
-                          onClick={() => void handleGarageDelete(v.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="p-1.5 rounded-lg text-muted-foreground group-hover:text-primary transition-colors">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </span>
+                          <button
+                            type="button"
+                            aria-label={t("profilePage.garageDeleteAria")}
+                            className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/10"
+                            onClick={(e) => { e.stopPropagation(); void handleGarageDelete(v.id) }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -862,7 +959,7 @@ export default function ProfilPage() {
 
               {diagnostics.length === 0 ? (
                 <div className="text-center py-12 space-y-4 rounded-xl border border-border/50">
-                  <Car className="h-10 w-10 text-muted-foreground/40 mx-auto" />
+                  <Car size={40} strokeWidth={1} className="mx-auto text-muted-foreground" style={{ opacity: 0.35, display: "block" }} />
                   <p className="text-sm text-muted-foreground">{t("profilePage.noDiagnostics")}</p>
                   <Link href={user ? getDiagnosticEntryHref(user) : "/diagnostic"}>
                     <Button variant="outline" size="sm">{t("profilePage.ctaFirstDiagnostic")}</Button>
@@ -1107,17 +1204,38 @@ export default function ProfilPage() {
         </div>
       )}
 
-      {/* Modal ajout véhicule */}
-      {garageAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setGarageAddOpen(false)} />
-          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-border/60 bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 flex flex-col max-h-[90vh]">
+      {/* Modal ajout / édition véhicule — portail rendu directement dans document.body */}
+      {isGarageModalOpen && typeof document !== "undefined" && createPortal(
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+          }}
+        >
+          {/* Fond semi-transparent */}
+          <div
+            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)" }}
+            onClick={closeGarageModal}
+          />
+
+          {/* Contenu du modal */}
+          <div
+            className="relative w-full max-w-lg rounded-2xl border border-border/60 bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 flex flex-col"
+            style={{ maxHeight: "90vh", zIndex: 1 }}
+          >
             {/* En-tête fixe */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
-              <h3 className="text-base font-semibold">{t("profilePage.garageAddTitle")}</h3>
+              <h3 className="text-base font-semibold">
+                {garageEditVehicle ? t("profilePage.garageEditTitle") : t("profilePage.garageAddTitle")}
+              </h3>
               <button
                 type="button"
-                onClick={() => setGarageAddOpen(false)}
+                onClick={closeGarageModal}
                 className="rounded-full p-1.5 transition-colors hover:bg-muted text-muted-foreground"
                 aria-label={t("results.cancel")}
               >
@@ -1126,7 +1244,10 @@ export default function ProfilPage() {
             </div>
 
             {/* Corps scrollable */}
-            <form onSubmit={(e) => void handleGarageAdd(e)} className="overflow-y-auto px-6 pb-6 space-y-5">
+            <form
+              onSubmit={(e) => garageEditVehicle ? void handleGarageEdit(e) : void handleGarageAdd(e)}
+              className="overflow-y-auto px-6 pb-6 space-y-5"
+            >
               {/* Surnom */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageNicknameLabel")}</label>
@@ -1138,8 +1259,12 @@ export default function ProfilPage() {
                 />
               </div>
 
-              {/* Formulaire véhicule identique à la page diagnostic */}
-              <VehiclePicker onChange={handleGaragePickerChange} />
+              {/* Formulaire véhicule — key force le remontage lors du passage add→edit */}
+              <VehiclePicker
+                key={garageEditVehicle?.id ?? "new"}
+                onChange={handleGaragePickerChange}
+                initialData={garageEditVehicle ? garagePickerData : undefined}
+              />
 
               {garageAddError && <p className="text-xs text-destructive">{garageAddError}</p>}
 
@@ -1152,7 +1277,8 @@ export default function ProfilPage() {
               </Button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
