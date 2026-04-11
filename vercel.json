@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/send-rating-emails",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     }
   ]
 }
