@@ -1092,7 +1092,7 @@ export default function ProfilPage() {
       {garageAddOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setGarageAddOpen(false)} />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl animate-in slide-in-from-bottom-4 duration-200">
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl animate-in slide-in-from-bottom-4 duration-200 overflow-y-auto max-h-[85vh]">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-base font-semibold">{t("profilePage.garageAddTitle")}</h3>
               <button
