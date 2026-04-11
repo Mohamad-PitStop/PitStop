@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -34,6 +34,7 @@ import {
   Plus,
 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/locale-context"
+import { VehiclePicker, type VehiclePickerData } from "@/components/vehicle-picker"
 
 type AuthUser = {
   id: string
@@ -161,9 +162,8 @@ export default function ProfilPage() {
   const [garageAddSubmitting, setGarageAddSubmitting] = useState(false)
   const [garageAddError, setGarageAddError] = useState<string | null>(null)
   const [garageDeleteError, setGarageDeleteError] = useState<string | null>(null)
-  const [garageForm, setGarageForm] = useState({
-    nickname: "", marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "",
-  })
+  const [garageNickname, setGarageNickname] = useState("")
+  const [garagePickerData, setGaragePickerData] = useState<VehiclePickerData>({ marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "" })
 
   const refreshUser = () => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -360,8 +360,26 @@ export default function ProfilPage() {
     }
   }
 
+  // Bloquer le scroll du body quand la modale garage est ouverte
+  useEffect(() => {
+    if (garageAddOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => { document.body.style.overflow = "" }
+  }, [garageAddOpen])
+
+  const handleGaragePickerChange = useCallback((data: VehiclePickerData) => {
+    setGaragePickerData(data)
+  }, [])
+
   const handleGarageAdd = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!garagePickerData.marque.trim() || !garagePickerData.modele.trim()) {
+      setGarageAddError(t("profilePage.garageAddError"))
+      return
+    }
     setGarageAddError(null)
     setGarageAddSubmitting(true)
     try {
@@ -369,14 +387,14 @@ export default function ProfilPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nickname: garageForm.nickname.trim() || undefined,
-          marque: garageForm.marque.trim(),
-          modele: garageForm.modele.trim(),
-          variante: garageForm.variante.trim() || undefined,
-          carburant: garageForm.carburant.trim() || undefined,
-          transmission: garageForm.transmission.trim() || undefined,
-          annee: garageForm.annee.trim() || undefined,
-          kilometrage: garageForm.kilometrage.trim() || undefined,
+          nickname: garageNickname.trim() || undefined,
+          marque: garagePickerData.marque.trim(),
+          modele: garagePickerData.modele.trim(),
+          variante: garagePickerData.variante.trim() || undefined,
+          carburant: garagePickerData.carburant.trim() || undefined,
+          transmission: garagePickerData.transmission.trim() || undefined,
+          annee: garagePickerData.annee.trim() || undefined,
+          kilometrage: garagePickerData.kilometrage.trim() || undefined,
         }),
       })
       const data = await res.json().catch(() => null)
@@ -385,7 +403,8 @@ export default function ProfilPage() {
       }
       setVehicles((prev) => [...prev, data.vehicle])
       setGarageAddOpen(false)
-      setGarageForm({ nickname: "", marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "" })
+      setGarageNickname("")
+      setGaragePickerData({ marque: "", modele: "", variante: "", carburant: "", transmission: "", annee: "", kilometrage: "" })
     } catch (err) {
       setGarageAddError(err instanceof Error ? err.message : t("profilePage.garageAddError"))
     } finally {
@@ -1090,10 +1109,11 @@ export default function ProfilPage() {
 
       {/* Modal ajout véhicule */}
       {garageAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setGarageAddOpen(false)} />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl animate-in slide-in-from-bottom-4 duration-200 overflow-y-auto max-h-[85vh]">
-            <div className="mb-5 flex items-center justify-between">
+          <div className="relative z-10 w-full max-w-lg rounded-2xl border border-border/60 bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 flex flex-col max-h-[90vh]">
+            {/* En-tête fixe */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
               <h3 className="text-base font-semibold">{t("profilePage.garageAddTitle")}</h3>
               <button
                 type="button"
@@ -1104,54 +1124,32 @@ export default function ProfilPage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <form onSubmit={(e) => void handleGarageAdd(e)} className="space-y-3">
-              <div className="space-y-1">
+
+            {/* Corps scrollable */}
+            <form onSubmit={(e) => void handleGarageAdd(e)} className="overflow-y-auto px-6 pb-6 space-y-5">
+              {/* Surnom */}
+              <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageNicknameLabel")}</label>
-                <Input value={garageForm.nickname} onChange={(e) => setGarageForm((f) => ({ ...f, nickname: e.target.value }))} placeholder={t("profilePage.garageNicknamePh")} maxLength={50} />
+                <Input
+                  value={garageNickname}
+                  onChange={(e) => setGarageNickname(e.target.value)}
+                  placeholder={t("profilePage.garageNicknamePh")}
+                  maxLength={50}
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageMarqueLabel")} *</label>
-                  <Input value={garageForm.marque} onChange={(e) => setGarageForm((f) => ({ ...f, marque: e.target.value }))} placeholder={t("profilePage.garageMarquePh")} required maxLength={100} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageModeleLabel")} *</label>
-                  <Input value={garageForm.modele} onChange={(e) => setGarageForm((f) => ({ ...f, modele: e.target.value }))} placeholder={t("profilePage.garageModelePh")} required maxLength={100} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageVarianteLabel")}</label>
-                <Input value={garageForm.variante} onChange={(e) => setGarageForm((f) => ({ ...f, variante: e.target.value }))} placeholder={t("profilePage.garageVariantePh")} maxLength={100} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageAnneeLabel")}</label>
-                  <Input value={garageForm.annee} onChange={(e) => setGarageForm((f) => ({ ...f, annee: e.target.value }))} placeholder={t("profilePage.garageAnneePh")} maxLength={10} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageKmLabel")}</label>
-                  <Input value={garageForm.kilometrage} onChange={(e) => setGarageForm((f) => ({ ...f, kilometrage: e.target.value }))} placeholder={t("profilePage.garageKmPh")} maxLength={20} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageCarburantLabel")}</label>
-                  <Input value={garageForm.carburant} onChange={(e) => setGarageForm((f) => ({ ...f, carburant: e.target.value }))} placeholder={t("profilePage.garageCarburantPh")} maxLength={50} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t("profilePage.garageTransmissionLabel")}</label>
-                  <Input value={garageForm.transmission} onChange={(e) => setGarageForm((f) => ({ ...f, transmission: e.target.value }))} placeholder={t("profilePage.garageTransmissionPh")} maxLength={100} />
-                </div>
-              </div>
+
+              {/* Formulaire véhicule identique à la page diagnostic */}
+              <VehiclePicker onChange={handleGaragePickerChange} />
+
               {garageAddError && <p className="text-xs text-destructive">{garageAddError}</p>}
-              <div className="flex gap-2 pt-1">
-                <Button type="submit" size="sm" disabled={garageAddSubmitting} className="flex-1">
-                  {garageAddSubmitting ? "…" : t("profilePage.garageSaveBtn")}
-                </Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => setGarageAddOpen(false)} disabled={garageAddSubmitting}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={garageAddSubmitting || !garagePickerData.marque || !garagePickerData.modele}
+              >
+                {garageAddSubmitting ? "…" : t("profilePage.garageSaveBtn")}
+              </Button>
             </form>
           </div>
         </div>
