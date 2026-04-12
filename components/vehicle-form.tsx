@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useTranslation } from "@/lib/i18n/locale-context"
-import { flushSync } from "react-dom"
+import { flushSync, createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -644,8 +644,8 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     setNoCreditsShowBtn(true)
     if (noCreditsTimerBtn.current) clearTimeout(noCreditsTimerBtn.current)
     if (noCreditsTimerMsg.current) clearTimeout(noCreditsTimerMsg.current)
-    noCreditsTimerBtn.current = setTimeout(() => setNoCreditsShowBtn(false), 3000)
-    noCreditsTimerMsg.current = setTimeout(() => setNoCreditsVisible(false), 5000)
+    noCreditsTimerBtn.current = setTimeout(() => setNoCreditsShowBtn(false), 10000)
+    noCreditsTimerMsg.current = setTimeout(() => setNoCreditsVisible(false), 10000)
   }
 
   function openBuyModal() {
@@ -664,6 +664,20 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     setBuyFinalAmount(null)
     setBuyLoadingPkg(null)
   }
+
+  useEffect(() => {
+    if (buyModalOpen) {
+      document.documentElement.style.overflow = "hidden"
+      document.body.style.overflow = "hidden"
+    } else {
+      document.documentElement.style.overflow = ""
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.documentElement.style.overflow = ""
+      document.body.style.overflow = ""
+    }
+  }, [buyModalOpen])
 
   async function handleBuyPkg(packageId: string) {
     setBuyLoadingPkg(packageId)
@@ -1081,6 +1095,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
             </div>
           )}
           <p className="text-sm font-medium text-foreground text-left">{t("vehicleForm.sectionTitle")}</p>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="marque-btn" className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -1743,7 +1758,8 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         {noCreditsVisible && (
           <div
             ref={noCreditsRef}
-            className="mt-3 animate-in fade-in slide-in-from-bottom-2 duration-200 rounded-lg border border-amber-400/50 bg-amber-400/15 px-4 py-3 text-sm text-amber-900 dark:text-amber-100"
+            className="mt-3 animate-in fade-in slide-in-from-bottom-2 duration-200 rounded-lg border border-amber-400/50 bg-amber-400/15 px-4 py-3 text-sm"
+            style={{ color: "#E8EEF8" }}
           >
             <p className="font-medium">Solde insuffisant : 0 crédits disponibles</p>
             {noCreditsShowBtn && (
@@ -1761,9 +1777,8 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       </CardContent>
     </Card>
 
-    {/* Modal d'achat de crédits */}
-    {buyModalOpen && (
-      <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4">
+    {typeof document !== "undefined" && buyModalOpen && createPortal(
+      <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
         <div
           className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={closeBuyModal}
@@ -1811,7 +1826,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                 >
                   {pkg.highlight && (
                     <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
-                      Meilleur choix
+                      Meilleur compromis
                     </span>
                   )}
                   <div className="flex items-center gap-1.5 mb-1.5">
@@ -1831,7 +1846,7 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                     )}
                   </p>
                   {pkg.badge && (
-                    <span className="mt-0.5 inline-block bg-green-500/15 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                    <span className="mt-0.5 self-start bg-green-500/15 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                       {pkg.badge}
                     </span>
                   )}
@@ -1853,7 +1868,8 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
             </div>
           )}
         </div>
-      </div>
+      </div>,
+      document.body
     )}
     </>
   )

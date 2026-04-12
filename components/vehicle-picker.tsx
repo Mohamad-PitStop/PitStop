@@ -59,6 +59,13 @@ const EMPTY: VehiclePickerData = {
   cylindree: "", puissance: "", nombrePortes: "", typeCarrosserie: "", typeBoiteAuto: "",
 }
 
+function parsePuissance(raw: string | undefined): { value: string; unit: "ch" | "kW" } {
+  if (!raw) return { value: "", unit: "ch" }
+  const m = raw.match(/^(\d+(?:[.,]\d+)?)\s*(ch|kW)?$/i)
+  if (m) return { value: m[1], unit: m[2]?.toLowerCase() === "kw" ? "kW" : "ch" }
+  return { value: raw, unit: "ch" }
+}
+
 export function VehiclePicker({
   onChange,
   initialData,
@@ -69,7 +76,11 @@ export function VehiclePicker({
   const { t } = useTranslation()
   const { makes: apiMakes, models: apiModels, loadingMakes, loadingModels, fetchModels } = useCarsApi()
 
-  const [data, setData] = useState<VehiclePickerData>(() => initialData ?? EMPTY)
+  const [data, setData] = useState<VehiclePickerData>(() => {
+    if (!initialData) return EMPTY
+    const { value } = parsePuissance(initialData.puissance)
+    return { ...initialData, puissance: value }
+  })
 
   const [variantList, setVariantList] = useState<string[]>([])
   const [yearList, setYearList] = useState<string[]>(() => initialData?.annee ? [initialData.annee] : [])
@@ -91,7 +102,7 @@ export function VehiclePicker({
   const [extraOpen, setExtraOpen] = useState(() =>
     !!(initialData?.cylindree || initialData?.puissance || initialData?.nombrePortes || initialData?.typeCarrosserie || initialData?.typeBoiteAuto)
   )
-  const [puissanceUnite, setPuissanceUnite] = useState<"ch" | "kW">("ch")
+  const [puissanceUnite, setPuissanceUnite] = useState<"ch" | "kW">(() => parsePuissance(initialData?.puissance).unit)
 
   // Empêcher la cascade API au montage si des données initiales sont déjà présentes
   const skipCascadeRef = useRef(!!initialData?.marque)
@@ -122,8 +133,13 @@ export function VehiclePicker({
   const showVariantField = isModeleDone
   const isException = isExceptionBrand(data.marque)
 
-  // Notify parent on every change
-  useEffect(() => { onChange(data) }, [data, onChange])
+  // Notify parent on every change — puissance inclut l'unité (ex: "88 kW")
+  useEffect(() => {
+    onChange({
+      ...data,
+      puissance: data.puissance.trim() ? `${data.puissance.trim()} ${puissanceUnite}` : "",
+    })
+  }, [data, puissanceUnite, onChange])
 
   // Fetch models when brand changes
   useEffect(() => { fetchModels(data.marque) }, [data.marque, fetchModels])
