@@ -91,10 +91,17 @@ const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 const CODE_LENGTH = 8
 
 export function generateGarageCode(): string {
-  const bytes = randomBytes(CODE_LENGTH)
+  // Use rejection sampling to avoid modulo bias with cryptographically secure bytes
+  const charCount = CODE_CHARS.length
+  const maxUnbiased = 256 - (256 % charCount)
   let code = ""
-  for (let i = 0; i < CODE_LENGTH; i++) {
-    code += CODE_CHARS[bytes[i] % CODE_CHARS.length]
+  while (code.length < CODE_LENGTH) {
+    const bytes = randomBytes((CODE_LENGTH - code.length) * 2)
+    for (const byte of bytes) {
+      if (byte < maxUnbiased && code.length < CODE_LENGTH) {
+        code += CODE_CHARS[byte % charCount]
+      }
+    }
   }
   return code
 }

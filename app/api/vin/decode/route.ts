@@ -25,15 +25,24 @@ export async function GET(request: Request) {
   }
 
   // Calcul du control sum : substr(sha1("$vin|decode|$apiKey|$secretKey"), 0, 10)
-  const controlSum = createHash("sha1")
+  // SHA-1 is required by the vindecoder.eu API protocol and is used only as a
+  // non-secret control checksum, not as a password hash. // lgtm[js/weak-cryptographic-algorithm, js/insufficient-password-hash]
+  const controlSum = createHash("sha1") // lgtm[js/weak-cryptographic-algorithm]
     .update(`${vin}|decode|${apiKey}|${secretKey}`)
     .digest("hex")
     .substring(0, 10)
 
-  const url = `https://api.vindecoder.eu/3.2/${apiKey}/${controlSum}/decode/${vin}.json`
+  // Build the URL with a fixed base to prevent SSRF via tampered env vars
+  const targetUrl = new URL(
+    `/3.2/${encodeURIComponent(apiKey)}/${encodeURIComponent(controlSum)}/decode/${vin}.json`,
+    "https://api.vindecoder.eu"
+  )
+  if (targetUrl.hostname !== "api.vindecoder.eu" || targetUrl.protocol !== "https:") {
+    return Response.json({ ok: false, error: "Invalid request URL" }, { status: 500 })
+  }
 
   try {
-    const res = await fetch(url)
+    const res = await fetch(targetUrl)
 
     if (!res.ok) {
       const body = await res.text().catch(() => "")

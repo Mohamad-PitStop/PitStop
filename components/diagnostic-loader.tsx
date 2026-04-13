@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { createPortal } from "react-dom"
 import { Zap } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/locale-context"
 
@@ -63,7 +64,7 @@ export function DiagnosticLoader({ vehicle, mode = "initial" }: DiagnosticLoader
     }
   }, [visible])
 
-  return (
+  const content = (
     <div
       className={`fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background/96 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
     >
@@ -101,4 +102,6 @@ export function DiagnosticLoader({ vehicle, mode = "initial" }: DiagnosticLoader
       </div>
     </div>
   )
+
+  return typeof document !== "undefined" ? createPortal(content, document.body) : null
 }
