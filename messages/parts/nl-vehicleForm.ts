@@ -31,6 +31,7 @@ export const nlVehicleForm = {
     errKmMax: "Kilometerstand mag niet hoger zijn dan 2.000.000 km.",
     errProbleme: "Beschrijf het probleem.",
     errProblemeShort: "De beschrijving moet minstens 10 tekens bevatten.",
+    errProblemeInvalid: "De beschrijving lijkt onbegrijpelijk of niet relevant. Beschrijf het probleem met uw voertuig in een paar woorden (bv. lawaai bij starten, motorlampje brandt…).",
     errExtraMax: "Aanvullende gegevens mogen maximaal 80 tekens per veld zijn.",
     errPortes: "Aantal deuren: geef een getal tussen 2 en 6 (bv. 3 of 5).",
     analysisError: "Er ging iets mis bij de analyse. Probeer het later opnieuw.",

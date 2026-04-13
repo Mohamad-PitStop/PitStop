@@ -32,6 +32,7 @@ export const frVehicleForm = {
     errKmMax: "Le kilométrage ne peut pas dépasser 2 000 000 km.",
     errProbleme: "Veuillez décrire le problème rencontré.",
     errProblemeShort: "La description du problème doit contenir au moins 10 caractères.",
+    errProblemeInvalid: "La description semble incompréhensible ou hors sujet. Décrivez le problème avec votre véhicule en quelques mots (ex : bruit au démarrage, voyant moteur allumé…).",
     errExtraMax: "Les informations complémentaires ne doivent pas dépasser 80 caractères par champ.",
     errPortes: "Nombre de portes : indiquez un nombre entre 2 et 6 (ex. 3 ou 5).",
     analysisError:

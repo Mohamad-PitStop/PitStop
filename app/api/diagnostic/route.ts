@@ -363,6 +363,105 @@ export async function POST(req: Request) {
     const isFriend = user?.role === "user_friend"
     const isGuestRequest = !user
 
+    // ── Mode test admin ───────────────────────────────────────────────────────
+    const ADMIN_TEST_EMAIL = "amoudialiahmad@gmail.com"
+    const ADMIN_TEST_TRIGGER = "testtesttest"
+    if (
+      user?.email === ADMIN_TEST_EMAIL &&
+      String(probleme).trim() === ADMIN_TEST_TRIGGER
+    ) {
+      const mockResult = {
+        serviceRecommendation: { type: "none" as const, title: null, description: null },
+        concessionOnly: null,
+        needsMoreInfo: false,
+        missingInfo: null,
+        obdScanFirst: null,
+        severity: "medium" as const,
+        severityLabel: locale === "en" ? "Moderate" : locale === "nl" ? "Matig" : "Modéré",
+        problem:
+          locale === "en"
+            ? "Front brake discs and pads to replace"
+            : locale === "nl"
+              ? "Remschijven en remblokken voor vervangen"
+              : "Disques et plaquettes de frein avant à remplacer",
+        description:
+          locale === "en"
+            ? "The described symptoms (grinding noise and slight vibration when braking) indicate advanced wear of the front brake pads, likely accompanied by scored discs. On the Golf 7, this type of wear is common around 80,000–100,000 km. Replacement recommended at a garage. [ADMIN TEST MODE]"
+            : locale === "nl"
+              ? "De beschreven symptomen (knerpend geluid en lichte trilling bij remmen) wijzen op geavanceerde slijtage van de remblokken voor, waarschijnlijk gepaard met gegroefde schijven. Op de Golf 7 is dit soort slijtage gebruikelijk rond 80.000–100.000 km. Vervanging aanbevolen in een garage. [ADMIN TESTMODUS]"
+              : "Les symptômes décrits (grincement et légère vibration au freinage) indiquent une usure avancée des plaquettes de frein avant, probablement accompagnée d'une rayure des disques. Sur la Golf 7, ce type d'usure est fréquent autour de 80 000–100 000 km. Remplacement recommandé en atelier. [MODE TEST ADMIN]",
+        priceRange: { min: 180, max: 260 },
+        diy: {
+          possible: true,
+          difficulty: locale === "en" ? "Intermediate" : locale === "nl" ? "Gemiddeld" : "Intermédiaire",
+          estimatedTime: "2h",
+          costRange: { min: 80, max: 130 },
+          steps:
+            locale === "en"
+              ? [
+                  "Remove the front-left wheel (21 mm, torque 120 Nm).",
+                  "Unscrew the brake caliper (2 × 7 mm allen bolts) and hang it without straining the hose.",
+                  "Remove the old pads and compress the caliper piston with a dedicated tool.",
+                  "Remove the disc (1 cross-head screw) and clean the hub.",
+                  "Fit the new disc and pads; apply anti-squeal grease on the pad ears.",
+                  "Refit the caliper at the correct torque, refit the wheel.",
+                  "Bed in the brakes with 3–4 progressive stops before normal use.",
+                ]
+              : locale === "nl"
+                ? [
+                    "Verwijder het linker voorwiel (21 mm, koppel 120 Nm).",
+                    "Maak de remklauw los (2 × 7 mm allen) en hang hem op zonder de slang te spannen.",
+                    "Verwijder de oude remblokken en druk de zuiger in met een speciaal gereedschap.",
+                    "Verwijder de remschijf (1 kruisschroef) en reinig de naaf.",
+                    "Monteer de nieuwe schijf en blokken; breng anti-piepvet aan op de blokoren.",
+                    "Remonteer de klauw op koppel en plaats het wiel terug.",
+                    "Inslijpen: 3–4 progressieve remslagen vóór normaal gebruik.",
+                  ]
+                : [
+                    "Déposer la roue avant gauche (21 mm, couple 120 Nm).",
+                    "Desserrer l'étrier de frein (2 boulons 7 mm allen) et le suspendre sans tendre le flexible.",
+                    "Extraire les anciennes plaquettes et comprimer le piston d'étrier avec un compresseur dédié.",
+                    "Déposer le disque (1 vis cruciforme) et nettoyer le moyeu.",
+                    "Monter le nouveau disque et les nouvelles plaquettes, appliquer une graisse anti-couinement sur les pattes.",
+                    "Remonter l'étrier au couple, reposer la roue.",
+                    "Effectuer 3–4 freinages progressifs pour rodage avant usage normal.",
+                  ],
+          tools:
+            locale === "en"
+              ? ["Jack + axle stands", "21 mm socket wrench", "7 mm allen key", "Caliper piston compressor", "Torque wrench"]
+              : locale === "nl"
+                ? ["Krik + steunbokken", "Dopsleutel 21 mm", "Inbussleutel 7 mm", "Zuigercompressor", "Momentsleutel"]
+                : ["Cric + chandelles", "Clé à douille 21 mm", "Clé Allen 7 mm", "Compresseur de piston d'étrier", "Couple-mètre"],
+        },
+        garage: {
+          estimatedTime: "1h – 1h30",
+          costRange: { min: 180, max: 260 },
+          includes:
+            locale === "en"
+              ? ["Labour (1h–1h30)", "Front discs (pair, AutoDoc equivalent parts)", "Front pads (full set)", "Brake fluid flush if needed"]
+              : locale === "nl"
+                ? ["Arbeidsloon (1u–1u30)", "Voorremschijven (paar, AutoDoc equivalent)", "Remblokken voor (volledige set)", "Remvloeistof verversen indien nodig"]
+                : ["Main d'œuvre (1h–1h30)", "Disques avant (paire, pièces équivalentes AutoDoc)", "Plaquettes avant (jeu complet)", "Purge de frein si nécessaire"],
+        },
+      }
+
+      const diagId = await createDiagnosticRequest({
+        marque: String(marque),
+        modele: String(modele),
+        variante: variante ? String(variante) : null,
+        carburant: carburant ? String(carburant) : null,
+        transmission: transmission ? String(transmission) : null,
+        annee: String(annee),
+        kilometrage: String(kilometrage),
+        probleme: String(probleme),
+        followUps: null,
+        promptText: "[ADMIN TEST MODE — no AI call]",
+        userId: user.id,
+      })
+      await updateDiagnosticResult(diagId, JSON.stringify(mockResult), "completed")
+      return buildDiagnosticResponse(mockResult, diagId)
+    }
+
     // ── Gestion des crédits (compte) ─────────────────────────────────────────
     if (!isPrivileged && !diagnosticRequestId && !isGuestRequest) {
       const deducted = await deductCredit(user!.id)

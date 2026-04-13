@@ -568,6 +568,27 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       }
     }
 
+    // ── Validation Haiku (skipped for admin/tester) ────────────────────────
+    const skipHaikuValidation =
+      authUser?.role === "admin" || authUser?.role === "tester"
+
+    if (!skipHaikuValidation) {
+      try {
+        const vRes = await fetch("/api/validate-probleme", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ probleme: formData.probleme, locale }),
+        })
+        const vData = await vRes.json().catch(() => ({ ok: true }))
+        if (vData?.ok === false) {
+          setAuthError(vData.message ?? t("vehicleForm.errProblemeInvalid"))
+          return
+        }
+      } catch {
+        // Network failure → let the diagnostic proceed
+      }
+    }
+
     if (authUser) {
       const isPrivileged = authUser.role === "admin" || authUser.role === "tester"
       if (isPrivileged || authUser.diagnosticCredits > 0) {

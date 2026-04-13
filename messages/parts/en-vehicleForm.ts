@@ -31,6 +31,7 @@ export const enVehicleForm = {
     errKmMax: "Mileage cannot exceed 2,000,000 km.",
     errProbleme: "Please describe the problem.",
     errProblemeShort: "The problem description must be at least 10 characters.",
+    errProblemeInvalid: "The description seems incomprehensible or off-topic. Please describe your vehicle issue in a few words (e.g. noise on startup, engine warning light on…).",
     errExtraMax: "Additional information must not exceed 80 characters per field.",
     errPortes: "Number of doors: enter a number between 2 and 6 (e.g. 3 or 5).",
     analysisError: "Something went wrong during analysis. Please try again later.",
