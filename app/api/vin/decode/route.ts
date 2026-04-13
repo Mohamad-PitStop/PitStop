@@ -5,9 +5,11 @@ export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const vin = searchParams.get("vin")?.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "")
+  const rawVin = searchParams.get("vin")
+  const vin = rawVin?.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "") ?? ""
 
-  if (!vin || vin.length !== 17) {
+  // Strict VIN validation (17 chars, no I/O/Q)
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
     return Response.json(
       { ok: false, error: "VIN invalide (17 caractères alphanumériques requis)" },
       { status: 400 }
@@ -32,11 +34,10 @@ export async function GET(request: Request) {
     .digest("hex")
     .substring(0, 10)
 
-  // Build the URL with a fixed base to prevent SSRF via tampered env vars
-  const targetUrl = new URL(
-    `/3.2/${encodeURIComponent(apiKey)}/${encodeURIComponent(controlSum)}/decode/${vin}.json`,
-    "https://api.vindecoder.eu"
-  )
+  // Build the URL from a fixed origin and encoded path segments
+  const targetUrl = new URL("https://api.vindecoder.eu")
+  targetUrl.pathname = `/3.2/${encodeURIComponent(apiKey)}/${encodeURIComponent(controlSum)}/decode/${encodeURIComponent(vin)}.json`
+
   if (targetUrl.hostname !== "api.vindecoder.eu" || targetUrl.protocol !== "https:") {
     return Response.json({ ok: false, error: "Invalid request URL" }, { status: 500 })
   }
