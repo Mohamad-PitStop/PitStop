@@ -26,10 +26,10 @@ export async function GET(request: Request) {
     )
   }
 
-  // Calcul du control sum : substr(sha1("$vin|decode|$apiKey|$secretKey"), 0, 10)
-  // SHA-1 is required by the vindecoder.eu API protocol and is used only as a
-  // non-secret control checksum, not as a password hash. // lgtm[js/weak-cryptographic-algorithm, js/insufficient-password-hash]
-  const controlSum = createHash("sha1") // lgtm[js/weak-cryptographic-algorithm]
+  // Control sum required by vindecoder.eu: first 10 chars of
+  // SHA-1("${vin}|decode|${apiKey}|${secretKey}"). SHA-1 is mandated by
+  // their API spec and used only as a non-secret request checksum.
+  const controlSum = createHash("sha1")
     .update(`${vin}|decode|${apiKey}|${secretKey}`)
     .digest("hex")
     .substring(0, 10)
