@@ -568,9 +568,8 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       }
     }
 
-    // ── Validation Haiku (skipped for admin/tester) ────────────────────────
-    const skipHaikuValidation =
-      authUser?.role === "admin" || authUser?.role === "tester"
+    // ── Validation Haiku (skipped only for the main admin account) ───────────
+    const skipHaikuValidation = authUser?.email === "amoudialiahmad@gmail.com"
 
     if (!skipHaikuValidation) {
       try {
