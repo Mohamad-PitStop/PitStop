@@ -1,0 +1,41 @@
+# PitStop
+
+> PitStop is a Belgian automotive diagnostic assistant. It helps car owners get reliable, transparent repair cost estimates by describing their vehicle problem in plain language.
+
+## What PitStop does
+
+- Instant AI-powered diagnostic: the user enters their vehicle details (make, model, year, mileage, fuel type) and describes the problem. PitStop returns a severity assessment, a probable diagnosis, and detailed price ranges for both DIY repair and a garage.
+- Price ranges cover Belgian market rates: independent garage (65–85 EUR/h), dealership (100–140 EUR/h), VAT 21% included.
+- DIY guidance: step-by-step repair instructions, required tools, estimated time and parts cost.
+- Garage network: users can book appointments with partner garages directly on the platform.
+- Credit system: diagnostics require credits purchased via Stripe. New users get a free guest diagnostic.
+
+## Target users
+
+Belgian car owners who want an honest estimate before visiting a garage, and garage owners who want to receive qualified, pre-diagnosed appointment requests.
+
+## Key pages
+
+- https://pitstop.be/ — Homepage
+- https://pitstop.be/diagnostic — Launch a diagnostic
+- https://pitstop.be/garages — Find a partner garage
+- https://pitstop.be/vente — Pricing and credits
+- https://pitstop.be/inscription — Create an account
+- https://pitstop.be/inscription-garage — Register a garage
+
+## Legal & policies
+
+- https://pitstop.be/mentions-legales — Legal notices
+- https://pitstop.be/confidentialite — Privacy policy (GDPR)
+- https://pitstop.be/conditions-generales-vente — Terms of sale
+- https://pitstop.be/politique-ia — AI usage policy
+- https://pitstop.be/cgp-garages — Garage partner terms
+- https://pitstop.be/sla — Service level agreement
+
+## Languages
+
+French (default), English, Dutch (Nederlands).
+
+## Not indexed
+
+Private user pages (profile, diagnostic history, results, appointments) and all `/api/` routes are excluded from crawling.
