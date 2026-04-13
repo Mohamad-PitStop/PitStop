@@ -218,6 +218,9 @@ export const nlSurface = {
     resumeError: "Kan de resultaten van deze diagnose niet tonen. Probeer opnieuw.",
     statusInProgress: "Bezig",
     statusAbandoned: "Afgebroken",
+    abandon: "Annuleren",
+    abandonConfirm: "Bevestigen?",
+    abandonError: "Kan deze diagnose niet afbreken.",
     updateError: "Profiel bijwerken mislukt.",
     deleteConfirm:
       "Uw account definitief verwijderen? Dit kan niet ongedaan worden gemaakt. Resterende credits worden niet terugbetaald.",

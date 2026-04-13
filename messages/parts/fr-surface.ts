@@ -222,6 +222,9 @@ export const frSurface = {
     resumeError: "Impossible d'afficher les résultats de ce diagnostic. Veuillez réessayer.",
     statusInProgress: "En cours",
     statusAbandoned: "Abandonné",
+    abandon: "Abandonner",
+    abandonConfirm: "Confirmer ?",
+    abandonError: "Impossible d'abandonner ce diagnostic.",
     updateError: "Erreur lors de la mise à jour.",
     deleteConfirm:
       "Voulez-vous vraiment supprimer définitivement votre compte ? Cette action est irréversible. Les crédits restants ne sont pas remboursables.",

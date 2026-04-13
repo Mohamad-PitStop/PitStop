@@ -217,6 +217,9 @@ export const enSurface = {
     resumeError: "Could not open the results for this diagnostic. Please try again.",
     statusInProgress: "In progress",
     statusAbandoned: "Abandoned",
+    abandon: "Abandon",
+    abandonConfirm: "Confirm?",
+    abandonError: "Could not abandon this diagnostic.",
     updateError: "Could not update profile.",
     deleteConfirm:
       "Delete your account permanently? This cannot be undone. Remaining credits are not refunded.",

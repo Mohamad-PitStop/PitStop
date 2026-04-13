@@ -137,6 +137,8 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true)
   const [resumingId, setResumingId] = useState<string | null>(null)
   const [resumeError, setResumeError] = useState<string | null>(null)
+  const [abandoningId, setAbandoningId] = useState<string | null>(null)
+  const [abandonConfirmId, setAbandonConfirmId] = useState<string | null>(null)
   const [paySuccess, setPaySuccess] = useState(false)
   const [loadingPkg, setLoadingPkg] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -302,6 +304,30 @@ export default function ProfilPage() {
       setResumeError(t("profilePage.resumeError"))
     } finally {
       setResumingId(null)
+    }
+  }
+
+  const handleAbandon = async (d: Diagnostic) => {
+    if (abandonConfirmId !== d.id) {
+      setAbandonConfirmId(d.id)
+      return
+    }
+    setAbandonConfirmId(null)
+    setAbandoningId(d.id)
+    try {
+      const res = await fetch(`/api/diagnostic/${d.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "abandoned" }),
+      })
+      if (!res.ok) throw new Error()
+      setDiagnostics((prev) =>
+        prev.map((x) => (x.id === d.id ? { ...x, status: "abandoned" as const } : x))
+      )
+    } catch {
+      setResumeError(t("profilePage.abandonError"))
+    } finally {
+      setAbandoningId(null)
     }
   }
 
@@ -1065,26 +1091,61 @@ export default function ProfilPage() {
                               </Button>
                             )}
                             {d.status === "in_progress" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1.5 h-7 text-xs border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  void handleResume(d)
-                                }}
-                                disabled={resumingId === d.id}
-                              >
-                                {resumingId === d.id ? (
-                                  <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                  </svg>
-                                ) : (
-                                  <RotateCcw className="h-3 w-3" />
-                                )}
-                                {resumingId === d.id ? t("profilePage.loadingShort") : t("profilePage.resume")}
-                              </Button>
+                              <div className="flex flex-col items-end gap-1.5">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1.5 h-7 text-xs border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    void handleResume(d)
+                                  }}
+                                  disabled={resumingId === d.id}
+                                >
+                                  {resumingId === d.id ? (
+                                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                  ) : (
+                                    <RotateCcw className="h-3 w-3" />
+                                  )}
+                                  {resumingId === d.id ? t("profilePage.loadingShort") : t("profilePage.resume")}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className={`gap-1.5 h-7 text-xs transition-colors ${
+                                    abandonConfirmId === d.id
+                                      ? "text-destructive hover:text-destructive hover:bg-destructive/10 border border-destructive/40"
+                                      : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                  }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    void handleAbandon(d)
+                                  }}
+                                  disabled={abandoningId === d.id}
+                                  onBlur={() => {
+                                    if (abandonConfirmId === d.id) setAbandonConfirmId(null)
+                                  }}
+                                >
+                                  {abandoningId === d.id ? (
+                                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                  ) : abandonConfirmId === d.id ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <X className="h-3 w-3" />
+                                  )}
+                                  {abandoningId === d.id
+                                    ? t("profilePage.loadingShort")
+                                    : abandonConfirmId === d.id
+                                      ? t("profilePage.abandonConfirm")
+                                      : t("profilePage.abandon")}
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </div>
