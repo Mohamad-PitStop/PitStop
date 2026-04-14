@@ -87,12 +87,15 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "@tailwindcss/postcss": "^4.2.0",
     "@types/node": "^22",
     "@types/nodemailer": "^7.0.11",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "dotenv": "^17.3.1",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.3",
     "pdfkit": "^0.18.0",
     "playwright": "^1.58.2",
     "postcss": "^8.5",

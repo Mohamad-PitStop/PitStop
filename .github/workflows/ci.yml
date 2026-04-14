@@ -27,3 +27,4 @@ jobs:
       - name: Create Next.js type stubs (needed by next-env.d.ts before build)
         run: mkdir -p .next/dev/types && touch .next/dev/types/routes.d.ts
       - run: pnpm exec tsc --noEmit
+      - run: pnpm lint
