@@ -62,9 +62,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   const [loadingFuel, setLoadingFuel] = useState(false)
   const [loadingTrans, setLoadingTrans] = useState(false)
 
-  const [fallbackFuel, setFallbackFuel] = useState(false)
-  const [fallbackTrans, setFallbackTrans] = useState(false)
-
   const [variantUiSkipped, setVariantUiSkipped] = useState(true)
   const [fuelLocked, setFuelLocked] = useState(false)
   const [transLocked, setTransLocked] = useState(false)
@@ -266,7 +263,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
   const loadFuels = useCallback(
     async (ctx: { marque: string; modele: string; variante: string; annee: string }, gen: number) => {
       setLoadingFuel(true)
-      setFallbackFuel(false)
       setFuelLocked(false)
       try {
         const r = await postVehicleOptions({
@@ -277,7 +273,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         })
         if (gen !== cascadeGen.current) return
         if (r.error) {
-          setFallbackFuel(true)
           setFuelList(getAvailableFuelTypesForSelection(ctx.marque, ctx.modele))
           return
         }
@@ -299,7 +294,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       gen: number
     ) => {
       setLoadingTrans(true)
-      setFallbackTrans(false)
       setTransLocked(false)
       try {
         const r = await postVehicleOptions({
@@ -311,7 +305,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         })
         if (gen !== cascadeGen.current) return
         if (r.error) {
-          setFallbackTrans(true)
           setTransList(getAvailableTransmissionTypesForSelection(ctx.marque, ctx.modele, ctx.carburant))
           return
         }
@@ -646,8 +639,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     setLoadingYear(false)
     setLoadingFuel(false)
     setLoadingTrans(false)
-    setFallbackFuel(false)
-    setFallbackTrans(false)
     setHasMultipleAutoTypes(false)
 
     // Ouvrir le volet infos complémentaires si des données y sont présentes
@@ -933,8 +924,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
     setYearList([])
     setFuelList([])
     setTransList([])
-    setFallbackFuel(false)
-    setFallbackTrans(false)
     setFuelLocked(false)
     setTransLocked(false)
     setManualModelEntry(false)
@@ -1415,18 +1404,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                       value={formatCarburantOptionLabel(formData.carburant, t)}
                       className="h-11 bg-muted/50 border-input text-foreground"
                     />
-                  ) : fallbackFuel ? (
-                    <Input
-                      id="carburant"
-                      name="carburant"
-                      value={formData.carburant}
-                      onChange={handleChange}
-                      onInput={clearValidity}
-                      required
-                      placeholder={t("vehicleForm.manualPlaceholder")}
-                      disabled={!isAnneeDone || loadingFuel}
-                      className="h-11 bg-background border-input focus:border-primary disabled:opacity-50"
-                    />
                   ) : (
                     <select
                       id="carburant"
@@ -1467,18 +1444,6 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
                       id="transmission"
                       value={formatTransmissionOptionLabel(formData.transmission, t)}
                       className="h-11 bg-muted/50 border-input text-foreground"
-                    />
-                  ) : fallbackTrans ? (
-                    <Input
-                      id="transmission"
-                      name="transmission"
-                      value={formData.transmission}
-                      onChange={handleChange}
-                      onInput={clearValidity}
-                      required
-                      placeholder={t("vehicleForm.manualPlaceholder")}
-                      disabled={!isCarburantDone || loadingTrans}
-                      className="h-11 bg-background border-input focus:border-primary disabled:opacity-50"
                     />
                   ) : (
                     <select
