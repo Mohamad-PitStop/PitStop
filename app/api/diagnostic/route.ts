@@ -8,6 +8,7 @@ import {
   updateDiagnosticResult,
 } from "@/lib/diagnostics-db"
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
+import { getDtcContext } from "@/lib/dtc-lookup"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
 import { getUserFromAuthCookie, extractCookieValue } from "@/lib/auth-session"
 import { deductCredit, addCredits } from "@/lib/accounts-db"
@@ -737,8 +738,10 @@ mentionnant les variantes concernées.
 
     const autodocBlock = autodocCtx.contextBlock ? `\n\n${autodocCtx.contextBlock}` : ""
 
+    const dtcBlock = await getDtcContext(String(probleme ?? ""), marque ? String(marque) : null, locale)
+
     const varianteLine = variante?.trim() ? `\n\nVariante : ${variante.trim()}` : ""
-    const prompt = `${userContentBase}${varianteLine}${extraLines}${followUpsText}${autodocBlock}`
+    const prompt = `${userContentBase}${varianteLine}${extraLines}${followUpsText}${autodocBlock}${dtcBlock}`
     const followUpsJson = Array.isArray(followUps) && followUps.length > 0 ? JSON.stringify(followUps) : null
     const userId = user?.id ?? null
 
