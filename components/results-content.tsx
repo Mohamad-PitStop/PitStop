@@ -1268,8 +1268,23 @@ export function ResultsContent() {
           </Card>
         )}
 
+      {/* Télécharger le rapport PDF */}
+      {!diagnostic.needsMoreInfo && (
+        <div className="mt-2 mb-4 flex justify-center animate-in fade-in duration-500" style={{ animationDelay: "500ms", animationFillMode: "both" }}>
+          <Button
+            size="lg"
+            className="gap-2 px-8 py-6 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all"
+            onClick={handleDownloadPdf}
+            disabled={pdfLoading}
+          >
+            <Download className="h-5 w-5" />
+            {pdfLoading ? "Génération en cours…" : "Télécharger le rapport PDF"}
+          </Button>
+        </div>
+      )}
+
       {/* Disclaimer */}
-      <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/30 border border-border/50 animate-in fade-in duration-500" style={{ animationDelay: "500ms", animationFillMode: "both" }}>
+      <div className="flex items-start gap-3 p-4 rounded-lg bg-secondary/30 border border-border/50 animate-in fade-in duration-500" style={{ animationDelay: "600ms", animationFillMode: "both" }}>
         <Info className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
         <div className="text-sm text-muted-foreground">
           <p className="font-medium text-foreground mb-1">{t("results.warningTitle")}</p>
@@ -1284,22 +1299,6 @@ export function ResultsContent() {
           )}
         </div>
       </div>
-
-      {/* Télécharger le rapport PDF */}
-      {!diagnostic.needsMoreInfo && (
-        <div className="mt-6 mb-2 flex justify-center animate-in fade-in duration-500" style={{ animationDelay: "600ms", animationFillMode: "both" }}>
-          <Button
-            variant="outline"
-            size="lg"
-            className="gap-2 border-border/60 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-            onClick={handleDownloadPdf}
-            disabled={pdfLoading}
-          >
-            <Download className="h-4 w-4" />
-            {pdfLoading ? "Génération en cours…" : "Télécharger le rapport PDF"}
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
