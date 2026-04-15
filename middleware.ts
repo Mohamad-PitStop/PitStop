@@ -18,7 +18,7 @@ function matchProtectedRoute(pathname: string) {
   return null
 }
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const rule = matchProtectedRoute(pathname)
   if (rule) {
@@ -56,7 +56,7 @@ export function proxy(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     response.headers.set(
       "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
+      "max-age=31536000; includeSubDomains; preload"
     )
   }
 
