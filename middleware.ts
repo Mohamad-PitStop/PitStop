@@ -65,7 +65,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Apply to all routes except static files and Next.js internals
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    // Exclure : fichiers statiques, internals Next.js, et routes OAuth
+    // (le middleware Edge peut interférer avec les Set-Cookie sur les redirects OAuth)
+    "/((?!_next/static|_next/image|favicon.ico|api/auth/oauth|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 }
