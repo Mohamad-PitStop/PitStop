@@ -52,7 +52,7 @@ export const enAuth = {
     oauthDivider: "or",
     oauthAccessDenied: "Sign-in cancelled. You can try again or use your email.",
     oauthEmailConflict:
-      "A PitStop account already exists with this email. Sign in with your email, then link Google/Facebook from your profile.",
+      "A PitStop account already exists with this email. Sign in with your email, then link Google from your profile.",
     oauthMissingEmail:
       "Your provider did not share an email address. Allow email sharing or create a regular account.",
     oauthNotConfigured: "This sign-in method is not available yet.",

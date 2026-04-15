@@ -122,7 +122,7 @@ model OAuthAccount {
   id                String   @id
   createdAt         DateTime @default(now())
   userId            String
-  provider          String   // "google" | "facebook"
+  provider          String   // "google"
   providerAccountId String
   email             String?
   name              String?

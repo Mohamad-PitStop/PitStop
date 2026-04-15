@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto"
 
 /**
- * OAuth 2.0 minimal pour Google et Facebook.
+ * OAuth 2.0 minimal pour Google.
  *
  * Flux :
  *  1. `/api/auth/oauth/[provider]/start` → génère un state + PKCE,
@@ -11,7 +11,7 @@ import { createHash, randomBytes } from "node:crypto"
  *  4. Logique de compte : login existant, link par email vérifié, ou création de compte.
  */
 
-export type OAuthProviderId = "google" | "facebook"
+export type OAuthProviderId = "google"
 
 export type OAuthProfile = {
   providerAccountId: string
@@ -27,7 +27,6 @@ type ProviderConfig = {
   tokenUrl: string
   userInfoUrl: string
   scope: string
-  /** Google exige/supporte PKCE ; Facebook ne le supporte pas (sha256). */
   usePkce: boolean
   clientIdEnv: string
   clientSecretEnv: string
@@ -40,7 +39,7 @@ type ProviderConfig = {
 }
 
 const PROVIDERS: Record<OAuthProviderId, ProviderConfig> = {
-  google: {
+  google: { // seul provider actif
     id: "google",
     authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenUrl: "https://oauth2.googleapis.com/token",
@@ -70,37 +69,10 @@ const PROVIDERS: Record<OAuthProviderId, ProviderConfig> = {
       }
     },
   },
-  facebook: {
-    id: "facebook",
-    authorizeUrl: "https://www.facebook.com/v19.0/dialog/oauth",
-    tokenUrl: "https://graph.facebook.com/v19.0/oauth/access_token",
-    userInfoUrl: "https://graph.facebook.com/me?fields=id,name,email,picture.type(large)",
-    scope: "email public_profile",
-    usePkce: false,
-    clientIdEnv: "FACEBOOK_APP_ID",
-    clientSecretEnv: "FACEBOOK_APP_SECRET",
-    parseProfile(raw) {
-      const r = raw as {
-        id?: string
-        name?: string
-        email?: string
-        picture?: { data?: { url?: string } }
-      }
-      return {
-        providerAccountId: String(r.id ?? ""),
-        email: r.email ?? null,
-        // Facebook ne renvoie pas l'état "email_verified" ; on considère l'email comme
-        // vérifié côté Facebook (leur signup l'exige). À recouper si besoin.
-        emailVerified: Boolean(r.email),
-        name: r.name ?? null,
-        avatarUrl: r.picture?.data?.url ?? null,
-      }
-    },
-  },
 }
 
 export function isOAuthProvider(s: string): s is OAuthProviderId {
-  return s === "google" || s === "facebook"
+  return s === "google"
 }
 
 export function getProviderConfig(id: OAuthProviderId): ProviderConfig {

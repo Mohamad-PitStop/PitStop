@@ -56,7 +56,7 @@ export const frAuth = {
     oauthDivider: "ou",
     oauthAccessDenied: "Connexion annulée. Vous pouvez réessayer ou utiliser un email.",
     oauthEmailConflict:
-      "Un compte PitStop existe déjà avec cette adresse email. Connectez-vous par email, puis liez Google/Facebook depuis votre profil.",
+      "Un compte PitStop existe déjà avec cette adresse email. Connectez-vous par email, puis liez Google depuis votre profil.",
     oauthMissingEmail:
       "Votre fournisseur n'a pas partagé d'adresse email. Autorisez le partage de l'email ou créez un compte classique.",
     oauthNotConfigured: "Cette méthode de connexion n'est pas encore disponible.",

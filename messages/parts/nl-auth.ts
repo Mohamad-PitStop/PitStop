@@ -52,7 +52,7 @@ export const nlAuth = {
     oauthDivider: "of",
     oauthAccessDenied: "Inloggen geannuleerd. Probeer opnieuw of gebruik uw e-mailadres.",
     oauthEmailConflict:
-      "Er bestaat al een PitStop-account met dit e-mailadres. Log in met uw e-mail en koppel daarna Google/Facebook via uw profiel.",
+      "Er bestaat al een PitStop-account met dit e-mailadres. Log in met uw e-mail en koppel daarna Google via uw profiel.",
     oauthMissingEmail:
       "Uw provider heeft geen e-mailadres gedeeld. Sta het delen van uw e-mail toe of maak een gewoon account aan.",
     oauthNotConfigured: "Deze inlogmethode is nog niet beschikbaar.",
