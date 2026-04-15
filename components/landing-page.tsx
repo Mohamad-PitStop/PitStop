@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -11,12 +12,20 @@ import {
 } from "@/components/landing-diagnostic-links"
 import { marketingFeatureIcons } from "@/lib/marketing-content"
 import { MarketingSteps } from "@/components/marketing-steps"
-import { PartnerContactForm } from "@/components/partner-contact-form"
 import { LandingStaggerRoot, LandingStaggerItem } from "@/components/landing-stagger"
 import { SignupWelcomeOverlay } from "@/components/signup-welcome-overlay"
-import { HomeAnimatedBackground } from "@/components/home-animated-background"
 import { LandingHeroLogo } from "@/components/landing-hero-logo"
 import { useTranslation } from "@/lib/i18n/locale-context"
+
+// Chargements différés : non critiques pour le LCP
+const HomeAnimatedBackground = dynamic(
+  () => import("@/components/home-animated-background").then((m) => m.HomeAnimatedBackground),
+  { ssr: false, loading: () => null }
+)
+const PartnerContactForm = dynamic(
+  () => import("@/components/partner-contact-form").then((m) => m.PartnerContactForm),
+  { ssr: false, loading: () => <div className="h-64 rounded-2xl border border-border/60 bg-card animate-pulse" /> }
+)
 
 const FEATURE_KEYS = [
   { title: "marketing.feature1Title", desc: "marketing.feature1Desc" },

@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useLayoutEffect, useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { getRouteTransitionKind } from "@/lib/route-transition"
 
 const STORAGE_KEY = "pitstop-page-transition-prev"
@@ -37,7 +37,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   const prevPath = mounted ? readStoredPath() : null
   const kind = getRouteTransitionKind(prevPath, pathname)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setMounted(true)
     writeStoredPath(pathname)
   }, [pathname])

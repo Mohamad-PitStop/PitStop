@@ -1,7 +1,7 @@
 "use client"
 
 import {
-  useLayoutEffect,
+  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -20,7 +20,7 @@ export function LandingStaggerRoot({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<StaggerMode>("idle")
   const ran = useRef(false)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (ran.current) return
     ran.current = true
     try {
@@ -34,7 +34,7 @@ export function LandingStaggerRoot({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (mode !== "run") return
     const t = window.setTimeout(() => {
       try {
