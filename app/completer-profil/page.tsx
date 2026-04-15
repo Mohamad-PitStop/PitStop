@@ -39,23 +39,31 @@ function CompleteProfileForm() {
 
   useEffect(() => {
     let cancelled = false
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
+    // Retry jusqu'à 3 fois avec délai croissant : le cookie vient d'être posé par le
+    // callback OAuth et peut nécessiter un instant avant d'être reconnu (cold start Vercel).
+    const attempt = async (tries: number) => {
+      try {
+        const r = await fetch("/api/auth/me", { credentials: "include" })
+        const data = await r.json()
         if (cancelled) return
         if (!data?.user) {
-          // Non connecté : retour sur /connexion
-          window.location.replace("/connexion")
+          if (tries > 1) {
+            await new Promise((res) => setTimeout(res, 600))
+            if (!cancelled) await attempt(tries - 1)
+          } else {
+            // Vraiment pas connecté après plusieurs essais → /connexion avec retour ici
+            window.location.replace(`/connexion?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+          }
           return
         }
-        // Pré-remplir si l'utilisateur a déjà renseigné quelque chose
         if (data.user.signupPostalCode) setPostalCode(String(data.user.signupPostalCode))
         setIsSignedIn(true)
         setSessionReady(true)
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setSessionReady(true)
-      })
+      }
+    }
+    void attempt(3)
     return () => {
       cancelled = true
     }

@@ -71,12 +71,26 @@ export async function GET(
     return redirectToConnexion(baseOrigin, "exchange_failed", state.returnTo)
   }
 
-  const resolved = await resolveOAuthSignIn({ provider, profile })
+  let resolved
+  try {
+    resolved = await resolveOAuthSignIn({ provider, profile })
+  } catch (err) {
+    console.error("[oauth] resolveOAuthSignIn threw:", err)
+    return redirectToConnexion(baseOrigin, "exchange_failed", state.returnTo)
+  }
   if (!resolved.ok) {
     return redirectToConnexion(baseOrigin, resolved.error, state.returnTo)
   }
 
-  const sessionToken = await createAuthSession(resolved.result.userId)
+  let sessionToken
+  try {
+    sessionToken = await createAuthSession(resolved.result.userId)
+  } catch (err) {
+    console.error("[oauth] createAuthSession threw:", err)
+    return redirectToConnexion(baseOrigin, "exchange_failed", state.returnTo)
+  }
+
+  console.log(`[oauth] success provider=${provider} kind=${resolved.result.kind} userId=${resolved.result.userId}`)
   const destination = state.returnTo ?? "/"
   // Nouveau compte créé via OAuth → code postal manquant. On redirige vers l'écran
   // de complétion de profil, en conservant la destination d'origine via `?next=`.
