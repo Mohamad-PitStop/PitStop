@@ -47,5 +47,24 @@ export const enAuth = {
     andOur: "and our",
     alreadyAccount: "Already have an account?",
     emailPlaceholder: "you@example.com",
+    oauthContinueWith: "Continue with {{provider}}",
+    oauthSignupWith: "Sign up with {{provider}}",
+    oauthDivider: "or",
+    oauthAccessDenied: "Sign-in cancelled. You can try again or use your email.",
+    oauthEmailConflict:
+      "A PitStop account already exists with this email. Sign in with your email, then link Google/Facebook from your profile.",
+    oauthMissingEmail:
+      "Your provider did not share an email address. Allow email sharing or create a regular account.",
+    oauthNotConfigured: "This sign-in method is not available yet.",
+    oauthGenericError: "Sign-in failed. Try again or use your email.",
+  },
+  complete: {
+    title: "Finish setting up your account",
+    description:
+      "Add your postal code and municipality so we can tailor the PitStop offer to your area.",
+    save: "Save and continue",
+    saving: "Saving…",
+    skip: "Skip for now",
+    saveError: "Could not save your information.",
   },
 } as const

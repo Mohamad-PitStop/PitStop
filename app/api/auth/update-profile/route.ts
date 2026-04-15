@@ -12,6 +12,7 @@ const Schema = z.object({
   name: z.string().trim().min(2).max(120).optional(),
   email: z.string().trim().email().max(160).optional(),
   postalCode: z.string().trim().max(20).optional(),
+  city: z.string().trim().max(80).optional(),
 })
 
 export async function PATCH(req: Request) {
@@ -27,7 +28,7 @@ export async function PATCH(req: Request) {
 
     const body = Schema.parse(await req.json())
 
-    if (!body.name && !body.email && body.postalCode === undefined) {
+    if (!body.name && !body.email && body.postalCode === undefined && body.city === undefined) {
       return NextResponse.json({ ok: false, error: "Aucun champ à mettre à jour." }, { status: 400 })
     }
 
@@ -53,6 +54,7 @@ export async function PATCH(req: Request) {
       name: body.name,
       email: body.email,
       postalCode: body.postalCode,
+      city: body.city,
     })
 
     return NextResponse.json({ ok: true })

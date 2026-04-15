@@ -51,5 +51,24 @@ export const frAuth = {
     andOur: "et notre",
     alreadyAccount: "Déjà un compte ?",
     emailPlaceholder: "vous@exemple.be",
+    oauthContinueWith: "Continuer avec {{provider}}",
+    oauthSignupWith: "S'inscrire avec {{provider}}",
+    oauthDivider: "ou",
+    oauthAccessDenied: "Connexion annulée. Vous pouvez réessayer ou utiliser un email.",
+    oauthEmailConflict:
+      "Un compte PitStop existe déjà avec cette adresse email. Connectez-vous par email, puis liez Google/Facebook depuis votre profil.",
+    oauthMissingEmail:
+      "Votre fournisseur n'a pas partagé d'adresse email. Autorisez le partage de l'email ou créez un compte classique.",
+    oauthNotConfigured: "Cette méthode de connexion n'est pas encore disponible.",
+    oauthGenericError: "La connexion a échoué. Réessayez ou utilisez votre email.",
+  },
+  complete: {
+    title: "Finalisez votre inscription",
+    description:
+      "Indiquez votre code postal et votre commune pour que nous puissions adapter l'offre PitStop à votre région.",
+    save: "Enregistrer et continuer",
+    saving: "Enregistrement…",
+    skip: "Passer cette étape",
+    saveError: "Impossible d'enregistrer vos informations.",
   },
 } as const

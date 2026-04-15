@@ -47,5 +47,24 @@ export const nlAuth = {
     andOur: "en onze",
     alreadyAccount: "Heeft u al een account?",
     emailPlaceholder: "u@voorbeeld.be",
+    oauthContinueWith: "Doorgaan met {{provider}}",
+    oauthSignupWith: "Registreren met {{provider}}",
+    oauthDivider: "of",
+    oauthAccessDenied: "Inloggen geannuleerd. Probeer opnieuw of gebruik uw e-mailadres.",
+    oauthEmailConflict:
+      "Er bestaat al een PitStop-account met dit e-mailadres. Log in met uw e-mail en koppel daarna Google/Facebook via uw profiel.",
+    oauthMissingEmail:
+      "Uw provider heeft geen e-mailadres gedeeld. Sta het delen van uw e-mail toe of maak een gewoon account aan.",
+    oauthNotConfigured: "Deze inlogmethode is nog niet beschikbaar.",
+    oauthGenericError: "Inloggen is mislukt. Probeer het opnieuw of gebruik uw e-mail.",
+  },
+  complete: {
+    title: "Rond uw registratie af",
+    description:
+      "Geef uw postcode en gemeente op zodat we het PitStop-aanbod op uw regio kunnen afstemmen.",
+    save: "Opslaan en doorgaan",
+    saving: "Opslaan…",
+    skip: "Deze stap overslaan",
+    saveError: "Uw gegevens konden niet worden opgeslagen.",
   },
 } as const

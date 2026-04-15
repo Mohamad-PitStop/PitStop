@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { buildLoginUrl } from "@/lib/login-redirect"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import { SuspenseLoadingScreen } from "@/components/suspense-loading-screen"
+import { OAuthButtons, OAuthDivider, useOAuthErrorMessage } from "@/components/oauth-buttons"
 
 function InscriptionForm() {
   const { t } = useTranslation()
@@ -35,6 +36,7 @@ function InscriptionForm() {
     city,
     setCity
   )
+  const oauthError = useOAuthErrorMessage(searchParams.get("oauth_error"))
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -141,6 +143,16 @@ function InscriptionForm() {
               ) : (
                 /* ── Formulaire d'inscription ── */
                 <>
+                  {oauthError ? (
+                    <div
+                      role="alert"
+                      className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+                    >
+                      {oauthError}
+                    </div>
+                  ) : null}
+                  <OAuthButtons callbackUrl={callbackUrl ?? null} mode="signup" />
+                  <OAuthDivider />
                   <form onSubmit={onSubmit} className="space-y-4">
                     <div className="space-y-2">
                       <label htmlFor="name" className="text-sm font-medium text-foreground">

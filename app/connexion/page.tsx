@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { dispatchAuthSessionChanged } from "@/lib/auth-client-events"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import { SuspenseLoadingScreen } from "@/components/suspense-loading-screen"
+import { OAuthButtons, OAuthDivider, useOAuthErrorMessage } from "@/components/oauth-buttons"
 
 function safeInternalPath(p: string | null): string | null {
   if (!p || !p.startsWith("/")) return null
@@ -46,6 +47,7 @@ function ConnexionForm() {
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const oauthError = useOAuthErrorMessage(searchParams.get("oauth_error"))
 
   useEffect(() => {
     let cancelled = false
@@ -130,6 +132,16 @@ function ConnexionForm() {
               <CardDescription>{t("auth.connexionDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
+              {oauthError ? (
+                <div
+                  role="alert"
+                  className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+                >
+                  {oauthError}
+                </div>
+              ) : null}
+              <OAuthButtons callbackUrl={returnTo} mode="login" />
+              <OAuthDivider />
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-foreground">

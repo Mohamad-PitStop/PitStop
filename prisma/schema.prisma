@@ -118,6 +118,20 @@ model UserSession {
   @@index([userId])
 }
 
+model OAuthAccount {
+  id                String   @id
+  createdAt         DateTime @default(now())
+  userId            String
+  provider          String   // "google" | "facebook"
+  providerAccountId String
+  email             String?
+  name              String?
+  avatarUrl         String?
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
 model PendingRoleAssignment {
   id        String   @id
   createdAt DateTime @default(now())
