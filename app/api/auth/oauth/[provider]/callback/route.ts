@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { SESSION_MAX_AGE_SECONDS } from "@/lib/auth-session"
 import {
   decodeStateCookie,
   exchangeCodeForProfile,
@@ -102,15 +103,49 @@ export async function GET(
           return u
         })()
       : new URL(destination, baseOrigin)
-  const response = NextResponse.redirect(finalUrl)
-  response.cookies.set(AUTH_COOKIE_NAME, sessionToken, buildSessionCookieOptions())
-  // Nettoyer le cookie d'état OAuth (il a déjà été vérifié).
-  response.cookies.set(OAUTH_STATE_COOKIE, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
+
+  // On pose le cookie via une page HTML intermédiaire plutôt qu'un redirect 302.
+  // Next.js / Vercel Edge peut supprimer les Set-Cookie headers sur les réponses
+  // redirect ; une réponse 200 avec meta-refresh garantit que le cookie est stocké
+  // par le navigateur avant la navigation vers la destination finale.
+  const isSecure = process.env.NODE_ENV === "production"
+  const cookieStr = [
+    `${AUTH_COOKIE_NAME}=${sessionToken}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    isSecure ? "Secure" : "",
+    `Max-Age=${SESSION_MAX_AGE_SECONDS}`,
+  ].filter(Boolean).join("; ")
+
+  const clearStateStr = [
+    `${OAUTH_STATE_COOKIE}=`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    isSecure ? "Secure" : "",
+    "Max-Age=0",
+  ].filter(Boolean).join("; ")
+
+  const dest = finalUrl.toString()
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0;url=${dest}">
+  <title>Connexion…</title>
+</head>
+<body>
+  <script>window.location.replace(${JSON.stringify(dest)})</script>
+</body>
+</html>`
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store, no-cache",
+      "Set-Cookie": [cookieStr, clearStateStr].join(", "),
+    },
   })
-  return response
 }

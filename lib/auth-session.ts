@@ -8,7 +8,7 @@ import {
 } from "@/lib/accounts-db"
 
 export const AUTH_COOKIE_NAME = "pitstop_auth"
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30 // 30 jours
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30 // 30 jours
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex")
