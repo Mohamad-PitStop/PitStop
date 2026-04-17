@@ -149,6 +149,13 @@ interface DiagnosticResult {
     }
     includes: string[]
   } | null
+  mechanicReport?: {
+    engineCode?: string | null
+    gearboxReference?: string | null
+    suspectedFaultCodes?: { code: string; description: string }[]
+    partReferences?: { label: string; reference: string }[]
+    technicalNotes?: string[]
+  } | null
 }
 
 interface VehicleInfo {

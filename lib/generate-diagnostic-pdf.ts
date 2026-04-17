@@ -11,6 +11,13 @@ type Locale = "fr" | "en" | "nl"
 
 const LABELS = {
   fr: {
+    sectionMechanic:       "Informations techniques pour le garagiste",
+    mechanicIntro:         "Synthèse technique à présenter au garagiste. Les informations ci-dessous sont indicatives et doivent être vérifiées sur le véhicule.",
+    mechanicEngineCode:    "Code moteur",
+    mechanicGearboxRef:    "Référence boîte de vitesses",
+    mechanicFaultCodes:    "Codes erreur suspectés",
+    mechanicPartRefs:      "Références pièces probables",
+    mechanicNotes:         "Notes techniques",
     reportTitle:      "Rapport de diagnostic automobile",
     personalUse:      "USAGE PERSONNEL",
     sectionVehicle:   "Véhicule",
@@ -37,6 +44,13 @@ const LABELS = {
     dateLocale:       "fr-BE" as const,
   },
   en: {
+    sectionMechanic:       "Technical information for the mechanic",
+    mechanicIntro:         "Technical summary to share with the mechanic. The information below is indicative and should be verified on the vehicle.",
+    mechanicEngineCode:    "Engine code",
+    mechanicGearboxRef:    "Gearbox reference",
+    mechanicFaultCodes:    "Suspected fault codes",
+    mechanicPartRefs:      "Likely part references",
+    mechanicNotes:         "Technical notes",
     reportTitle:      "Automotive diagnostic report",
     personalUse:      "PERSONAL USE",
     sectionVehicle:   "Vehicle",
@@ -63,6 +77,13 @@ const LABELS = {
     dateLocale:       "en-GB" as const,
   },
   nl: {
+    sectionMechanic:       "Technische informatie voor de garage",
+    mechanicIntro:         "Technische samenvatting om aan de garage te tonen. Deze informatie is indicatief en moet op het voertuig worden gecontroleerd.",
+    mechanicEngineCode:    "Motorcode",
+    mechanicGearboxRef:    "Versnellingsbakreferentie",
+    mechanicFaultCodes:    "Vermoedelijke foutcodes",
+    mechanicPartRefs:      "Waarschijnlijke onderdeelreferenties",
+    mechanicNotes:         "Technische notities",
     reportTitle:      "Autodiagnoserapport",
     personalUse:      "PERSOONLIJK GEBRUIK",
     sectionVehicle:   "Voertuig",
@@ -130,6 +151,13 @@ interface DiagnosticResult {
     estimatedTime: string
     costRange: { min: number; max: number }
     includes: string[]
+  } | null
+  mechanicReport?: {
+    engineCode?: string | null
+    gearboxReference?: string | null
+    suspectedFaultCodes?: { code: string; description: string }[]
+    partReferences?: { label: string; reference: string }[]
+    technicalNotes?: string[]
   } | null
 }
 
@@ -235,7 +263,9 @@ function text(
   doc.setFontSize(size)
   doc.setTextColor(...color)
 
-  const lines = doc.splitTextToSize(str, maxW) as string[]
+  // Fallback: si des marqueurs **bold** subsistent dans du texte plat, on les retire pour ne pas afficher les astérisques.
+  const cleaned = str.replace(/\*\*(.+?)\*\*/g, "$1")
+  const lines = doc.splitTextToSize(cleaned, maxW) as string[]
   const step  = lh ?? size * 0.42 + 1.4
 
   for (const line of lines) {
@@ -243,6 +273,97 @@ function text(
     doc.text(line, align === "right" ? x : align === "center" ? x + maxW / 2 : x, y, { align })
     y += step
   }
+  return y
+}
+
+/**
+ * Rend un texte avec segments gras via marqueurs **bold**.
+ * Word-wrap au niveau des mots, en conservant le style (gras / normal) de chaque segment.
+ */
+function richText(
+  doc: jsPDF,
+  str: string,
+  y: number,
+  opts: {
+    size?:  number
+    color?: [number, number, number]
+    maxW?:  number
+    lh?:    number
+    x?:     number
+  } = {}
+): number {
+  const { size = 9, color = C.text, maxW = CW, lh, x = ML } = opts
+  const step = lh ?? size * 0.42 + 1.4
+  doc.setFontSize(size)
+  doc.setTextColor(...color)
+
+  // Split en segments {text, bold}
+  type Seg = { text: string; bold: boolean }
+  const segments: Seg[] = []
+  const parts = str.split(/(\*\*[^*]+\*\*)/g)
+  for (const part of parts) {
+    if (!part) continue
+    if (part.startsWith("**") && part.endsWith("**")) {
+      segments.push({ text: part.slice(2, -2), bold: true })
+    } else {
+      segments.push({ text: part, bold: false })
+    }
+  }
+
+  // Tokens = mots + espaces, en conservant le style de leur segment
+  type Tok = { text: string; bold: boolean; space: boolean }
+  const tokens: Tok[] = []
+  for (const seg of segments) {
+    // découpe par saut de ligne explicite
+    const lines = seg.text.split(/\r?\n/)
+    lines.forEach((line, i) => {
+      if (i > 0) tokens.push({ text: "\n", bold: seg.bold, space: true })
+      const words = line.split(/(\s+)/)
+      for (const w of words) {
+        if (!w) continue
+        tokens.push({ text: w, bold: seg.bold, space: /^\s+$/.test(w) })
+      }
+    })
+  }
+
+  const widthOf = (tok: Tok): number => {
+    doc.setFont("helvetica", tok.bold ? "bold" : "normal")
+    return doc.getTextWidth(tok.text)
+  }
+
+  // Construction des lignes
+  let line: Tok[] = []
+  let lineW = 0
+  const flush = () => {
+    if (line.length === 0) return
+    y = guard(doc, y, step + 1)
+    let cx = x
+    for (const tok of line) {
+      if (tok.text === "\n") continue
+      doc.setFont("helvetica", tok.bold ? "bold" : "normal")
+      doc.text(tok.text, cx, y)
+      cx += widthOf(tok)
+    }
+    y += step
+    line = []
+    lineW = 0
+  }
+
+  for (const tok of tokens) {
+    if (tok.text === "\n") {
+      flush()
+      continue
+    }
+    const w = widthOf(tok)
+    if (lineW + w > maxW && line.length > 0) {
+      flush()
+      // ne pas démarrer une ligne par un espace pur
+      if (tok.space) continue
+    }
+    line.push(tok)
+    lineW += w
+  }
+  flush()
   return y
 }
 
@@ -362,7 +483,7 @@ export function generateDiagnosticPdf(
   doc.setFont("helvetica", "italic")
   doc.setFontSize(8.5)
   doc.setTextColor(...C.muted)
-  const quote = doc.splitTextToSize(`"${vehicleInfo.probleme}"`, CW) as string[]
+  const quote = doc.splitTextToSize(`"${vehicleInfo.probleme.replace(/\*\*(.+?)\*\*/g, "$1")}"`, CW) as string[]
   doc.text(quote, ML, y)
   y += quote.length * 4 + 4
 
@@ -398,8 +519,8 @@ export function generateDiagnosticPdf(
   y = text(doc, diagnostic.problem, y, { size: 14, bold: true, color: C.navy, lh: 7 })
   y += 1
 
-  // Description
-  y = text(doc, diagnostic.description, y, { size: 9, color: [60, 70, 100], lh: 4.6 })
+  // Description (parse **bold** markers)
+  y = richText(doc, diagnostic.description, y, { size: 9, color: [60, 70, 100], lh: 4.6 })
   y += 4
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -532,7 +653,7 @@ export function generateDiagnosticPdf(
       // puce verte
       doc.setFillColor(...C.green)
       doc.circle(ML + 1.5, y - 1.2, 1, "F")
-      const iLines = doc.splitTextToSize(item, CW - 7) as string[]
+      const iLines = doc.splitTextToSize(item.replace(/\*\*(.+?)\*\*/g, "$1"), CW - 7) as string[]
       doc.setFont("helvetica", "normal")
       doc.setFontSize(9)
       doc.setTextColor(...C.text)
@@ -587,7 +708,7 @@ export function generateDiagnosticPdf(
       doc.setFontSize(8.5)
       doc.setTextColor(...C.green)
       doc.text(`${i + 1}`, ML + 1, y)
-      const sLines = doc.splitTextToSize(step, CW - 8) as string[]
+      const sLines = doc.splitTextToSize(step.replace(/\*\*(.+?)\*\*/g, "$1"), CW - 8) as string[]
       doc.setFont("helvetica", "normal")
       doc.setFontSize(9)
       doc.setTextColor(...C.text)
@@ -626,6 +747,131 @@ export function generateDiagnosticPdf(
       y = text(doc, diagnostic.serviceRecommendation.description, y, { size: 9, color: [60, 70, 100] })
     }
     y += 3
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION GARAGISTE (informations techniques)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const mr = diagnostic.mechanicReport
+  const hasMr =
+    !!mr &&
+    ((mr.engineCode && mr.engineCode.trim().length > 0) ||
+      (mr.gearboxReference && mr.gearboxReference.trim().length > 0) ||
+      (mr.suspectedFaultCodes && mr.suspectedFaultCodes.length > 0) ||
+      (mr.partReferences && mr.partReferences.length > 0) ||
+      (mr.technicalNotes && mr.technicalNotes.length > 0))
+
+  if (hasMr && mr) {
+    // Cette section est destinée au garagiste : on la démarre sur une nouvelle page
+    // pour qu'elle reste bien identifiable et facilement séparable.
+    y = newPage(doc)
+    y = section(doc, L.sectionMechanic, y)
+
+    y = text(doc, L.mechanicIntro, y, { size: 9, italic: true, color: C.muted, lh: 4.4 })
+    y += 3
+
+    // Bloc identité technique
+    if ((mr.engineCode && mr.engineCode.trim()) || (mr.gearboxReference && mr.gearboxReference.trim())) {
+      y = guard(doc, y, 20)
+      doc.setFillColor(...C.cardBg)
+      doc.roundedRect(ML, y - 2, CW, 16, 2, 2, "F")
+
+      const colW = CW / 2
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(7.5)
+      doc.setTextColor(...C.muted)
+      doc.text(L.mechanicEngineCode.toUpperCase(), ML + 4, y + 3)
+      doc.text(L.mechanicGearboxRef.toUpperCase(), ML + colW + 2, y + 3)
+
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(11)
+      doc.setTextColor(...C.navy)
+      doc.text(mr.engineCode?.trim() || "—", ML + 4, y + 10)
+      doc.text(mr.gearboxReference?.trim() || "—", ML + colW + 2, y + 10)
+      y += 20
+    }
+
+    // Codes erreur suspectés
+    if (mr.suspectedFaultCodes && mr.suspectedFaultCodes.length > 0) {
+      y = guard(doc, y, 10)
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(8)
+      doc.setTextColor(...C.muted)
+      doc.text(L.mechanicFaultCodes.toUpperCase(), ML, y)
+      y += 5
+
+      for (const f of mr.suspectedFaultCodes) {
+        y = guard(doc, y, 6)
+        doc.setFont("helvetica", "bold")
+        doc.setFontSize(9)
+        doc.setTextColor(...C.green)
+        doc.text(f.code, ML, y)
+        const codeW = doc.getTextWidth(f.code)
+        const descLines = doc.splitTextToSize(
+          (f.description ?? "").replace(/\*\*(.+?)\*\*/g, "$1"),
+          CW - codeW - 4
+        ) as string[]
+        doc.setFont("helvetica", "normal")
+        doc.setFontSize(9)
+        doc.setTextColor(...C.text)
+        doc.text(descLines, ML + codeW + 4, y)
+        y += Math.max(descLines.length, 1) * 4.4 + 1
+      }
+      y += 2
+    }
+
+    // Références pièces
+    if (mr.partReferences && mr.partReferences.length > 0) {
+      y = guard(doc, y, 10)
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(8)
+      doc.setTextColor(...C.muted)
+      doc.text(L.mechanicPartRefs.toUpperCase(), ML, y)
+      y += 5
+
+      for (const p of mr.partReferences) {
+        y = guard(doc, y, 6)
+        doc.setFont("helvetica", "normal")
+        doc.setFontSize(9)
+        doc.setTextColor(...C.text)
+        const label = (p.label ?? "").replace(/\*\*(.+?)\*\*/g, "$1")
+        const ref = (p.reference ?? "").replace(/\*\*(.+?)\*\*/g, "$1")
+        const labelLines = doc.splitTextToSize(label, CW * 0.55) as string[]
+        doc.text(labelLines, ML, y)
+        doc.setFont("helvetica", "bold")
+        doc.setTextColor(...C.navy)
+        doc.text(ref, ML + CW * 0.58, y)
+        y += Math.max(labelLines.length, 1) * 4.4 + 1
+      }
+      y += 2
+    }
+
+    // Notes techniques
+    if (mr.technicalNotes && mr.technicalNotes.length > 0) {
+      y = guard(doc, y, 10)
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(8)
+      doc.setTextColor(...C.muted)
+      doc.text(L.mechanicNotes.toUpperCase(), ML, y)
+      y += 5
+
+      for (const note of mr.technicalNotes) {
+        y = guard(doc, y, 6)
+        doc.setFillColor(...C.green)
+        doc.circle(ML + 1.5, y - 1.2, 1, "F")
+        const nLines = doc.splitTextToSize(
+          note.replace(/\*\*(.+?)\*\*/g, "$1"),
+          CW - 7
+        ) as string[]
+        doc.setFont("helvetica", "normal")
+        doc.setFontSize(9)
+        doc.setTextColor(...C.text)
+        doc.text(nLines, ML + 5, y)
+        y += nLines.length * 4.4
+      }
+      y += 2
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

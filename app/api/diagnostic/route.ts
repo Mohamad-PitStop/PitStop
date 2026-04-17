@@ -245,12 +245,110 @@ function isNoInterventionDiagnostic(d: z.infer<typeof DiagnosticSchema>): boolea
   return false
 }
 
+const MechanicReportSchema = z.object({
+  engineCode: z.string().nullable(),
+  gearboxReference: z.string().nullable(),
+  suspectedFaultCodes: z.array(z.object({
+    code: z.string(),
+    description: z.string(),
+  })).default([]),
+  partReferences: z.array(z.object({
+    label: z.string(),
+    reference: z.string(),
+  })).default([]),
+  technicalNotes: z.array(z.string()).default([]),
+})
+
+export type MechanicReport = z.infer<typeof MechanicReportSchema>
+
+async function generateMechanicReport(params: {
+  locale: "fr" | "en" | "nl"
+  marque: string
+  modele: string
+  variante?: string | null
+  annee: string
+  carburant?: string | null
+  transmission?: string | null
+  cylindree?: string | null
+  puissance?: string | null
+  typeBoiteAuto?: string | null
+  probleme: string
+  diagnostic: z.infer<typeof DiagnosticSchema>
+}): Promise<MechanicReport | null> {
+  const { locale, marque, modele, variante, annee, carburant, transmission, cylindree, puissance, typeBoiteAuto, probleme, diagnostic } = params
+
+  const systemPrompt =
+    locale === "en"
+      ? `You are a senior automotive technician. For the given vehicle and suspected issue, produce a TECHNICAL report meant for the mechanic receiving the client.
+Fill ONLY fields you are reasonably confident about. If unknown, return null or [].
+- engineCode: the actual engine code (e.g. "M47D20", "EA288", "K9K 832"). If multiple engines exist for that model/year, return the most likely for the given fuel/power, or null.
+- gearboxReference: gearbox reference if applicable (e.g. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Or null.
+- suspectedFaultCodes: DTC codes (P0xxx etc.) likely related to the described symptom. Include short description.
+- partReferences: OEM or equivalent part numbers of the likely faulty parts.
+- technicalNotes: 2 to 5 short technical notes useful for the mechanic (torque specs, known weaknesses, diagnostic tip).
+Be concise. No marketing, no disclaimer. No markdown.`
+      : locale === "nl"
+      ? `Je bent een ervaren automonteur. Stel voor het opgegeven voertuig en vermoedelijk probleem een TECHNISCH rapport op voor de monteur.
+Vul ALLEEN velden in waarover je redelijk zeker bent. Anders null of [].
+- engineCode: exacte motorcode (bv. "M47D20", "EA288", "K9K 832"). Of null.
+- gearboxReference: versnellingsbakreferentie (bv. "ZF 6HP26", "DQ250"). Of null.
+- suspectedFaultCodes: DTC-codes (P0xxx) gerelateerd aan het symptoom, met korte beschrijving.
+- partReferences: OEM of equivalente onderdeelnummers van vermoedelijk defecte onderdelen.
+- technicalNotes: 2 tot 5 korte technische notities voor de monteur.
+Wees beknopt. Geen marketing, geen disclaimer, geen markdown.`
+      : `Tu es un technicien automobile expérimenté. Pour le véhicule et le problème suspecté, rédige un rapport TECHNIQUE destiné au garagiste qui recevra le client.
+Remplis UNIQUEMENT les champs pour lesquels tu as une confiance raisonnable. Sinon null ou [].
+- engineCode: le code moteur exact (ex. "M47D20", "EA288", "K9K 832"). Si plusieurs moteurs existent pour ce modèle/année, donne le plus probable selon le carburant/puissance, sinon null.
+- gearboxReference: référence boîte de vitesses le cas échéant (ex. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Sinon null.
+- suspectedFaultCodes: codes DTC (P0xxx etc.) probablement liés au symptôme. Ajoute une courte description.
+- partReferences: numéros OEM ou équivalents des pièces vraisemblablement fautives.
+- technicalNotes: 2 à 5 notes techniques courtes utiles au garagiste (couple de serrage, faiblesse connue, astuce de diagnostic).
+Sois concis. Pas de marketing, pas de disclaimer, pas de markdown.`
+
+  const vehicleLine = [
+    `${marque} ${modele}${variante ? " " + variante : ""} ${annee}`,
+    carburant && `fuel=${carburant}`,
+    transmission && `transmission=${transmission}`,
+    cylindree && `cc=${cylindree}`,
+    puissance && `power=${puissance}`,
+    typeBoiteAuto && `gearbox=${typeBoiteAuto}`,
+  ].filter(Boolean).join(", ")
+
+  const userPrompt =
+    `Vehicle: ${vehicleLine}\n` +
+    `Customer complaint: ${probleme}\n` +
+    `Diagnostic summary: ${diagnostic.problem}\n` +
+    `Description: ${diagnostic.description}`
+
+  try {
+    const { output } = await generateText({
+      model: anthropic("claude-sonnet-4-6"),
+      system: systemPrompt,
+      maxOutputTokens: 2000,
+      prompt: userPrompt,
+      output: Output.object({ schema: MechanicReportSchema }),
+    })
+    return output ?? null
+  } catch (err) {
+    console.error("Mechanic report generation failed:", err)
+    return null
+  }
+}
+
+function shouldGenerateMechanicReport(d: z.infer<typeof DiagnosticSchema>): boolean {
+  if (d.needsMoreInfo) return false
+  if (isNoInterventionDiagnostic(d)) return false
+  if (d.serviceRecommendation?.type === "lavage-auto") return false
+  return true
+}
+
 function buildDiagnosticResponse(
   diagnostic: z.infer<typeof DiagnosticSchema>,
   diagnosticRequestId: string | null = null,
-  creditRefunded = false
+  creditRefunded = false,
+  mechanicReport: MechanicReport | null = null,
 ) {
-  return NextResponse.json({ ...diagnostic, diagnosticRequestId, creditRefunded })
+  return NextResponse.json({ ...diagnostic, diagnosticRequestId, creditRefunded, mechanicReport })
 }
 
 function applyGuestFirstSuccessCookies(res: NextResponse, diagId: string) {
@@ -818,7 +916,16 @@ mentionnant les variantes concernées.
         creditRefunded = true
       }
       const calibrated1 = applyPriceCalibration(diagnostic1, String(marque), carburant, String(probleme))
-      const res1 = buildDiagnosticResponse(calibrated1, diagId, creditRefunded)
+      const mechanicReport1 = shouldGenerateMechanicReport(calibrated1)
+        ? await generateMechanicReport({
+            locale, marque: String(marque), modele: String(modele),
+            variante: variante ? String(variante) : null, annee: String(annee),
+            carburant, transmission: transmission ? String(transmission) : null,
+            cylindree, puissance, typeBoiteAuto,
+            probleme: String(probleme), diagnostic: calibrated1,
+          })
+        : null
+      const res1 = buildDiagnosticResponse(calibrated1, diagId, creditRefunded, mechanicReport1)
       if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res1, diagId)
       return res1
     }
@@ -850,7 +957,16 @@ mentionnant les variantes concernées.
       creditRefunded = true
     }
     const calibrated2 = applyPriceCalibration(finalDiagnostic, String(marque), carburant, String(probleme))
-    const res2 = buildDiagnosticResponse(calibrated2, diagId, creditRefunded)
+    const mechanicReport2 = shouldGenerateMechanicReport(calibrated2)
+      ? await generateMechanicReport({
+          locale, marque: String(marque), modele: String(modele),
+          variante: variante ? String(variante) : null, annee: String(annee),
+          carburant, transmission: transmission ? String(transmission) : null,
+          cylindree, puissance, typeBoiteAuto,
+          probleme: String(probleme), diagnostic: calibrated2,
+        })
+      : null
+    const res2 = buildDiagnosticResponse(calibrated2, diagId, creditRefunded, mechanicReport2)
     if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res2, diagId)
     return res2
   } catch (error) {
