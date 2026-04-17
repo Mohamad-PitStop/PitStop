@@ -243,48 +243,49 @@ export function LandingPage() {
               </div>
             </section>
 
-            <LandingStaggerItem index={17}>
-              <footer className="mt-auto border-t border-border/50 py-10">
-                <div className="container mx-auto max-w-6xl px-4">
-                  <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                    <div className="shrink-0 text-center text-sm text-muted-foreground md:text-left">
-                      {t("footer.rights", { year: String(new Date().getFullYear()) })}
-                    </div>
-                    <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground md:justify-end">
-                      <Link href="/mentions-legales" className="transition-colors hover:text-foreground">
-                        {t("footer.legal")}
-                      </Link>
-                      <Link href="/confidentialite" className="transition-colors hover:text-foreground">
-                        {t("footer.privacy")}
-                      </Link>
-                      <Link href="/conditions-generales-vente" className="transition-colors hover:text-foreground">
-                        {t("footer.cgv")}
-                      </Link>
-                      <Link href="/politique-ia" className="transition-colors hover:text-foreground">
-                        {t("footer.aiPolicy")}
-                      </Link>
-                      <Link href="/cgp-garages" className="transition-colors hover:text-foreground">
-                        {t("footer.cgpGarages")}
-                      </Link>
-                      <Link href="/inscription-garage" className="transition-colors hover:text-foreground">
-                        {t("footer.garageProfessionals")}
-                      </Link>
-                      <Link href="/sla" className="transition-colors hover:text-foreground">
-                        {t("footer.sla")}
-                      </Link>
-                      <a
-                        href="mailto:pitstopbelgique@gmail.com"
-                        className="transition-colors hover:text-foreground"
-                      >
-                        {t("footer.contact")}
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </footer>
-            </LandingStaggerItem>
           </main>
         </LandingStaggerRoot>
+
+        {/* Footer hors du système d'animation : garanti visible dans le HTML statique
+            pour les robots (Google OAuth, crawlers SEO) sans dépendance JS. */}
+        <footer className="mt-auto border-t border-border/50 py-10">
+          <div className="container mx-auto max-w-6xl px-4">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="shrink-0 text-center text-sm text-muted-foreground md:text-left">
+                {t("footer.rights", { year: String(new Date().getFullYear()) })}
+              </div>
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground md:justify-end">
+                <Link href="/mentions-legales" className="transition-colors hover:text-foreground">
+                  {t("footer.legal")}
+                </Link>
+                <Link href="/confidentialite" className="transition-colors hover:text-foreground">
+                  {t("footer.privacy")}
+                </Link>
+                <Link href="/conditions-generales-vente" className="transition-colors hover:text-foreground">
+                  {t("footer.cgv")}
+                </Link>
+                <Link href="/politique-ia" className="transition-colors hover:text-foreground">
+                  {t("footer.aiPolicy")}
+                </Link>
+                <Link href="/cgp-garages" className="transition-colors hover:text-foreground">
+                  {t("footer.cgpGarages")}
+                </Link>
+                <Link href="/inscription-garage" className="transition-colors hover:text-foreground">
+                  {t("footer.garageProfessionals")}
+                </Link>
+                <Link href="/sla" className="transition-colors hover:text-foreground">
+                  {t("footer.sla")}
+                </Link>
+                <a
+                  href="mailto:pitstopbelgique@gmail.com"
+                  className="transition-colors hover:text-foreground"
+                >
+                  {t("footer.contact")}
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   )
