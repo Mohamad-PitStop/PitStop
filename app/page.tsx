@@ -14,5 +14,13 @@ export default async function HomePage() {
   const cookieStore = await cookies()
   const user = await getUserFromAuthCookie(cookieStore.toString())
   if (user?.role === "garagiste") redirect("/garage/dashboard")
-  return <LandingPage />
+  return (
+    <>
+      {/* Balise standard lue par les robots OAuth de Google pour localiser la page
+          de confidentialité sans dépendre du rendu JavaScript ni des animations. */}
+      {/* eslint-disable-next-line @next/next/no-head-element */}
+      <link rel="privacy-policy" href="/confidentialite" />
+      <LandingPage />
+    </>
+  )
 }
