@@ -140,12 +140,16 @@ export async function GET(
 </body>
 </html>`
 
-  return new Response(html, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "no-store, no-cache",
-      "Set-Cookie": [cookieStr, clearStateStr].join(", "),
-    },
+  // IMPORTANT : chaque cookie DOIT être dans un header `Set-Cookie` distinct.
+  // Joindre deux cookies avec une virgule casse le parsing navigateur (la virgule
+  // apparaît légitimement dans `Expires=Wed, 09 Jun …`), ce qui faisait qu'AUCUN
+  // des deux cookies n'était posé → session OAuth silencieusement perdue.
+  const headers = new Headers({
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "no-store, no-cache",
   })
+  headers.append("Set-Cookie", cookieStr)
+  headers.append("Set-Cookie", clearStateStr)
+
+  return new Response(html, { status: 200, headers })
 }

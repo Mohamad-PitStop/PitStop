@@ -51,8 +51,13 @@ function CompleteProfileForm() {
             await new Promise((res) => setTimeout(res, 600))
             if (!cancelled) await attempt(tries - 1)
           } else {
-            // Vraiment pas connecté après plusieurs essais → /connexion avec retour ici
-            window.location.replace(`/connexion?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+            // Vraiment pas connecté après plusieurs essais → /connexion.
+            // On renvoie directement vers la destination finale (`next`) plutôt que
+            // d'imbriquer /completer-profil dans le callbackUrl, sinon le paramètre
+            // `next` est perdu au re-parsing et on boucle sur la page de connexion.
+            const fallbackUrl = new URL("/connexion", window.location.origin)
+            fallbackUrl.searchParams.set("callbackUrl", next)
+            window.location.replace(fallbackUrl.toString())
           }
           return
         }
