@@ -10,39 +10,27 @@ import { buildLoginUrl } from "@/lib/login-redirect"
 
 export function DiagnosticPageContent({ skipGuestGate = false }: { skipGuestGate?: boolean }) {
   const { t } = useTranslation()
-  const [sessionUser, setSessionUser] = useState<{ id: string } | null | undefined>(undefined)
   const [guestUsed, setGuestUsed] = useState(false)
   const [guestMode, setGuestMode] = useState(false)
-  const [eligibilityReady, setEligibilityReady] = useState(false)
+  const [eligibilityReady, setEligibilityReady] = useState(skipGuestGate)
+  const [authGateOpen, setAuthGateOpen] = useState(false)
 
+  // Pré-charge en arrière-plan si l'utilisateur a déjà consommé son diag invité.
+  // On n'affiche PLUS la modale au chargement : le formulaire est visible tout de
+  // suite pour laisser l'utilisateur saisir son véhicule. La modale ne s'ouvre
+  // qu'au clic sur « Lancer le diagnostic » si la session n'est pas connectée.
   useEffect(() => {
+    if (skipGuestGate) return
     let cancelled = false
     ;(async () => {
       try {
-        const meRes = await fetch("/api/auth/me", { credentials: "include" })
-        const meData = await meRes.json().catch(() => null)
-        if (cancelled) return
-        if (meData?.user) {
-          setSessionUser(meData.user)
-          setEligibilityReady(true)
-          return
-        }
-        if (skipGuestGate) {
-          setSessionUser(null)
-          setEligibilityReady(true)
-          return
-        }
-        setSessionUser(null)
         const gRes = await fetch("/api/guest/diagnostic-eligibility", { credentials: "include" })
         const g = await gRes.json().catch(() => null)
         if (cancelled) return
         setGuestUsed(!!g?.guestDiagnosticUsed)
         setEligibilityReady(true)
       } catch {
-        if (!cancelled) {
-          setSessionUser(null)
-          setEligibilityReady(true)
-        }
+        if (!cancelled) setEligibilityReady(true)
       }
     })()
     return () => {
@@ -61,26 +49,27 @@ export function DiagnosticPageContent({ skipGuestGate = false }: { skipGuestGate
       throw new Error(typeof data?.message === "string" ? data.message : "Impossible d’activer le mode invité.")
     }
     setGuestMode(true)
+    setAuthGateOpen(false)
   }, [])
 
-  const showGate = eligibilityReady && sessionUser === null && !guestMode
-  /** Sans skipGuestGate : tant que /me n’a pas répondu, on affiche le portail (spinner ou choix invité). */
-  const gateLoading =
-    !skipGuestGate && (!eligibilityReady || sessionUser === undefined)
+  const onRequireAuth = useCallback(() => {
+    if (skipGuestGate) return
+    setAuthGateOpen(true)
+  }, [skipGuestGate])
 
   return (
     <div className="relative min-h-screen bg-background">
       <DiagnosticGuestGate
-        open={gateLoading || showGate}
+        open={authGateOpen}
         guestUsed={guestUsed}
-        loading={gateLoading}
+        loading={!eligibilityReady}
         onLogin={onLogin}
         onContinueGuest={onContinueGuest}
       />
 
       <Navbar />
 
-      <main className={gateLoading || showGate ? "pointer-events-none opacity-40 select-none" : ""}>
+      <main className={authGateOpen ? "pointer-events-none opacity-40 select-none" : ""}>
         <section className="relative overflow-hidden py-14 md:py-20">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
 
@@ -103,10 +92,10 @@ export function DiagnosticPageContent({ skipGuestGate = false }: { skipGuestGate
             </div>
 
             <div className="mx-auto max-w-4xl space-y-8">
-              {(skipGuestGate && sessionUser === undefined) ||
-              (sessionUser !== undefined && (sessionUser !== null || guestMode)) ? (
-                <VehicleForm guestDiagnosticSession={guestMode && !skipGuestGate} />
-              ) : null}
+              <VehicleForm
+                guestDiagnosticSession={guestMode && !skipGuestGate}
+                onRequireAuth={skipGuestGate ? undefined : onRequireAuth}
+              />
 
               <div className="flex items-start gap-3 rounded-lg border border-border/50 bg-secondary/30 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />

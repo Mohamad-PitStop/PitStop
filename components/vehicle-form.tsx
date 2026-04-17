@@ -31,7 +31,20 @@ function sortYearsDesc(years: string[]): string[] {
   return [...years].sort((a, b) => Number(b) - Number(a))
 }
 
-export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosticSession?: boolean }) {
+export function VehicleForm({
+  guestDiagnosticSession = false,
+  onRequireAuth,
+}: {
+  guestDiagnosticSession?: boolean
+  /**
+   * Si fourni, appelé lorsqu'un utilisateur non connecté (et non en mode invité)
+   * tente de lancer le diagnostic. Le formulaire ne redirige PAS vers /connexion :
+   * c'est au parent d'afficher la modale de choix (se connecter / diag invité).
+   * Les données saisies sont sauvegardées dans sessionStorage pour être restaurées
+   * au retour de la page de connexion.
+   */
+  onRequireAuth?: () => void
+}) {
   const router = useRouter()
   const { t, locale } = useTranslation()
   const { makes: apiMakes, models: apiModels, loadingMakes, loadingModels, fetchModels } = useCarsApi()
@@ -596,6 +609,19 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       return
     }
 
+    // Non connecté, pas en mode invité : si le parent gère l'auth via une modale,
+    // on lui délègue et on sauvegarde les données du formulaire pour pouvoir les
+    // restaurer au retour d'un aller-retour OAuth (ou d'une redirection /connexion).
+    if (onRequireAuth) {
+      try {
+        sessionStorage.setItem("pendingFormData", JSON.stringify(formData))
+      } catch {
+        /* ignore storage quota */
+      }
+      onRequireAuth()
+      return
+    }
+
     router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
   }
 
@@ -775,6 +801,13 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         const meData = await meRes.json().catch(() => null)
         if (cancelled) return
         if (!meData?.user) {
+          // Si le parent prend en charge l'auth (modale à la soumission), on laisse
+          // l'utilisateur remplir le formulaire sans rediriger immédiatement.
+          if (onRequireAuth) {
+            setAuthUser(null)
+            setAuthSessionReady(true)
+            return
+          }
           router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
           return
         }
@@ -785,13 +818,19 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
         })
         setAuthSessionReady(true)
       } catch {
-        if (!cancelled) router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
+        if (cancelled) return
+        if (onRequireAuth) {
+          setAuthUser(null)
+          setAuthSessionReady(true)
+          return
+        }
+        router.replace(buildLoginUrl("/diagnostic", { reason: "diagnostic" }))
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [router, guestDiagnosticSession])
+  }, [router, guestDiagnosticSession, onRequireAuth])
 
   // Charger les véhicules sauvegardés après auth
   useEffect(() => {
@@ -851,6 +890,18 @@ export function VehicleForm({ guestDiagnosticSession = false }: { guestDiagnosti
       const delaysMs = [2500, 6000, 12000, 20000]
       const timers = delaysMs.map((ms) => setTimeout(refreshCreditsBalance, ms))
       return () => timers.forEach(clearTimeout)
+    }
+
+    // Retour d'un aller-retour connexion (OAuth ou email/mdp) : on restaure les
+    // infos véhicule saisies avant la redirection pour ne rien faire ressaisir.
+    const savedDataStr = sessionStorage.getItem("pendingFormData")
+    if (savedDataStr) {
+      try {
+        setFormData(JSON.parse(savedDataStr))
+      } catch {
+        /* ignore */
+      }
+      sessionStorage.removeItem("pendingFormData")
     }
   }, [])
 
