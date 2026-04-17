@@ -188,10 +188,9 @@ export default function AdminUsersPage() {
       .then(async (data) => {
         if (!data?.user || data.user.role !== "admin") { router.replace("/"); return }
         setCurrentUserId(data.user.id)
-        await fetchData()
-        await fetchPromoCodes()
-        await fetchGiftCodes()
-        await fetchLocationStats()
+        // Parallélise les 4 appels : ils sont indépendants (counts, promo,
+        // gift codes, location stats). Auparavant en cascade (> 2 s perçues).
+        await Promise.all([fetchData(), fetchPromoCodes(), fetchGiftCodes(), fetchLocationStats()])
       })
       .finally(() => setLoading(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
