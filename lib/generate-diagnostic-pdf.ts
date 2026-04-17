@@ -15,6 +15,7 @@ const LABELS = {
     mechanicIntro:         "Synthèse technique à présenter au garagiste. Les informations ci-dessous sont indicatives et doivent être vérifiées sur le véhicule.",
     mechanicEngineCode:    "Code moteur",
     mechanicGearboxRef:    "Référence boîte de vitesses",
+    mechanicNotIdentified: "Non identifié",
     mechanicFaultCodes:    "Codes erreur suspectés",
     mechanicPartRefs:      "Références pièces probables",
     mechanicNotes:         "Notes techniques",
@@ -48,6 +49,7 @@ const LABELS = {
     mechanicIntro:         "Technical summary to share with the mechanic. The information below is indicative and should be verified on the vehicle.",
     mechanicEngineCode:    "Engine code",
     mechanicGearboxRef:    "Gearbox reference",
+    mechanicNotIdentified: "Not identified",
     mechanicFaultCodes:    "Suspected fault codes",
     mechanicPartRefs:      "Likely part references",
     mechanicNotes:         "Technical notes",
@@ -81,6 +83,7 @@ const LABELS = {
     mechanicIntro:         "Technische samenvatting om aan de garage te tonen. Deze informatie is indicatief en moet op het voertuig worden gecontroleerd.",
     mechanicEngineCode:    "Motorcode",
     mechanicGearboxRef:    "Versnellingsbakreferentie",
+    mechanicNotIdentified: "Niet geïdentificeerd",
     mechanicFaultCodes:    "Vermoedelijke foutcodes",
     mechanicPartRefs:      "Waarschijnlijke onderdeelreferenties",
     mechanicNotes:         "Technische notities",
@@ -479,13 +482,18 @@ export function generateDiagnosticPdf(
 
   y += 27
 
-  // Citation du problème
+  // Citation du problème : rendu ligne par ligne avec guard pour éviter tout
+  // débordement de page si l'utilisateur a écrit une description longue.
   doc.setFont("helvetica", "italic")
   doc.setFontSize(8.5)
   doc.setTextColor(...C.muted)
   const quote = doc.splitTextToSize(`"${vehicleInfo.probleme.replace(/\*\*(.+?)\*\*/g, "$1")}"`, CW) as string[]
-  doc.text(quote, ML, y)
-  y += quote.length * 4 + 4
+  for (const qline of quote) {
+    y = guard(doc, y, 5)
+    doc.text(qline, ML, y)
+    y += 4
+  }
+  y += 4
 
   y = sep(doc, y)
 
@@ -503,7 +511,9 @@ export function generateDiagnosticPdf(
   }
   const sev = sevMap[diagnostic.severity] ?? sevMap.medium
   const sevLabel = diagnostic.severityLabel
-  const badgeW = doc.setFontSize(7.5) && doc.getTextWidth(sevLabel) + 8
+  doc.setFontSize(7.5)
+  doc.setFont("helvetica", "bold")
+  const badgeW = doc.getTextWidth(sevLabel) + 8
   doc.setFillColor(...sev.bg)
   doc.roundedRect(ML, y - 3.5, badgeW, 7, 1.5, 1.5, "F")
   doc.setDrawColor(...sev.color)
@@ -533,11 +543,18 @@ export function generateDiagnosticPdf(
     y = text(doc, diagnostic.obdScanFirst.explanation, y, { size: 9, color: [60, 70, 100] })
     y += 3
 
-    // Deux options côte à côte
+    // Deux options côte à côte. Hauteur calculée en fonction du nombre réel
+    // de lignes de la description Option B (pour que le texte ne déborde pas
+    // du cadre arrondi sur certaines traductions plus verbeuses).
     const hw = CW / 2 - 2
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(7.5)
+    const obLines = doc.splitTextToSize(L.optionBDesc, hw - 6) as string[]
+    const boxH = Math.max(20, 12 + obLines.length * 3.2 + 2)
+    y = guard(doc, y, boxH + 3)
     doc.setFillColor(...C.cardBg)
-    doc.roundedRect(ML, y, hw, 20, 2, 2, "F")
-    doc.roundedRect(ML + hw + 4, y, hw, 20, 2, 2, "F")
+    doc.roundedRect(ML, y, hw, boxH, 2, 2, "F")
+    doc.roundedRect(ML + hw + 4, y, hw, boxH, 2, 2, "F")
 
     doc.setFont("helvetica", "bold")
     doc.setFontSize(8)
@@ -558,10 +575,9 @@ export function generateDiagnosticPdf(
     doc.setFont("helvetica", "normal")
     doc.setFontSize(7.5)
     doc.setTextColor(...C.muted)
-    const obLines = doc.splitTextToSize(L.optionBDesc, hw - 6) as string[]
     doc.text(obLines, ML + hw + 7, y + 12)
 
-    y += 23
+    y += boxH + 3
   }
 
   if (diagnostic.concessionOnly?.required) {
@@ -584,6 +600,7 @@ export function generateDiagnosticPdf(
   if (showPrice && diagnostic.priceRange) {
     y = sep(doc, y)
     y = section(doc, L.sectionPrice, y)
+    y = guard(doc, y, 24)
 
     // Bloc navy
     doc.setFillColor(...C.navy)
@@ -649,13 +666,14 @@ export function generateDiagnosticPdf(
     y += 5
 
     for (const item of diagnostic.garage.includes) {
-      y = guard(doc, y, 6)
-      // puce verte
-      doc.setFillColor(...C.green)
-      doc.circle(ML + 1.5, y - 1.2, 1, "F")
-      const iLines = doc.splitTextToSize(item.replace(/\*\*(.+?)\*\*/g, "$1"), CW - 7) as string[]
+      // Mesurer la hauteur réelle de l'item avant de réserver l'espace,
+      // sinon un item multi-lignes peut chevaucher le pied de page.
       doc.setFont("helvetica", "normal")
       doc.setFontSize(9)
+      const iLines = doc.splitTextToSize(item.replace(/\*\*(.+?)\*\*/g, "$1"), CW - 7) as string[]
+      y = guard(doc, y, iLines.length * 4.4 + 2)
+      doc.setFillColor(...C.green)
+      doc.circle(ML + 1.5, y - 1.2, 1, "F")
       doc.setTextColor(...C.text)
       doc.text(iLines, ML + 5, y)
       y += iLines.length * 4.4
@@ -703,12 +721,14 @@ export function generateDiagnosticPdf(
     y += 5
 
     diagnostic.diy.steps.forEach((step, i) => {
-      y = guard(doc, y, 7)
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(9)
+      const sLines = doc.splitTextToSize(step.replace(/\*\*(.+?)\*\*/g, "$1"), CW - 8) as string[]
+      y = guard(doc, y, sLines.length * 4.4 + 3)
       doc.setFont("helvetica", "bold")
       doc.setFontSize(8.5)
       doc.setTextColor(...C.green)
       doc.text(`${i + 1}`, ML + 1, y)
-      const sLines = doc.splitTextToSize(step.replace(/\*\*(.+?)\*\*/g, "$1"), CW - 8) as string[]
       doc.setFont("helvetica", "normal")
       doc.setFontSize(9)
       doc.setTextColor(...C.text)
@@ -771,13 +791,16 @@ export function generateDiagnosticPdf(
     y = text(doc, L.mechanicIntro, y, { size: 9, italic: true, color: C.muted, lh: 4.4 })
     y += 3
 
-    // Bloc identité technique
+    // Bloc identité technique : deux colonnes (code moteur / référence boîte).
+    // Les valeurs sont tronquées visuellement si elles sont plus larges que la
+    // colonne pour éviter qu'elles ne chevauchent la colonne voisine.
     if ((mr.engineCode && mr.engineCode.trim()) || (mr.gearboxReference && mr.gearboxReference.trim())) {
       y = guard(doc, y, 20)
       doc.setFillColor(...C.cardBg)
       doc.roundedRect(ML, y - 2, CW, 16, 2, 2, "F")
 
       const colW = CW / 2
+      const valMaxW = colW - 6
       doc.setFont("helvetica", "bold")
       doc.setFontSize(7.5)
       doc.setTextColor(...C.muted)
@@ -787,8 +810,12 @@ export function generateDiagnosticPdf(
       doc.setFont("helvetica", "bold")
       doc.setFontSize(11)
       doc.setTextColor(...C.navy)
-      doc.text(mr.engineCode?.trim() || "—", ML + 4, y + 10)
-      doc.text(mr.gearboxReference?.trim() || "—", ML + colW + 2, y + 10)
+      const engineVal = (mr.engineCode?.trim() || L.mechanicNotIdentified)
+      const gearVal = (mr.gearboxReference?.trim() || L.mechanicNotIdentified)
+      const engineLines = doc.splitTextToSize(engineVal, valMaxW) as string[]
+      const gearLines = doc.splitTextToSize(gearVal, valMaxW) as string[]
+      doc.text(engineLines[0] ?? "", ML + 4, y + 10)
+      doc.text(gearLines[0] ?? "", ML + colW + 2, y + 10)
       y += 20
     }
 
@@ -802,18 +829,20 @@ export function generateDiagnosticPdf(
       y += 5
 
       for (const f of mr.suspectedFaultCodes) {
-        y = guard(doc, y, 6)
         doc.setFont("helvetica", "bold")
         doc.setFontSize(9)
-        doc.setTextColor(...C.green)
-        doc.text(f.code, ML, y)
         const codeW = doc.getTextWidth(f.code)
+        doc.setFont("helvetica", "normal")
         const descLines = doc.splitTextToSize(
           (f.description ?? "").replace(/\*\*(.+?)\*\*/g, "$1"),
           CW - codeW - 4
         ) as string[]
-        doc.setFont("helvetica", "normal")
+        y = guard(doc, y, Math.max(descLines.length, 1) * 4.4 + 3)
+        doc.setFont("helvetica", "bold")
         doc.setFontSize(9)
+        doc.setTextColor(...C.green)
+        doc.text(f.code, ML, y)
+        doc.setFont("helvetica", "normal")
         doc.setTextColor(...C.text)
         doc.text(descLines, ML + codeW + 4, y)
         y += Math.max(descLines.length, 1) * 4.4 + 1
@@ -831,18 +860,22 @@ export function generateDiagnosticPdf(
       y += 5
 
       for (const p of mr.partReferences) {
-        y = guard(doc, y, 6)
         doc.setFont("helvetica", "normal")
         doc.setFontSize(9)
-        doc.setTextColor(...C.text)
         const label = (p.label ?? "").replace(/\*\*(.+?)\*\*/g, "$1")
         const ref = (p.reference ?? "").replace(/\*\*(.+?)\*\*/g, "$1")
         const labelLines = doc.splitTextToSize(label, CW * 0.55) as string[]
+        doc.setFont("helvetica", "bold")
+        const refLines = doc.splitTextToSize(ref, CW * 0.40) as string[]
+        const h = Math.max(labelLines.length, refLines.length, 1) * 4.4 + 1
+        y = guard(doc, y, h + 2)
+        doc.setFont("helvetica", "normal")
+        doc.setTextColor(...C.text)
         doc.text(labelLines, ML, y)
         doc.setFont("helvetica", "bold")
         doc.setTextColor(...C.navy)
-        doc.text(ref, ML + CW * 0.58, y)
-        y += Math.max(labelLines.length, 1) * 4.4 + 1
+        doc.text(refLines, ML + CW * 0.58, y)
+        y += h
       }
       y += 2
     }
@@ -857,15 +890,15 @@ export function generateDiagnosticPdf(
       y += 5
 
       for (const note of mr.technicalNotes) {
-        y = guard(doc, y, 6)
-        doc.setFillColor(...C.green)
-        doc.circle(ML + 1.5, y - 1.2, 1, "F")
+        doc.setFont("helvetica", "normal")
+        doc.setFontSize(9)
         const nLines = doc.splitTextToSize(
           note.replace(/\*\*(.+?)\*\*/g, "$1"),
           CW - 7
         ) as string[]
-        doc.setFont("helvetica", "normal")
-        doc.setFontSize(9)
+        y = guard(doc, y, nLines.length * 4.4 + 2)
+        doc.setFillColor(...C.green)
+        doc.circle(ML + 1.5, y - 1.2, 1, "F")
         doc.setTextColor(...C.text)
         doc.text(nLines, ML + 5, y)
         y += nLines.length * 4.4
@@ -884,14 +917,14 @@ export function generateDiagnosticPdf(
   const dLines = doc.splitTextToSize(L.disclaimer, CW - 8) as string[]
   const dH = dLines.length * 4 + 8
 
-  doc.setFillColor(255, 251, 235)
+  doc.setFillColor(...C.sevMedBg)
   doc.roundedRect(ML, y - 2, CW, dH, 2, 2, "F")
   doc.setFillColor(...C.sevMed)
   doc.roundedRect(ML, y - 2, 3, dH, 1.5, 1.5, "F")
 
   doc.setFont("helvetica", "italic")
   doc.setFontSize(7.5)
-  doc.setTextColor(120, 90, 0)
+  doc.setTextColor(...C.sevMed)
   doc.text(dLines, ML + 6, y + 3)
 
   // ═══════════════════════════════════════════════════════════════════════════

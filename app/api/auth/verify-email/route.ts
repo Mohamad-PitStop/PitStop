@@ -17,14 +17,19 @@ import {
   setUserGarageId,
   type UserRole,
 } from "@/lib/accounts-db"
-import { AUTH_COOKIE_NAME, buildSessionCookieOptions, createAuthSession } from "@/lib/auth-session"
+import { AUTH_COOKIE_NAME, buildSessionCookieOptions, createAuthSession, extractCookieValue } from "@/lib/auth-session"
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit"
 import { sendSignupConfirmedEmail } from "@/lib/signup-confirmed-email"
 import { findPendingGarageRegistration, deletePendingGarageRegistration } from "@/lib/pending-garage-registration-db"
 import { createGarage } from "@/lib/garage-db"
 import { activateEmployee } from "@/lib/garage-employee-db"
 import { assignDiagnosticRequestToUser } from "@/lib/diagnostics-db"
-import { clearGuestDiagnosticCookies, sanitizePostVerifyRedirect } from "@/lib/guest-diagnostic"
+import {
+  clearGuestDiagnosticCookies,
+  sanitizePostVerifyRedirect,
+  GUEST_USED_COOKIE,
+  GUEST_ROW_COOKIE,
+} from "@/lib/guest-diagnostic"
 
 export const runtime = "nodejs"
 
@@ -50,6 +55,19 @@ export async function POST(req: Request) {
     const { token, pendingGuestDiagnosticId, postVerifyRedirect } = Schema.parse(await req.json())
     const tokenHash = hashToken(token)
 
+    // Preuve navigateur (server-side) qu'un diagnostic invité gratuit a déjà été consommé.
+    // Sert à la fois à (1) refuser le crédit de bienvenue et (2) retrouver l'id du
+    // diagnostic même si le sessionStorage a été vidé entre-temps.
+    const cookieHeader = req.headers.get("cookie")
+    const guestUsedCookie = extractCookieValue(cookieHeader, GUEST_USED_COOKIE) === "1"
+    const guestRowIdFromCookie = extractCookieValue(cookieHeader, GUEST_ROW_COOKIE)
+    const effectiveGuestDiagnosticId =
+      pendingGuestDiagnosticId && pendingGuestDiagnosticId.trim().length >= 10
+        ? pendingGuestDiagnosticId.trim()
+        : guestRowIdFromCookie && guestRowIdFromCookie.trim().length >= 10
+        ? guestRowIdFromCookie.trim()
+        : null
+
     const pending = await findPendingVerificationByTokenHash(tokenHash)
     if (!pending) {
       return NextResponse.json(
@@ -73,15 +91,15 @@ export async function POST(req: Request) {
       await deletePendingVerification(pending.email)
       const sessionToken = await createAuthSession(existing.id)
       let redirectTo: string | null = null
-      if (pendingGuestDiagnosticId && existing.role !== "garagiste") {
-        const ok = await assignDiagnosticRequestToUser(pendingGuestDiagnosticId, existing.id)
+      if (effectiveGuestDiagnosticId && existing.role !== "garagiste") {
+        const ok = await assignDiagnosticRequestToUser(effectiveGuestDiagnosticId, existing.id)
         if (ok) {
           redirectTo = sanitizePostVerifyRedirect(postVerifyRedirect) ?? "/mes-diagnostics"
         }
       }
       const res = NextResponse.json({ ok: true, alreadyExists: true, redirectTo })
       res.cookies.set(AUTH_COOKIE_NAME, sessionToken, buildSessionCookieOptions())
-      if (redirectTo) clearGuestDiagnosticCookies(res)
+      if (redirectTo || guestUsedCookie) clearGuestDiagnosticCookies(res)
       return res
     }
 
@@ -155,15 +173,19 @@ export async function POST(req: Request) {
     let welcomed = false
     let redirectTo: string | null = null
     let attachedFromGuest = false
-    if (pendingGuestDiagnosticId && role !== "garagiste") {
-      attachedFromGuest = await assignDiagnosticRequestToUser(pendingGuestDiagnosticId, account.id)
+    if (effectiveGuestDiagnosticId && role !== "garagiste") {
+      attachedFromGuest = await assignDiagnosticRequestToUser(effectiveGuestDiagnosticId, account.id)
       if (attachedFromGuest) {
         redirectTo = sanitizePostVerifyRedirect(postVerifyRedirect) ?? "/mes-diagnostics"
       }
     }
 
-    // Crédit de bienvenue : pas si le diagnostic invité vient d’être rattaché (= déjà « gratuit » consommé).
-    if (!attachedFromGuest) {
+    // Crédit de bienvenue : refusé si le diagnostic invité vient d'être rattaché,
+    // OU si le navigateur porte le cookie "déjà utilisé" (même si le rattachement a échoué
+    // — p.ex. lien vérifié dans un onglet vidé de sessionStorage). Le même client ne doit
+    // pas pouvoir contourner la gratuité invité en créant un compte ensuite.
+    const sameBrowserAlreadyUsedFree = guestUsedCookie
+    if (!attachedFromGuest && !sameBrowserAlreadyUsedFree) {
       if (TEST_PHASE_SIGNUP_BONUS_ENABLED) {
         await addCredits(account.id, 1)
         welcomed = true
@@ -177,23 +199,24 @@ export async function POST(req: Request) {
       }
     }
 
+    const finalWelcomed = attachedFromGuest || sameBrowserAlreadyUsedFree ? false : welcomed
     void sendSignupConfirmedEmail({
       to: account.email,
       name: account.name,
-      welcomed: attachedFromGuest ? false : welcomed,
+      welcomed: finalWelcomed,
       testPhaseBonus: TEST_PHASE_SIGNUP_BONUS_ENABLED,
     }).catch((err) => console.error("verify-email: envoi email de confirmation:", err))
 
     const sessionToken = await createAuthSession(account.id)
     const res = NextResponse.json({
       ok: true,
-      welcomed: attachedFromGuest ? false : welcomed,
+      welcomed: finalWelcomed,
       testPhaseBonus: TEST_PHASE_SIGNUP_BONUS_ENABLED,
       redirectTo,
       user: { id: account.id, name: account.name, email: account.email, role: account.role },
     })
     res.cookies.set(AUTH_COOKIE_NAME, sessionToken, buildSessionCookieOptions())
-    if (attachedFromGuest) clearGuestDiagnosticCookies(res)
+    if (attachedFromGuest || sameBrowserAlreadyUsedFree) clearGuestDiagnosticCookies(res)
     return res
   } catch (error) {
     if (error instanceof z.ZodError) {

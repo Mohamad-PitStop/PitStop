@@ -281,8 +281,8 @@ async function generateMechanicReport(params: {
     locale === "en"
       ? `You are a senior automotive technician. For the given vehicle and suspected issue, produce a TECHNICAL report meant for the mechanic receiving the client.
 Fill ONLY fields you are reasonably confident about. If unknown, return null or [].
-- engineCode: the actual engine code (e.g. "M47D20", "EA288", "K9K 832"). If multiple engines exist for that model/year, return the most likely for the given fuel/power, or null.
-- gearboxReference: gearbox reference if applicable (e.g. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Or null.
+- engineCode: the EXACT engine code (e.g. "M47D20", "EA288", "K9K 832"). ABSOLUTE RULE: NEVER invent or guess. Return this field ONLY if the web search results below explicitly identify a single unambiguous code for this exact vehicle (model, year, fuel, power). If multiple variants remain plausible, if the search did not return the code for this specific configuration, or if you are not 100% certain, you MUST return null. A null value is always preferred over an uncertain guess.
+- gearboxReference: gearbox reference if applicable (e.g. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Same rule as engineCode: never invent; if uncertain, return null.
 - suspectedFaultCodes: DTC codes (P0xxx etc.) likely related to the described symptom. Include short description.
 - partReferences: OEM or equivalent part numbers of the likely faulty parts.
 - technicalNotes: 2 to 5 short technical notes useful for the mechanic (torque specs, known weaknesses, diagnostic tip).
@@ -290,16 +290,16 @@ Be concise. No marketing, no disclaimer. No markdown.`
       : locale === "nl"
       ? `Je bent een ervaren automonteur. Stel voor het opgegeven voertuig en vermoedelijk probleem een TECHNISCH rapport op voor de monteur.
 Vul ALLEEN velden in waarover je redelijk zeker bent. Anders null of [].
-- engineCode: exacte motorcode (bv. "M47D20", "EA288", "K9K 832"). Of null.
-- gearboxReference: versnellingsbakreferentie (bv. "ZF 6HP26", "DQ250"). Of null.
+- engineCode: EXACTE motorcode (bv. "M47D20", "EA288", "K9K 832"). ABSOLUTE REGEL: NOOIT verzinnen of gokken. Geef dit veld ALLEEN terug als de webzoekresultaten hieronder ondubbelzinnig één enkele code identificeren voor exact dit voertuig (model, jaar, brandstof, vermogen). Bij twijfel, meerdere plausibele varianten of ontbrekende bevestiging: geef null terug. Null is altijd beter dan een gok.
+- gearboxReference: versnellingsbakreferentie (bv. "ZF 6HP26", "DQ250"). Zelfde regel als engineCode: nooit verzinnen; bij twijfel null.
 - suspectedFaultCodes: DTC-codes (P0xxx) gerelateerd aan het symptoom, met korte beschrijving.
 - partReferences: OEM of equivalente onderdeelnummers van vermoedelijk defecte onderdelen.
 - technicalNotes: 2 tot 5 korte technische notities voor de monteur.
 Wees beknopt. Geen marketing, geen disclaimer, geen markdown.`
       : `Tu es un technicien automobile expérimenté. Pour le véhicule et le problème suspecté, rédige un rapport TECHNIQUE destiné au garagiste qui recevra le client.
 Remplis UNIQUEMENT les champs pour lesquels tu as une confiance raisonnable. Sinon null ou [].
-- engineCode: le code moteur exact (ex. "M47D20", "EA288", "K9K 832"). Si plusieurs moteurs existent pour ce modèle/année, donne le plus probable selon le carburant/puissance, sinon null.
-- gearboxReference: référence boîte de vitesses le cas échéant (ex. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Sinon null.
+- engineCode: le code moteur EXACT (ex. "M47D20", "EA288", "K9K 832"). RÈGLE ABSOLUE : N'INVENTE JAMAIS et NE DEVINE JAMAIS. Ne renseigne ce champ QUE si les résultats de recherche web ci-dessous identifient de manière non ambiguë un code unique pour exactement ce véhicule (modèle, année, carburant, puissance). Si plusieurs variantes restent plausibles, si la recherche n'a pas confirmé le code pour cette configuration précise, ou si tu n'as pas une certitude de 100 %, tu DOIS renvoyer null. Une valeur null est TOUJOURS préférable à une supposition — le client n'a pas renseigné le code moteur, donc sans preuve explicite, on n'affiche rien.
+- gearboxReference: référence boîte de vitesses le cas échéant (ex. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Même règle que engineCode : jamais d'invention ; si incertain, null.
 - suspectedFaultCodes: codes DTC (P0xxx etc.) probablement liés au symptôme. Ajoute une courte description.
 - partReferences: numéros OEM ou équivalents des pièces vraisemblablement fautives.
 - technicalNotes: 2 à 5 notes techniques courtes utiles au garagiste (couple de serrage, faiblesse connue, astuce de diagnostic).
@@ -331,11 +331,13 @@ Sois concis. Pas de marketing, pas de disclaimer, pas de markdown.`
 
   let technicalContext = ""
   try {
+    // Étape 1 : résumé brut des résultats de recherche. Tâche purement extractive
+    // (lister les codes trouvés) → Haiku 4.5 suffit et coûte ~3× moins cher que Sonnet.
     const searchResult = await generateText({
-      model: anthropic("claude-sonnet-4-6"),
-      tools: { webSearch: anthropic.tools.webSearch_20250305({ maxUses: 3 }) },
-      stopWhen: stepCountIs(4),
-      maxOutputTokens: 1000,
+      model: anthropic("claude-haiku-4-5-20251001"),
+      tools: { webSearch: anthropic.tools.webSearch_20250305({ maxUses: 2 }) },
+      stopWhen: stepCountIs(3),
+      maxOutputTokens: 700,
       prompt:
         locale === "en"
           ? `Search the web and find the EXACT engine code and gearbox reference for: ${searchQuery}. List all variants found (by year range and power output). Be precise and factual. Return only the codes found, nothing else.`
@@ -353,14 +355,14 @@ Sois concis. Pas de marketing, pas de disclaimer, pas de markdown.`
   const enrichedPrompt =
     userPrompt +
     (technicalContext
-      ? `\n\nWeb search results for engine code / gearbox reference:\n${technicalContext}\n\nUse the above search results as the primary source for engineCode and gearboxReference. If the search results clearly identify the code for this exact vehicle, use it. If there are multiple variants, pick the one matching the fuel type and power. If still uncertain, set the field to null.`
+      ? `\n\nWeb search results for engine code / gearbox reference:\n${technicalContext}\n\nUse the above search results as the SOLE source of truth for engineCode and gearboxReference. The client has NOT provided the engine code. Only return a value if the search results explicitly and unambiguously confirm a single code for this exact vehicle (matching model, year, fuel type AND power). If multiple variants are listed without a definitive match, if the search is silent, or if any doubt remains: return null. Do not pick "the most likely" — return null. A missing value is correct; a fabricated one is a serious error.`
       : "")
 
   try {
     const { output } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
       system: systemPrompt,
-      maxOutputTokens: 2000,
+      maxOutputTokens: 1200,
       prompt: enrichedPrompt,
       output: Output.object({ schema: MechanicReportSchema }),
     })
@@ -375,6 +377,15 @@ function shouldGenerateMechanicReport(d: z.infer<typeof DiagnosticSchema>): bool
   if (d.needsMoreInfo) return false
   if (isNoInterventionDiagnostic(d)) return false
   if (d.serviceRecommendation?.type === "lavage-auto") return false
+  if (d.concessionOnly?.required) return false
+  if (d.obdScanFirst?.required) return false
+  // Rapport garagiste utile uniquement s'il y a une vraie intervention à faire
+  // (fourchette de prix, ou prestation garage, ou DIY possible). Sinon on évite
+  // deux appels IA supplémentaires pour rien.
+  const hasPrice = !!d.priceRange && (d.priceRange.min > 0 || d.priceRange.max > 0)
+  const hasGarage = !!d.garage
+  const hasDiy = !!d.diy?.possible
+  if (!hasPrice && !hasGarage && !hasDiy) return false
   return true
 }
 
@@ -908,7 +919,7 @@ mentionnant les variantes concernées.
     const { output: diagnostic1, usage: usage1, finishReason: finishReason1 } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
       system: [systemMessage],
-      maxOutputTokens: 20000,
+      maxOutputTokens: 6000,
       ...(photoLevier
         ? {
             messages: [{
@@ -976,7 +987,7 @@ mentionnant les variantes concernées.
     const { output: diagnostic2, usage: usage2 } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
       system: [systemMessage],
-      maxOutputTokens: 20000,
+      maxOutputTokens: 6000,
       prompt: refinementPrompt,
       output: Output.object({ schema: DiagnosticSchema })
     })
