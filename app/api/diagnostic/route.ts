@@ -1,4 +1,4 @@
-import { generateText, Output, type LanguageModelUsage } from "ai"
+import { generateText, Output, stepCountIs, type LanguageModelUsage } from "ai"
 import { anthropic } from "@ai-sdk/anthropic"
 import { z } from "zod"
 import {
@@ -320,17 +320,53 @@ Sois concis. Pas de marketing, pas de disclaimer, pas de markdown.`
     `Diagnostic summary: ${diagnostic.problem}\n` +
     `Description: ${diagnostic.description}`
 
+  // Step 1 : recherche web pour les codes techniques réels (engine code, gearbox ref).
+  // On utilise l'outil webSearch natif d'Anthropic — pas de clé externe nécessaire.
+  const searchQuery =
+    locale === "en"
+      ? `${marque} ${modele} ${annee}${carburant ? " " + carburant : ""}${cylindree ? " " + cylindree : ""}${puissance ? " " + puissance : ""} engine code gearbox reference`
+      : locale === "nl"
+      ? `${marque} ${modele} ${annee}${carburant ? " " + carburant : ""}${cylindree ? " " + cylindree : ""}${puissance ? " " + puissance : ""} motorcode versnellingsbakreferentie`
+      : `${marque} ${modele} ${annee}${carburant ? " " + carburant : ""}${cylindree ? " " + cylindree : ""}${puissance ? " " + puissance : ""} code moteur référence boîte de vitesses`
+
+  let technicalContext = ""
+  try {
+    const searchResult = await generateText({
+      model: anthropic("claude-sonnet-4-6"),
+      tools: { webSearch: anthropic.tools.webSearch_20250305({ maxUses: 3 }) },
+      stopWhen: stepCountIs(4),
+      maxOutputTokens: 1000,
+      prompt:
+        locale === "en"
+          ? `Search the web and find the EXACT engine code and gearbox reference for: ${searchQuery}. List all variants found (by year range and power output). Be precise and factual. Return only the codes found, nothing else.`
+          : locale === "nl"
+          ? `Zoek op het web en vind de EXACTE motorcode en versnellingsbakreferentie voor: ${searchQuery}. Vermeld alle varianten (per jaarbereik en vermogen). Geef alleen de gevonden codes terug.`
+          : `Recherche sur le web et trouve le CODE MOTEUR EXACT et la RÉFÉRENCE BOÎTE DE VITESSES pour : ${searchQuery}. Liste toutes les variantes trouvées (par plage d'années et puissance). Sois précis et factuel. Retourne uniquement les codes trouvés.`,
+    })
+    technicalContext = searchResult.text?.trim() ?? ""
+  } catch (err) {
+    console.error("Mechanic report web search step failed:", err)
+    // On continue sans le contexte web — le step 2 utilisera uniquement la connaissance du modèle
+  }
+
+  // Step 2 : structuration du rapport technique avec le contexte web comme ancre.
+  const enrichedPrompt =
+    userPrompt +
+    (technicalContext
+      ? `\n\nWeb search results for engine code / gearbox reference:\n${technicalContext}\n\nUse the above search results as the primary source for engineCode and gearboxReference. If the search results clearly identify the code for this exact vehicle, use it. If there are multiple variants, pick the one matching the fuel type and power. If still uncertain, set the field to null.`
+      : "")
+
   try {
     const { output } = await generateText({
       model: anthropic("claude-sonnet-4-6"),
       system: systemPrompt,
       maxOutputTokens: 2000,
-      prompt: userPrompt,
+      prompt: enrichedPrompt,
       output: Output.object({ schema: MechanicReportSchema }),
     })
     return output ?? null
   } catch (err) {
-    console.error("Mechanic report generation failed:", err)
+    console.error("Mechanic report structuring step failed:", err)
     return null
   }
 }
