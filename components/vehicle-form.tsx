@@ -1101,9 +1101,8 @@ export function VehicleForm({
   const availableModels = dedupeModelsByVariantBase(filterFrenchModelLabels(baseModels))
   const isException = isExceptionBrand(formData.marque)
 
-  /** Plusieurs variantes API : champ texte de sélection */
-  const showVariantField =
-    isModeleDone && !variantUiSkipped && variantList.length > 1
+  /** Champ variante/finition : toujours visible */
+  const showVariantField = true
   const yearSelectDisabled = !isModeleDone || loadingVariant || loadingYear
   const yearOptionsForSelect = yearList
 
@@ -1363,7 +1362,7 @@ export function VehicleForm({
                     value={formData.variante}
                     onChange={handleChange}
                     onInput={clearValidity}
-                    disabled={loadingVariant}
+                    disabled={!isModeleDone || variantUiSkipped || loadingVariant}
                     onBlur={() => {
                       if (!formData.marque || !formData.modele) return
                       const gen = ++cascadeGen.current
