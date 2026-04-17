@@ -331,19 +331,56 @@ Sois concis. Pas de marketing, pas de disclaimer, pas de markdown.`
 
   let technicalContext = ""
   try {
-    // Étape 1 : résumé brut des résultats de recherche. Tâche purement extractive
-    // (lister les codes trouvés) → Haiku 4.5 suffit et coûte ~3× moins cher que Sonnet.
+    // Étape 1 : recherche web exhaustive pour les codes techniques.
+    // Sonnet 4.6 reformule ses propres requêtes de suivi pour affiner
+    // (d'abord code moteur, puis boîte si besoin) — Haiku ne le fait pas bien.
+    // maxUses 4 + stopWhen 5 autorise jusqu'à 4 recherches distinctes.
+    const searchPrompt =
+      locale === "en"
+        ? `You are a technical automotive researcher. For the vehicle below, run SEVERAL focused web searches to find:
+1. The EXACT engine code (e.g. M47D20, EA288, K9K 832) for this model/year/fuel/power combination.
+2. The EXACT gearbox reference (e.g. ZF 6HP26, DQ250, JR5) if applicable.
+
+Search strategy: first search for the engine code specifically, then run a second search for the gearbox reference, then a third search to cross-check or find variant-specific details if results were ambiguous.
+
+Vehicle: ${searchQuery}
+
+Return a structured list:
+- Engine code(s) found: [code] — [year range] — [fuel] — [power] — [source]
+- Gearbox reference(s) found: [ref] — [year range] — [transmission type] — [source]
+If a code has multiple variants, list ALL of them with their differentiators.`
+        : locale === "nl"
+        ? `Je bent een technisch automotive onderzoeker. Voer voor onderstaand voertuig MEERDERE gerichte zoekopdrachten uit om te vinden:
+1. De EXACTE motorcode (bv. M47D20, EA288, K9K 832) voor deze model/jaar/brandstof/vermogen combinatie.
+2. De EXACTE versnellingsbakreferentie (bv. ZF 6HP26, DQ250, JR5) indien van toepassing.
+
+Zoekstrategie: eerst motorcode opzoeken, dan aparte zoekopdracht voor versnellingsbak, dan kruiscontrole bij onduidelijkheid.
+
+Voertuig: ${searchQuery}
+
+Geef een gestructureerde lijst:
+- Motorcode(s) gevonden: [code] — [jaarbereik] — [brandstof] — [vermogen] — [bron]
+- Versnellingsbakreferentie(s) gevonden: [ref] — [jaarbereik] — [transmissietype] — [bron]
+Vermeld ALLE varianten met hun onderscheidende kenmerken.`
+        : `Tu es un chercheur automobile technique. Pour le véhicule ci-dessous, effectue PLUSIEURS recherches web ciblées pour trouver :
+1. Le CODE MOTEUR EXACT (ex. M47D20, EA288, K9K 832) pour cette combinaison modèle/année/carburant/puissance.
+2. La RÉFÉRENCE BOÎTE DE VITESSES EXACTE (ex. ZF 6HP26, DQ250, JR5) le cas échéant.
+
+Stratégie de recherche : cherche d'abord le code moteur spécifiquement, puis une deuxième recherche pour la référence boîte, puis une troisième pour croiser ou préciser si les résultats étaient ambigus.
+
+Véhicule : ${searchQuery}
+
+Retourne une liste structurée :
+- Code(s) moteur trouvés : [code] — [plage d'années] — [carburant] — [puissance] — [source]
+- Référence(s) boîte trouvées : [réf] — [plage d'années] — [type de transmission] — [source]
+Si un code a plusieurs variantes, liste-les TOUTES avec leurs différenciateurs.`
+
     const searchResult = await generateText({
-      model: anthropic("claude-haiku-4-5-20251001"),
-      tools: { webSearch: anthropic.tools.webSearch_20250305({ maxUses: 2 }) },
-      stopWhen: stepCountIs(3),
-      maxOutputTokens: 700,
-      prompt:
-        locale === "en"
-          ? `Search the web and find the EXACT engine code and gearbox reference for: ${searchQuery}. List all variants found (by year range and power output). Be precise and factual. Return only the codes found, nothing else.`
-          : locale === "nl"
-          ? `Zoek op het web en vind de EXACTE motorcode en versnellingsbakreferentie voor: ${searchQuery}. Vermeld alle varianten (per jaarbereik en vermogen). Geef alleen de gevonden codes terug.`
-          : `Recherche sur le web et trouve le CODE MOTEUR EXACT et la RÉFÉRENCE BOÎTE DE VITESSES pour : ${searchQuery}. Liste toutes les variantes trouvées (par plage d'années et puissance). Sois précis et factuel. Retourne uniquement les codes trouvés.`,
+      model: anthropic("claude-sonnet-4-6"),
+      tools: { webSearch: anthropic.tools.webSearch_20250305({ maxUses: 4 }) },
+      stopWhen: stepCountIs(5),
+      maxOutputTokens: 1500,
+      prompt: searchPrompt,
     })
     technicalContext = searchResult.text?.trim() ?? ""
   } catch (err) {
