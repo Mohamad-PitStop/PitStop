@@ -17,7 +17,6 @@ const raleway = Raleway({
   variable: "--font-raleway",
   display: "swap",
   preload: true,
-  adjustFontFallback: "Arial",
 });
 
 const inter = Inter({
@@ -25,7 +24,6 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
   preload: true,
-  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
