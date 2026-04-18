@@ -1,25 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
 /**
  * Fond animé accueil uniquement (page `/`) — aurora / dégradés coniques lents.
- * Remonte après restauration bfcache (bouton Précédent) pour relancer les animations CSS.
+ * Les animations CSS reprennent automatiquement après restauration bfcache
+ * (pas besoin de remount React qui déclencherait un repaint coûteux des coniques).
  */
 export function HomeAnimatedBackground() {
-  const [instanceKey, setInstanceKey] = useState(0)
-
-  useEffect(() => {
-    const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) setInstanceKey((k) => k + 1)
-    }
-    window.addEventListener("pageshow", onPageShow)
-    return () => window.removeEventListener("pageshow", onPageShow)
-  }, [])
-
   return (
     <div
-      key={instanceKey}
       className="home-animated-bg pointer-events-none fixed inset-0 z-0 overflow-hidden isolate"
       aria-hidden
     >

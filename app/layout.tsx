@@ -11,15 +11,21 @@ import { PageTransition } from '@/components/page-transition'
 import { Toaster } from '@/components/ui/sonner'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const raleway = Raleway({ 
+const raleway = Raleway({
   subsets: ["latin"],
   weight: ["600", "700"],
-  variable: "--font-raleway"
+  variable: "--font-raleway",
+  display: "swap",
+  preload: true,
+  adjustFontFallback: "Arial",
 });
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter"
+  variable: "--font-inter",
+  display: "swap",
+  preload: true,
+  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
