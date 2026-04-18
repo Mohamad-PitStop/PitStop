@@ -71,8 +71,10 @@ export const frAuth = {
     skip: "Passer cette étape",
     saveError: "Impossible d'enregistrer vos informations.",
     mandatoryWarning:
-      "Votre inscription n'est pas encore finalisée. Si vous quittez cette page ou changez d'onglet avant d'enregistrer, votre compte sera supprimé et vous devrez recommencer.",
-    cancelledToast:
-      "Inscription annulée : votre compte n'a pas été enregistré. Recommencez avec Google pour finaliser.",
+      "Votre inscription n'est pas encore finalisée. Tant que vous n'enregistrez pas, aucun compte n'est créé — si vous quittez cette page, vous devrez recommencer depuis le début.",
+    sessionExpired:
+      "Votre session d'inscription a expiré. Recommencez avec Google pour finaliser.",
+    emailAlreadyUsed:
+      "Un compte utilise déjà cet email. Essayez de vous connecter.",
   },
 } as const

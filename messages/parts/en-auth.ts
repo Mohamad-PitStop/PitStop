@@ -67,8 +67,10 @@ export const enAuth = {
     skip: "Skip for now",
     saveError: "Could not save your information.",
     mandatoryWarning:
-      "Your signup is not yet complete. If you leave this page or switch tabs before saving, your account will be deleted and you will need to start over.",
-    cancelledToast:
-      "Signup cancelled: your account was not saved. Sign up again with Google to finish.",
+      "Your signup is not yet complete. No account is created until you save — if you leave this page, you will need to start over from scratch.",
+    sessionExpired:
+      "Your signup session has expired. Start again with Google to finish.",
+    emailAlreadyUsed:
+      "An account already uses this email. Try signing in instead.",
   },
 } as const

@@ -24,17 +24,12 @@ function CompleteProfileForm() {
   const searchParams = useSearchParams()
   const next = safeInternalPath(searchParams.get("next")) ?? "/"
 
-  const [sessionReady, setSessionReady] = useState(false)
-  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [hasPending, setHasPending] = useState(false)
   const [postalCode, setPostalCode] = useState("")
   const [city, setCity] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Marqueur : false = si l'utilisateur quitte la page, son signup OAuth
-  // doit être annulé (suppression du compte). Passe à true une fois le
-  // code postal enregistré, auquel cas on laisse la navigation se faire
-  // sans purger le compte.
-  const [signupCompleted, setSignupCompleted] = useState(false)
 
   const { markCityEditedByUser, lookupLoading, showBelgiumOnlyLocation } = useBelgianPostalCityPrefill(
     postalCode,
@@ -42,89 +37,46 @@ function CompleteProfileForm() {
     setCity
   )
 
+  // Résout l'état d'inscription :
+  //  - Cookie PendingSignup présent → on affiche le formulaire, à la soumission
+  //    on crée enfin le UserAccount + la session.
+  //  - Sinon, aucune inscription en cours : on renvoie vers /connexion.
+  // Tant que ce n'est PAS soumis, aucun compte n'existe en DB. Si l'utilisateur
+  // abandonne (change d'onglet, ferme, revient à l'accueil), la ligne
+  // PendingSignup expire toute seule — zéro compte fantôme.
   useEffect(() => {
     let cancelled = false
-    // Retry jusqu'à 3 fois avec délai croissant : le cookie vient d'être posé par le
-    // callback OAuth et peut nécessiter un instant avant d'être reconnu (cold start Vercel).
-    const attempt = async (tries: number) => {
+    const attempt = async () => {
       try {
-        const r = await fetch("/api/auth/me", { credentials: "include" })
-        const data = await r.json()
+        const r = await fetch("/api/auth/pending-signup/status", { credentials: "include" })
+        const data = await r.json().catch(() => null)
         if (cancelled) return
-        if (!data?.user) {
-          if (tries > 1) {
-            await new Promise((res) => setTimeout(res, 600))
-            if (!cancelled) await attempt(tries - 1)
-          } else {
-            // Vraiment pas connecté après plusieurs essais → /connexion.
-            // On renvoie directement vers la destination finale (`next`) plutôt que
-            // d'imbriquer /completer-profil dans le callbackUrl, sinon le paramètre
-            // `next` est perdu au re-parsing et on boucle sur la page de connexion.
-            const fallbackUrl = new URL("/connexion", window.location.origin)
-            fallbackUrl.searchParams.set("callbackUrl", next)
-            window.location.replace(fallbackUrl.toString())
-          }
+        if (data?.pending) {
+          setHasPending(true)
+          setReady(true)
           return
         }
-        if (data.user.signupPostalCode) setPostalCode(String(data.user.signupPostalCode))
-        setIsSignedIn(true)
-        setSessionReady(true)
+        // Pas de pending : peut-être l'utilisateur est déjà connecté (rafraîchit
+        // la page après complétion). Dans ce cas, on le renvoie à destination.
+        const me = await fetch("/api/auth/me", { credentials: "include" })
+        const meData = await me.json().catch(() => null)
+        if (cancelled) return
+        if (meData?.user) {
+          window.location.replace(next)
+          return
+        }
+        const fallbackUrl = new URL("/connexion", window.location.origin)
+        fallbackUrl.searchParams.set("callbackUrl", next)
+        window.location.replace(fallbackUrl.toString())
       } catch {
-        if (!cancelled) setSessionReady(true)
+        if (!cancelled) setReady(true)
       }
     }
-    void attempt(3)
+    void attempt()
     return () => {
       cancelled = true
     }
-  }, [])
-
-  // Tant que le signup n'est pas finalisé (code postal enregistré), toute
-  // sortie de la page — fermeture d'onglet, passage à un autre onglet,
-  // navigation vers la home — doit supprimer le compte en cours de création.
-  // Essentiel pour la qualité des stats géographiques : on refuse d'enregistrer
-  // un utilisateur sans code postal.
-  useEffect(() => {
-    if (!isSignedIn) return
-
-    const cancelSignup = () => {
-      if (signupCompleted) return
-      try {
-        const blob = new Blob([JSON.stringify({})], { type: "application/json" })
-        navigator.sendBeacon?.("/api/auth/cancel-signup", blob)
-      } catch {
-        // sendBeacon indisponible : dernière tentative best-effort, le serveur
-        // de toute façon ne garantit rien sur les requêtes de pagehide.
-        void fetch("/api/auth/cancel-signup", {
-          method: "POST",
-          credentials: "include",
-          keepalive: true,
-        }).catch(() => {})
-      }
-    }
-
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (signupCompleted) return
-      e.preventDefault()
-      // Message ignoré par les navigateurs récents mais requis pour déclencher
-      // le dialogue natif "voulez-vous vraiment quitter ?".
-      e.returnValue = ""
-    }
-
-    const onPageHide = () => cancelSignup()
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") cancelSignup()
-    }
-
-    window.addEventListener("beforeunload", onBeforeUnload)
-    window.addEventListener("pagehide", onPageHide)
-    document.addEventListener("visibilitychange", onVisibilityChange)
-    return () => {
-      window.removeEventListener("beforeunload", onBeforeUnload)
-      window.removeEventListener("pagehide", onPageHide)
-      document.removeEventListener("visibilitychange", onVisibilityChange)
-    }
-  }, [isSignedIn, signupCompleted])
+  }, [next])
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -132,18 +84,22 @@ function CompleteProfileForm() {
     if (showBelgiumOnlyLocation) return
     setIsSubmitting(true)
     try {
-      const res = await fetch("/api/auth/update-profile", {
-        method: "PATCH",
+      const res = await fetch("/api/auth/pending-signup/complete", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ postalCode, city }),
       })
       const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error || t("complete.saveError"))
-      // Important : on pose signupCompleted AVANT le window.location.assign(),
-      // sinon le pagehide qui suit déclencherait un cancel-signup (suppression
-      // du compte qu'on vient de finaliser).
-      setSignupCompleted(true)
+      if (!res.ok) {
+        if (data?.error === "pending_expired" || data?.error === "pending_not_found") {
+          throw new Error(t("complete.sessionExpired"))
+        }
+        if (data?.error === "email_already_used") {
+          throw new Error(t("complete.emailAlreadyUsed"))
+        }
+        throw new Error(data?.error || t("complete.saveError"))
+      }
       dispatchAuthSessionChanged()
       window.location.assign(next)
     } catch (err) {
@@ -153,7 +109,7 @@ function CompleteProfileForm() {
     }
   }
 
-  if (!sessionReady || !isSignedIn) {
+  if (!ready || !hasPending) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -231,8 +187,6 @@ function CompleteProfileForm() {
                 ) : null}
                 <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
                   {t("auth.signupStatsNote")}{" "}
-                  {/* Ouverture dans un nouvel onglet pour ne pas déclencher le
-                      visibilitychange qui annulerait le signup en cours. */}
                   <Link
                     href="/confidentialite"
                     className="text-primary hover:underline"

@@ -67,8 +67,10 @@ export const nlAuth = {
     skip: "Deze stap overslaan",
     saveError: "Uw gegevens konden niet worden opgeslagen.",
     mandatoryWarning:
-      "Uw registratie is nog niet voltooid. Als u deze pagina verlaat of van tabblad wisselt vóór het opslaan, wordt uw account verwijderd en moet u opnieuw beginnen.",
-    cancelledToast:
-      "Registratie geannuleerd: uw account is niet opgeslagen. Meld u opnieuw aan met Google om te voltooien.",
+      "Uw registratie is nog niet voltooid. Zolang u niet opslaat, wordt er geen account aangemaakt — verlaat u deze pagina, dan moet u helemaal opnieuw beginnen.",
+    sessionExpired:
+      "Uw registratiesessie is verlopen. Meld u opnieuw aan met Google om te voltooien.",
+    emailAlreadyUsed:
+      "Er bestaat al een account met dit e-mailadres. Probeer u in te loggen.",
   },
 } as const

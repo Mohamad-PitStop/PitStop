@@ -14,7 +14,6 @@ import { marketingFeatureIcons } from "@/lib/marketing-content"
 import { MarketingSteps } from "@/components/marketing-steps"
 import { LandingStaggerRoot, LandingStaggerItem } from "@/components/landing-stagger"
 import { SignupWelcomeOverlay } from "@/components/signup-welcome-overlay"
-import { SignupCancelledToast } from "@/components/signup-cancelled-toast"
 import { LandingHeroLogo } from "@/components/landing-hero-logo"
 import { useTranslation } from "@/lib/i18n/locale-context"
 
@@ -47,7 +46,6 @@ export function LandingPage() {
         <Suspense fallback={null}>
           <SignupWelcomeOverlay />
         </Suspense>
-        <SignupCancelledToast />
 
         <LandingStaggerRoot>
           <main className="flex-1">

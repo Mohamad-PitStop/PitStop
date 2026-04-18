@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { prisma } from "@/lib/prisma"
-import { createAccount, findAccountByEmail, findAccountById, type UserRole } from "@/lib/accounts-db"
+import { findAccountByEmail, findAccountById } from "@/lib/accounts-db"
 import type { OAuthProfile, OAuthProviderId } from "@/lib/oauth"
 
 /**
@@ -79,13 +79,20 @@ export async function linkOAuthAccount(input: {
   )
 }
 
-export type OAuthResolveResult = {
-  userId: string
-  /** "login_existing" : compte + OAuth déjà liés.
-   *  "linked_by_email" : compte existant trouvé par email → OAuth lié.
-   *  "created" : nouveau compte créé via OAuth. */
-  kind: "login_existing" | "linked_by_email" | "created"
-}
+export type OAuthResolveResult =
+  | {
+      /** "login_existing" : compte + OAuth déjà liés.
+       *  "linked_by_email" : compte existant trouvé par email → OAuth lié. */
+      kind: "login_existing" | "linked_by_email"
+      userId: string
+    }
+  | {
+      /** "needs_completion" : aucun compte créé. Le profil OAuth est renvoyé
+       * pour être stocké en PendingSignup, le compte ne sera créé qu'après
+       * saisie du code postal sur /completer-profil. */
+      kind: "needs_completion"
+      profile: OAuthProfile
+    }
 
 /**
  * Résout un profil OAuth en compte utilisateur :
@@ -138,21 +145,11 @@ export async function resolveOAuthSignIn(input: {
     return { ok: false, error: "missing_email" }
   }
 
-  // 3) Création d'un nouveau compte (signup incomplet tant que le code postal
-  // n'est pas renseigné sur /completer-profil — essentiel pour savoir où placer
-  // les garages partenaires). Le compte est marqué pendingCompletion=true et
-  // sera supprimé si l'utilisateur quitte la page avant confirmation.
-  const defaultRole: UserRole = "user"
-  const created = await createAccount({
-    name: profile.name?.trim() || profile.email.split("@")[0] || "Utilisateur",
-    email: profile.email.toLowerCase(),
-    passwordHash: OAUTH_ONLY_PASSWORD_MARKER,
-    role: defaultRole,
-    signupPostalCode: null,
-    signupCity: null,
-    garageId: null,
-    pendingCompletion: true,
-  })
-  await linkOAuthAccount({ userId: created.id, provider, profile })
-  return { ok: true, result: { userId: created.id, kind: "created" } }
+  // 3) Nouvel utilisateur : on NE crée PAS de compte ici. Le code postal est
+  // requis avant toute persistance (essentiel pour la couverture des garages
+  // partenaires). Le profil OAuth est renvoyé au callback qui stockera une
+  // PendingSignup temporaire ; le UserAccount ne sera créé qu'à la soumission
+  // du formulaire /completer-profil. Si l'utilisateur abandonne, la ligne
+  // expire naturellement — zéro compte fantôme à nettoyer.
+  return { ok: true, result: { kind: "needs_completion", profile } }
 }

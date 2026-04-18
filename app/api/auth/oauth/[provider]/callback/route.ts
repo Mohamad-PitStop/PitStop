@@ -11,10 +11,14 @@ import {
 import { resolveOAuthSignIn } from "@/lib/oauth-db"
 import {
   AUTH_COOKIE_NAME,
-  buildSessionCookieOptions,
   createAuthSession,
   extractCookieValue,
 } from "@/lib/auth-session"
+import {
+  createPendingSignup,
+  PENDING_SIGNUP_COOKIE,
+  PENDING_SIGNUP_MAX_AGE_SECONDS,
+} from "@/lib/pending-signup-db"
 
 export const runtime = "nodejs"
 
@@ -83,41 +87,61 @@ export async function GET(
     return redirectToConnexion(baseOrigin, resolved.error, state.returnTo)
   }
 
-  let sessionToken
-  try {
-    sessionToken = await createAuthSession(resolved.result.userId)
-  } catch (err) {
-    console.error("[oauth] createAuthSession threw:", err)
-    return redirectToConnexion(baseOrigin, "exchange_failed", state.returnTo)
+  const destination = state.returnTo ?? "/"
+  const isSecure = process.env.NODE_ENV === "production"
+
+  let authCookieStr: string | null = null
+  let pendingCookieStr: string | null = null
+  let finalUrl: URL
+
+  if (resolved.result.kind === "needs_completion") {
+    // Aucun compte en DB : on stocke le profil OAuth en PendingSignup et on
+    // redirige vers /completer-profil. Tant que le code postal n'est pas
+    // soumis, aucun UserAccount n'existe — si l'utilisateur abandonne, la
+    // ligne expire seule.
+    let pending
+    try {
+      pending = await createPendingSignup({ provider, profile: resolved.result.profile })
+    } catch (err) {
+      console.error("[oauth] createPendingSignup threw:", err)
+      return redirectToConnexion(baseOrigin, "exchange_failed", state.returnTo)
+    }
+    console.log(`[oauth] needs_completion provider=${provider}`)
+    pendingCookieStr = [
+      `${PENDING_SIGNUP_COOKIE}=${pending.token}`,
+      "Path=/",
+      "HttpOnly",
+      "SameSite=Lax",
+      isSecure ? "Secure" : "",
+      `Max-Age=${PENDING_SIGNUP_MAX_AGE_SECONDS}`,
+    ].filter(Boolean).join("; ")
+    const u = new URL("/completer-profil", baseOrigin)
+    u.searchParams.set("next", destination)
+    finalUrl = u
+  } else {
+    let sessionToken
+    try {
+      sessionToken = await createAuthSession(resolved.result.userId)
+    } catch (err) {
+      console.error("[oauth] createAuthSession threw:", err)
+      return redirectToConnexion(baseOrigin, "exchange_failed", state.returnTo)
+    }
+    console.log(`[oauth] success provider=${provider} kind=${resolved.result.kind} userId=${resolved.result.userId}`)
+    authCookieStr = [
+      `${AUTH_COOKIE_NAME}=${sessionToken}`,
+      "Path=/",
+      "HttpOnly",
+      "SameSite=Lax",
+      isSecure ? "Secure" : "",
+      `Max-Age=${SESSION_MAX_AGE_SECONDS}`,
+    ].filter(Boolean).join("; ")
+    finalUrl = new URL(destination, baseOrigin)
   }
 
-  console.log(`[oauth] success provider=${provider} kind=${resolved.result.kind} userId=${resolved.result.userId}`)
-  const destination = state.returnTo ?? "/"
-  // Nouveau compte créé via OAuth → code postal manquant. On redirige vers l'écran
-  // de complétion de profil, en conservant la destination d'origine via `?next=`.
-  const finalUrl =
-    resolved.result.kind === "created"
-      ? (() => {
-          const u = new URL("/completer-profil", baseOrigin)
-          u.searchParams.set("next", destination)
-          return u
-        })()
-      : new URL(destination, baseOrigin)
-
-  // On pose le cookie via une page HTML intermédiaire plutôt qu'un redirect 302.
+  // On pose les cookies via une page HTML intermédiaire plutôt qu'un redirect 302.
   // Next.js / Vercel Edge peut supprimer les Set-Cookie headers sur les réponses
-  // redirect ; une réponse 200 avec meta-refresh garantit que le cookie est stocké
-  // par le navigateur avant la navigation vers la destination finale.
-  const isSecure = process.env.NODE_ENV === "production"
-  const cookieStr = [
-    `${AUTH_COOKIE_NAME}=${sessionToken}`,
-    "Path=/",
-    "HttpOnly",
-    "SameSite=Lax",
-    isSecure ? "Secure" : "",
-    `Max-Age=${SESSION_MAX_AGE_SECONDS}`,
-  ].filter(Boolean).join("; ")
-
+  // redirect ; une réponse 200 avec meta-refresh garantit que les cookies sont
+  // stockés par le navigateur avant la navigation vers la destination finale.
   const clearStateStr = [
     `${OAUTH_STATE_COOKIE}=`,
     "Path=/",
@@ -148,7 +172,8 @@ export async function GET(
     "Content-Type": "text/html; charset=utf-8",
     "Cache-Control": "no-store, no-cache",
   })
-  headers.append("Set-Cookie", cookieStr)
+  if (authCookieStr) headers.append("Set-Cookie", authCookieStr)
+  if (pendingCookieStr) headers.append("Set-Cookie", pendingCookieStr)
   headers.append("Set-Cookie", clearStateStr)
 
   return new Response(html, { status: 200, headers })
