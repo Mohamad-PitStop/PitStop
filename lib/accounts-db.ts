@@ -455,6 +455,10 @@ export async function deleteAccountById(userId: string): Promise<void> {
     )
   `)
   await prisma.$executeRawUnsafe(`DELETE FROM "PasswordResetToken" WHERE "userId" = ?`, userId)
+  // Les liens OAuth doivent disparaître avec le compte sinon un nouveau login
+  // Google/Facebook retomberait sur un userId fantôme (kind=login_existing vers un
+  // UserAccount supprimé → /api/auth/me renvoie user=null malgré la session valide).
+  await prisma.$executeRawUnsafe(`DELETE FROM "OAuthAccount" WHERE "userId" = ?`, userId).catch(() => {})
   await prisma.$executeRawUnsafe(`DELETE FROM "UserAccount" WHERE "id" = ?`, userId)
 }
 

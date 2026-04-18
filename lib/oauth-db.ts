@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { prisma } from "@/lib/prisma"
-import { createAccount, findAccountByEmail, type UserRole } from "@/lib/accounts-db"
+import { createAccount, findAccountByEmail, findAccountById, type UserRole } from "@/lib/accounts-db"
 import type { OAuthProfile, OAuthProviderId } from "@/lib/oauth"
 
 /**
@@ -108,7 +108,19 @@ export async function resolveOAuthSignIn(input: {
   // 1) OAuth déjà lié
   const existingOAuth = await findOAuthAccount(provider, profile.providerAccountId)
   if (existingOAuth) {
-    return { ok: true, result: { userId: existingOAuth.userId, kind: "login_existing" } }
+    // Garde-fou : si le UserAccount pointé a été supprimé, on nettoie le lien
+    // orphelin et on retombe sur la création/liaison normale plutôt que de
+    // retourner un userId fantôme (symptôme : session créée mais /api/auth/me
+    // renvoie user=null → utilisateur "connecté mais invisible").
+    const linkedAccount = await findAccountById(existingOAuth.userId)
+    if (linkedAccount) {
+      return { ok: true, result: { userId: existingOAuth.userId, kind: "login_existing" } }
+    }
+    await prisma.$executeRawUnsafe(
+      `DELETE FROM "OAuthAccount" WHERE "provider" = ? AND "providerAccountId" = ?`,
+      provider,
+      profile.providerAccountId
+    )
   }
 
   // 2) Tentative de liaison par email (si vérifié par le provider)
