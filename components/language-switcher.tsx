@@ -1,7 +1,5 @@
 "use client"
 
-import { useLayoutEffect, useState } from "react"
-import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import type { Locale } from "@/lib/i18n/types"
@@ -14,46 +12,25 @@ const localeLabels: Record<Locale, string> = {
 }
 
 type Props = {
-  /** `header` : dans la navbar (desktop large). `mobile` : barre fixe bas d’écran (< xl), rendue via portail sur `body`. `embedded` : bloc inline (ex. sidebar garage). */
+  /** `header` : dans la navbar (desktop large). `mobile` : barre tout en bas du flux de la page (< xl), défile avec le contenu. `embedded` : bloc inline (ex. sidebar garage). */
   variant: "header" | "mobile" | "embedded"
   className?: string
 }
 
 export function LanguageSwitcher({ variant, className }: Props) {
   const { locale, setLocale, t } = useTranslation()
-  const [mobileDockToBody, setMobileDockToBody] = useState(false)
 
-  useLayoutEffect(() => {
-    if (variant !== "mobile") return
-    setMobileDockToBody(true)
-  }, [variant])
-
-  const mobileDockStyle =
-    variant === "mobile"
-      ? ({
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          width: "100%",
-          maxWidth: "100%",
-          zIndex: 45,
-        } as const)
-      : undefined
-
-  const inner = (
+  return (
     <div
-      data-pitstop-lang-dock={variant === "mobile" ? "" : undefined}
       role="group"
       aria-label={t("lang.aria.choose")}
-      style={mobileDockStyle}
       className={cn(
         variant === "header" &&
           "hidden xl:inline-flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5",
         variant === "embedded" &&
           "inline-flex w-full items-center justify-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5",
         variant === "mobile" &&
-          "xl:hidden flex items-center justify-center gap-1 border-t border-border/60 bg-background/95 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.12)]",
+          "xl:hidden flex w-full items-center justify-center gap-1 border-t border-border/60 bg-background/95 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
         className
       )}
     >
@@ -77,10 +54,4 @@ export function LanguageSwitcher({ variant, className }: Props) {
       ))}
     </div>
   )
-
-  if (variant === "mobile" && mobileDockToBody) {
-    return createPortal(inner, document.body)
-  }
-
-  return inner
 }

@@ -138,7 +138,10 @@ export async function resolveOAuthSignIn(input: {
     return { ok: false, error: "missing_email" }
   }
 
-  // 3) Création d'un nouveau compte
+  // 3) Création d'un nouveau compte (signup incomplet tant que le code postal
+  // n'est pas renseigné sur /completer-profil — essentiel pour savoir où placer
+  // les garages partenaires). Le compte est marqué pendingCompletion=true et
+  // sera supprimé si l'utilisateur quitte la page avant confirmation.
   const defaultRole: UserRole = "user"
   const created = await createAccount({
     name: profile.name?.trim() || profile.email.split("@")[0] || "Utilisateur",
@@ -148,6 +151,7 @@ export async function resolveOAuthSignIn(input: {
     signupPostalCode: null,
     signupCity: null,
     garageId: null,
+    pendingCompletion: true,
   })
   await linkOAuthAccount({ userId: created.id, provider, profile })
   return { ok: true, result: { userId: created.id, kind: "created" } }

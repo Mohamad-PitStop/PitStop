@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { getUserFromAuthCookie } from "@/lib/auth-session"
-import { findAccountByEmail, updateAccountProfile } from "@/lib/accounts-db"
+import { findAccountByEmail, updateAccountProfile, clearPendingCompletion } from "@/lib/accounts-db"
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit"
 
 export const runtime = "nodejs"
@@ -56,6 +56,12 @@ export async function PATCH(req: Request) {
       postalCode: body.postalCode,
       city: body.city,
     })
+
+    // Finalisation d'un signup OAuth : une fois le code postal renseigné, on lève
+    // le flag pendingCompletion pour considérer l'inscription comme complète.
+    if (user.pendingCompletion && body.postalCode && body.postalCode.trim().length > 0) {
+      await clearPendingCompletion(user.id)
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {

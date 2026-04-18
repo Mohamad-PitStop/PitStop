@@ -296,6 +296,7 @@ export function Navbar() {
     email: string
     role: string
     diagnosticCredits?: number
+    pendingCompletion?: boolean
   } | null>(null)
   const [authReady, setAuthReady] = useState(false)
 
@@ -321,6 +322,17 @@ export function Navbar() {
     if (pathname.startsWith("/garage")) return
     if (pathname === "/") router.replace("/garage/dashboard")
   }, [authReady, isGaragiste, pathname, router])
+
+  // Signup OAuth incomplet : on force le retour sur /completer-profil depuis
+  // n'importe quelle autre page. La page elle-même gère la purge du compte
+  // si l'utilisateur quitte à nouveau sans enregistrer.
+  useEffect(() => {
+    if (!authReady || !user?.pendingCompletion) return
+    if (pathname.startsWith("/completer-profil")) return
+    const back = new URL("/completer-profil", window.location.origin)
+    back.searchParams.set("next", pathname)
+    router.replace(back.pathname + back.search)
+  }, [authReady, user?.pendingCompletion, pathname, router])
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" })

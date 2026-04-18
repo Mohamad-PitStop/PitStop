@@ -51,6 +51,7 @@ export type SessionUser = {
   diagnosticCredits: number
   garageId: string | null
   signupPostalCode: string | null
+  pendingCompletion: boolean
 }
 
 export async function getUserFromAuthCookie(cookieHeader: string | null): Promise<SessionUser | null> {
@@ -73,6 +74,7 @@ export async function getUserFromAuthCookie(cookieHeader: string | null): Promis
     diagnosticCredits: row.diagnosticCredits,
     garageId: row.garageId ?? null,
     signupPostalCode: row.signupPostalCode ?? null,
+    pendingCompletion: row.pendingCompletion,
   }
 }
 

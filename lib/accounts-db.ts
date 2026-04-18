@@ -85,6 +85,15 @@ async function ensureAccountsTable() {
   if (garageIdCols.length === 0) {
     await prisma.$executeRawUnsafe(`ALTER TABLE "UserAccount" ADD COLUMN "garageId" TEXT`)
   }
+  // Migration : colonne pendingCompletion (signup OAuth pas encore finalisé par le code postal)
+  const pendingCols = await prisma.$queryRawUnsafe<{ name: string }[]>(
+    `SELECT name FROM pragma_table_info('UserAccount') WHERE name = 'pendingCompletion'`
+  )
+  if (pendingCols.length === 0) {
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "UserAccount" ADD COLUMN "pendingCompletion" INTEGER NOT NULL DEFAULT 0`
+    )
+  }
   // Table anti-abus : crédit de bienvenue par IP (hash SHA-256)
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "WelcomeCreditGrant" (
@@ -155,6 +164,7 @@ export async function createAccount(input: {
   signupPostalCode?: string | null
   signupCity?: string | null
   garageId?: string | null
+  pendingCompletion?: boolean
 }): Promise<{ id: string; name: string; email: string; role: UserRole; garageId: string | null }> {
   await ensureAccountsTable()
   const id = randomUUID()
@@ -162,8 +172,9 @@ export async function createAccount(input: {
   const pc = input.signupPostalCode?.trim() ?? null
   const city = input.signupCity?.trim() ?? null
   const garageId = input.garageId ?? null
+  const pending = input.pendingCompletion ? 1 : 0
   await prisma.$executeRawUnsafe(
-    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role", "diagnosticCredits", "signupPostalCode", "signupCity", "garageId") VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+    `INSERT INTO "UserAccount" ("id", "name", "email", "passwordHash", "role", "diagnosticCredits", "signupPostalCode", "signupCity", "garageId", "pendingCompletion") VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
     id,
     input.name,
     input.email,
@@ -171,9 +182,18 @@ export async function createAccount(input: {
     role,
     pc,
     city,
-    garageId
+    garageId,
+    pending
   )
   return { id, name: input.name, email: input.email, role, garageId }
+}
+
+export async function clearPendingCompletion(userId: string): Promise<void> {
+  await ensureAccountsTable()
+  await prisma.$executeRawUnsafe(
+    `UPDATE "UserAccount" SET "pendingCompletion" = 0 WHERE "id" = ?`,
+    userId
+  )
 }
 
 export async function findAccountById(id: string): Promise<{
@@ -185,6 +205,7 @@ export async function findAccountById(id: string): Promise<{
   signupPostalCode: string | null
   signupCity: string | null
   garageId: string | null
+  pendingCompletion: boolean
 } | null> {
   await ensureAccountsTable()
   const rows = await prisma.$queryRawUnsafe<
@@ -197,9 +218,10 @@ export async function findAccountById(id: string): Promise<{
       signupPostalCode: string | null
       signupCity: string | null
       garageId: string | null
+      pendingCompletion: number | null
     }>
   >(
-    `SELECT "id", "name", "email", "role", "diagnosticCredits", "signupPostalCode", "signupCity", "garageId" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
+    `SELECT "id", "name", "email", "role", "diagnosticCredits", "signupPostalCode", "signupCity", "garageId", "pendingCompletion" FROM "UserAccount" WHERE "id" = ? LIMIT 1`,
     id
   )
   const row = rows[0]
@@ -211,6 +233,7 @@ export async function findAccountById(id: string): Promise<{
     signupPostalCode: row.signupPostalCode ?? null,
     signupCity: row.signupCity ?? null,
     garageId: row.garageId ?? null,
+    pendingCompletion: Number(row.pendingCompletion ?? 0) === 1,
   }
 }
 

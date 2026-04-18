@@ -30,6 +30,11 @@ function CompleteProfileForm() {
   const [city, setCity] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Marqueur : false = si l'utilisateur quitte la page, son signup OAuth
+  // doit être annulé (suppression du compte). Passe à true une fois le
+  // code postal enregistré, auquel cas on laisse la navigation se faire
+  // sans purger le compte.
+  const [signupCompleted, setSignupCompleted] = useState(false)
 
   const { markCityEditedByUser, lookupLoading, showBelgiumOnlyLocation } = useBelgianPostalCityPrefill(
     postalCode,
@@ -74,6 +79,53 @@ function CompleteProfileForm() {
     }
   }, [])
 
+  // Tant que le signup n'est pas finalisé (code postal enregistré), toute
+  // sortie de la page — fermeture d'onglet, passage à un autre onglet,
+  // navigation vers la home — doit supprimer le compte en cours de création.
+  // Essentiel pour la qualité des stats géographiques : on refuse d'enregistrer
+  // un utilisateur sans code postal.
+  useEffect(() => {
+    if (!isSignedIn) return
+
+    const cancelSignup = () => {
+      if (signupCompleted) return
+      try {
+        const blob = new Blob([JSON.stringify({})], { type: "application/json" })
+        navigator.sendBeacon?.("/api/auth/cancel-signup", blob)
+      } catch {
+        // sendBeacon indisponible : dernière tentative best-effort, le serveur
+        // de toute façon ne garantit rien sur les requêtes de pagehide.
+        void fetch("/api/auth/cancel-signup", {
+          method: "POST",
+          credentials: "include",
+          keepalive: true,
+        }).catch(() => {})
+      }
+    }
+
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (signupCompleted) return
+      e.preventDefault()
+      // Message ignoré par les navigateurs récents mais requis pour déclencher
+      // le dialogue natif "voulez-vous vraiment quitter ?".
+      e.returnValue = ""
+    }
+
+    const onPageHide = () => cancelSignup()
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") cancelSignup()
+    }
+
+    window.addEventListener("beforeunload", onBeforeUnload)
+    window.addEventListener("pagehide", onPageHide)
+    document.addEventListener("visibilitychange", onVisibilityChange)
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload)
+      window.removeEventListener("pagehide", onPageHide)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+    }
+  }, [isSignedIn, signupCompleted])
+
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
@@ -88,6 +140,10 @@ function CompleteProfileForm() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || t("complete.saveError"))
+      // Important : on pose signupCompleted AVANT le window.location.assign(),
+      // sinon le pagehide qui suit déclencherait un cancel-signup (suppression
+      // du compte qu'on vient de finaliser).
+      setSignupCompleted(true)
       dispatchAuthSessionChanged()
       window.location.assign(next)
     } catch (err) {
@@ -95,10 +151,6 @@ function CompleteProfileForm() {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const onSkip = () => {
-    window.location.assign(next)
   }
 
   if (!sessionReady || !isSignedIn) {
@@ -179,20 +231,28 @@ function CompleteProfileForm() {
                 ) : null}
                 <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
                   {t("auth.signupStatsNote")}{" "}
-                  <Link href="/confidentialite" className="text-primary hover:underline">
+                  {/* Ouverture dans un nouvel onglet pour ne pas déclencher le
+                      visibilitychange qui annulerait le signup en cours. */}
+                  <Link
+                    href="/confidentialite"
+                    className="text-primary hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {t("auth.privacyLink")}
                   </Link>
                   {t("auth.signupStatsNoteEnd")}
                 </p>
 
+                <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-foreground leading-relaxed">
+                  {t("complete.mandatoryWarning")}
+                </p>
+
                 {error && <p className="text-sm text-red-400">{error}</p>}
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                  <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                <div className="flex flex-col gap-2">
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? t("complete.saving") : t("complete.save")}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={onSkip} disabled={isSubmitting}>
-                    {t("complete.skip")}
                   </Button>
                 </div>
               </form>
