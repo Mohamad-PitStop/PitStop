@@ -30,19 +30,6 @@ function HeroSection() {
 
   return (
     <section className="relative overflow-hidden px-6 pb-20 pt-14 md:px-10 md:pb-28 md:pt-20">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-          maskImage:
-            "linear-gradient(to bottom, black 0%, black 85%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, black 0%, black 85%, transparent 100%)",
-        }}
-      />
       <div className="relative z-10 mx-auto grid max-w-[1360px] items-center gap-12 lg:grid-cols-[1.05fr_minmax(0,520px)] lg:gap-20">
         <LandingStaggerItem index={0}>
           <div className="mb-7 text-[13px] font-medium uppercase tracking-[0.22em] text-primary/90">
