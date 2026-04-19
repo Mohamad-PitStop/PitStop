@@ -285,7 +285,6 @@ export function Navbar() {
   const { t } = useTranslation()
   const pathname = usePathname()
   const router = useRouter()
-  const isHome = pathname === "/"
   const isConnexionPage = pathname.startsWith("/connexion")
   const isDiagnostic = pathname.startsWith("/diagnostic")
   const isVente = pathname.startsWith("/vente")
@@ -333,26 +332,28 @@ export function Navbar() {
   const diagnosticHref = authReady ? getDiagnosticEntryHref(user) : "/diagnostic"
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex min-h-14 items-center gap-2 px-4 py-2">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/92 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
+      {/* Full-width : padding latéral direct, pas de container max-width */}
+      <div className="flex min-h-14 items-center gap-3 px-6 py-2 md:px-8">
 
-        {/* Logo (masqué sur la home) */}
-        {!isHome && (
-          <Link href="/" className="flex shrink-0 items-center">
-            <Image
-              src="/images/pitstop-logo.png"
-              alt="PitStop"
-              width={130}
-              height={40}
-              className="h-8 w-auto select-none [-webkit-user-drag:none]"
-              draggable={false}
-              priority
-            />
-          </Link>
-        )}
+        {/* Logo PitStop (icône moteur + wordmark Inter) */}
+        <Link href={isGaragiste ? "/garage/dashboard" : "/"} className="flex shrink-0 items-center gap-2.5">
+          <Image
+            src="/images/pitstop-icon.png"
+            alt="PitStop"
+            width={32}
+            height={32}
+            className="h-8 w-8 select-none rounded-[7px] [-webkit-user-drag:none]"
+            draggable={false}
+            priority
+          />
+          <span className="font-sans text-[19px] font-bold leading-none text-foreground">
+            Pit<span className="text-primary">Stop</span>
+          </span>
+        </Link>
 
         {/* Badge Phase de test */}
-        <span className="hidden sm:inline-flex shrink-0 items-center justify-center h-6 w-[7.5rem] text-center whitespace-nowrap rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 sm:text-xs">
+        <span className="hidden sm:inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-amber-400/35 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-amber-300">
           {t("navbar.phaseTest")}
         </span>
 

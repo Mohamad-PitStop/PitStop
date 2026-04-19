@@ -98,7 +98,7 @@ function ConnexionForm() {
 
   if (!sessionReady) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Navbar />
         <main className="py-14">
           <div className="container mx-auto max-w-xl px-4 flex justify-center py-16">
@@ -110,7 +110,7 @@ function ConnexionForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-xl px-4">

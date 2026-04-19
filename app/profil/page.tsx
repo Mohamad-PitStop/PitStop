@@ -555,7 +555,7 @@ export default function ProfilPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 py-10 space-y-10">

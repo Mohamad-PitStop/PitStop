@@ -34,7 +34,7 @@ export default function MotDePasseOubliePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-xl px-4">

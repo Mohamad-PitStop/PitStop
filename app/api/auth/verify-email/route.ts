@@ -20,6 +20,7 @@ import {
 import { AUTH_COOKIE_NAME, buildSessionCookieOptions, createAuthSession, extractCookieValue } from "@/lib/auth-session"
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit"
 import { sendSignupConfirmedEmail } from "@/lib/signup-confirmed-email"
+import { sendGarageSignupAdminEmail } from "@/lib/email-garage-signup-admin"
 import { findPendingGarageRegistration, deletePendingGarageRegistration } from "@/lib/pending-garage-registration-db"
 import { createGarage } from "@/lib/garage-db"
 import { activateEmployee } from "@/lib/garage-employee-db"
@@ -154,6 +155,26 @@ export async function POST(req: Request) {
       })
       // Lier l'account au garage
       await setUserGarageId(account.id, garage.id)
+
+      // Notifier l'admin (échec silencieux : ne bloque jamais la vérification).
+      try {
+        await sendGarageSignupAdminEmail({
+          garageId: garage.id,
+          companyName: gd.companyName,
+          bceTvaNumber: gd.bceTvaNumber,
+          street: gd.street,
+          postalCode: gd.postalCode,
+          city: gd.city,
+          professionalPhone: gd.professionalPhone,
+          professionalEmail: gd.professionalEmail,
+          managerName: gd.managerName,
+          ownerAccountEmail: account.email,
+          specialties: gd.specialties,
+          createdAt: new Date(),
+        })
+      } catch (err) {
+        console.error("garage-signup-admin-email: envoi échoué", err)
+      }
     }
 
     // Si inscription garage employee : activer l'employé

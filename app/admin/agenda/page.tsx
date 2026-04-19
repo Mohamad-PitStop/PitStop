@@ -244,7 +244,7 @@ export default function AdminAgendaPage() {
   const hasBlocked    = blockedCount > 0
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="container mx-auto max-w-4xl px-4 py-10 space-y-8">
 

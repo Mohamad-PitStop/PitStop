@@ -211,7 +211,7 @@ function AnnulerContent() {
 
 export default function AnnulerPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 flex items-center justify-center px-4 py-16">
         <Suspense fallback={<AnnulerLoadingFallback />}>

@@ -22,7 +22,7 @@ function AdminTestBookingContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-2xl px-4 space-y-8">
@@ -100,7 +100,7 @@ export default function TestBookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-md px-4">

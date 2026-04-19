@@ -42,3 +42,7 @@ tsconfig.tsbuildinfo
 Légal/
 *.pem
 .vercel
+
+# Design working folders
+_design-backup-*/
+claude design/

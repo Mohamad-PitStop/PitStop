@@ -105,7 +105,7 @@ export default function InscriptionGaragePage() {
   // Success screen
   if (pendingEmail) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Navbar />
         <main className="py-14">
           <div className="container mx-auto max-w-xl px-4">
@@ -125,7 +125,7 @@ export default function InscriptionGaragePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-2xl px-4">

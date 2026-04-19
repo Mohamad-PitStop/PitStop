@@ -10,7 +10,7 @@ import { AUTH_SESSION_CHANGED_EVENT } from "@/lib/auth-client-events"
 import { ArrowRight, Wrench } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/locale-context"
 
-function useDiagnosticEntryHrefFromSession() {
+export function useDiagnosticEntryHrefFromSession() {
   const pathname = usePathname()
   const [href, setHref] = useState("/diagnostic")
 

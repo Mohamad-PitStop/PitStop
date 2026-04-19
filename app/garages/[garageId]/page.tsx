@@ -43,7 +43,7 @@ export default function GarageProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Navbar />
         <main className="flex items-center justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -54,7 +54,7 @@ export default function GarageProfilePage() {
 
   if (!garage) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Navbar />
         <main className="container mx-auto max-w-2xl px-4 py-14 text-center">
           <p className="text-muted-foreground">Garage non trouvé.</p>
@@ -64,7 +64,7 @@ export default function GarageProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="container mx-auto max-w-2xl px-4 py-14 space-y-6">
         <Card>

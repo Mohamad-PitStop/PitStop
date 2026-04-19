@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function GaragesPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
 
       <main className="py-8 md:py-12">

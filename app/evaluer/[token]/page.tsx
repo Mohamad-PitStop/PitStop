@@ -57,7 +57,7 @@ export default function EvaluerPage() {
   const displayRating = hoverRating || rating
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="max-w-lg mx-auto px-4 py-16">
         {state === "loading" && (

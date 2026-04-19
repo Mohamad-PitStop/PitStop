@@ -79,7 +79,7 @@ function VerifierEmailContent() {
   }, [searchParams, router, t])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-md px-4">
@@ -148,7 +148,7 @@ function VerifierEmailContent() {
 function VerifyEmailFallback() {
   const { t } = useTranslation()
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-14">
         <div className="container mx-auto max-w-md px-4">

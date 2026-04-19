@@ -105,7 +105,7 @@ export default function AdminGaragesPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="container mx-auto max-w-4xl px-4 py-8 space-y-8">
         <h1 className="text-2xl font-bold">{t("garage.admin.title")}</h1>

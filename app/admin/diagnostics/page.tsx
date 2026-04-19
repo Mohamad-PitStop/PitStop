@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 export default function AdminDiagnosticsPage() {
   if (!isAdminConfigured()) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Navbar />
         <main className="py-8 md:py-12">
           <div className="container mx-auto px-4 max-w-md mx-auto">
@@ -28,7 +28,7 @@ export default function AdminDiagnosticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
       <main className="py-8 md:py-12">
         <div className="container mx-auto px-4">
