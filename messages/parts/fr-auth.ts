@@ -71,7 +71,7 @@ export const frAuth = {
     skip: "Passer cette étape",
     saveError: "Impossible d'enregistrer vos informations.",
     mandatoryWarning:
-      "Votre inscription n'est pas encore finalisée. Tant que vous n'enregistrez pas, aucun compte n'est créé — si vous quittez cette page, vous devrez recommencer depuis le début.",
+      "Votre inscription n'est pas encore finalisée. Tant que vous n'enregistrez pas, aucun compte n'est créé. Si vous quittez cette page, vous devrez recommencer depuis le début.",
     sessionExpired:
       "Votre session d'inscription a expiré. Recommencez avec Google pour finaliser.",
     emailAlreadyUsed:
