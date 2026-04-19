@@ -16,10 +16,10 @@ import {
 import { useTranslation } from "@/lib/i18n/locale-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
 
-const tabNavWidthClass = "w-[min(100%,12rem)] sm:w-[20rem] min-[1100px]:w-[22rem] xl:w-[26rem]"
+const tabNavWidthClass = "sm:w-[20rem] min-[1100px]:w-[22rem] xl:w-[26rem]"
 
 const tabBase =
-  "inline-flex h-[calc(100%-1px)] min-h-[1.75rem] sm:min-h-[2.25rem] w-full min-w-0 sm:min-w-[5rem] items-center justify-center gap-1 sm:gap-1.5 rounded-md border border-transparent px-1.5 sm:px-2 py-1 sm:py-1.5 text-[12px] sm:text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+  "inline-flex h-[calc(100%-1px)] min-h-[2.25rem] w-full min-w-[5rem] items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 
 const tabInactive = "text-foreground dark:text-muted-foreground hover:text-foreground/90"
 const tabActive = "bg-background text-foreground shadow-sm border-input dark:bg-input/30 dark:text-foreground"
@@ -363,12 +363,13 @@ export function Navbar() {
         {/* Espaceur */}
         <div className="flex-1" />
 
-        {/* Onglets Diagnostic / Vente (ou Espace garage) */}
+        {/* Onglets Diagnostic / Vente (ou Espace garage) — masqués sur mobile */}
         <DiagnosticVenteNavOrGarage
           isDiagnostic={isDiagnostic}
           isVente={isVente}
           diagnosticHref={diagnosticHref}
           isGaragiste={isGaragiste}
+          className="hidden sm:grid"
         />
 
         {/* Menu hamburger */}
