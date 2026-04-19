@@ -12,6 +12,14 @@ export function HomeAnimatedBackground() {
       aria-hidden
     >
       <div className="absolute inset-0 bg-background [transform:translateZ(0)]" />
+      <div
+        className="home-bg-grid absolute inset-0 [transform:translateZ(0)]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+        }}
+      />
       <div className="home-aurora-fade-y absolute inset-0 bg-gradient-to-b from-background/55 via-transparent to-background/55 [transform:translateZ(0)]" />
       <div className="home-aurora-anchor home-aurora-anchor--a absolute left-1/2 top-[36%] [transform:translate3d(-50%,-50%,0)]">
         <div className="home-bg-v2-spin home-bg-v2-spin--a h-[min(235vmin,3200px)] w-[min(235vmin,3200px)] max-w-none will-change-transform [transform:translateZ(0)] [-webkit-backface-visibility:hidden] [backface-visibility:hidden]">
