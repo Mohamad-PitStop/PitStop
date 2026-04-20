@@ -103,9 +103,9 @@ export default function GarageCalendarPage() {
   }
 
   const slotColor = (type: string) => {
-    if (type === "booked") return "bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700"
-    if (type === "blocked") return "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700"
-    return "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+    if (type === "booked") return "border-blue-400/60 text-blue-200"
+    if (type === "blocked") return "border-red-400/60 text-red-200"
+    return "border-green-400/60 text-green-200"
   }
 
   const renderDayColumn = (dateStr: string) => {
@@ -125,11 +125,11 @@ export default function GarageCalendarPage() {
           {slots.map((slot, i) => (
             <div
               key={i}
-              className={`rounded border p-1.5 text-xs ${slotColor(slot.type)} ${slot.type === "available" ? "cursor-pointer hover:opacity-80" : ""}`}
+              className={`mx-auto w-20 rounded border bg-transparent px-2 py-1 text-center text-xs ${slotColor(slot.type)} ${slot.type === "available" ? "cursor-pointer transition-colors hover:bg-white/5" : ""}`}
               onClick={() => slot.type === "available" && handleBlockSlot(dateStr, slot.start, slot.end)}
               title={slot.type === "available" ? t("garage.calendar.blockSlot") : ""}
             >
-              <span className="font-mono">{format(new Date(slot.start), "HH:mm")}</span>
+              <span>{format(new Date(slot.start), "HH:mm")}</span>
               {slot.reservationName && <span className="ml-1 truncate">{slot.reservationName}</span>}
               {slot.type === "blocked" && <span className="ml-1">{t("garage.calendar.blocked")}</span>}
             </div>
