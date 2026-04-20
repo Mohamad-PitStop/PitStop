@@ -56,9 +56,9 @@ export default function GarageLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen md:pl-64">
       {/* Sidebar - desktop */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden h-screen w-64 flex-col border-r border-border bg-card md:flex">
         <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
           <Link href="/garage/dashboard" className="text-lg font-bold text-primary">PitStop</Link>
           <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">GARAGE</span>
@@ -99,8 +99,8 @@ export default function GarageLayout({ children }: { children: React.ReactNode }
       </aside>
 
       {/* Mobile header + sidebar */}
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
+      <div className="flex min-h-screen flex-col">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
           <div className="flex items-center gap-2">
             <Link href="/garage/dashboard" className="text-lg font-bold text-primary">PitStop</Link>
             <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">GARAGE</span>
