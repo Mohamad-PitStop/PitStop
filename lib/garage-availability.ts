@@ -68,12 +68,19 @@ export async function getGarageAvailability(
   const blockedSlots = await getGarageBlockedSlotsForRange(garageId, fullDayStart, fullDayEnd)
   const blockedBusy = blockedSlots.map((b) => ({ start: b.startAt, end: b.endAt }))
 
-  // Soustraire les réservations existantes
+  // Soustraire les réservations existantes (payées, confirmées, et pending
+  // de moins de 10 min — le client vient peut-être de lancer un checkout).
+  const pendingCutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString()
   const reservations = await prisma.$queryRawUnsafe<{ startAt: string; endAt: string }[]>(
     `SELECT "startAt", "endAt" FROM "Reservation"
-     WHERE "garageId" = ? AND "status" IN ('paid', 'confirmed')
-     AND "startAt" < ? AND "endAt" > ?`,
+     WHERE "garageId" = ?
+       AND (
+         "status" IN ('paid', 'confirmed')
+         OR ("status" = 'pending' AND "createdAt" >= ?)
+       )
+       AND "startAt" < ? AND "endAt" > ?`,
     garageId,
+    pendingCutoff,
     fullDayEnd.toISOString(),
     fullDayStart.toISOString()
   )

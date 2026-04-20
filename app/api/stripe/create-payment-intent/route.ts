@@ -13,7 +13,6 @@ import { getUserFromAuthCookie } from "@/lib/auth-session"
 import { getClientIp } from "@/lib/rate-limit"
 import { generateCancelToken, ensureReservationMigrations } from "@/lib/reservation-db"
 import { ensureGarageTables, findGarageById } from "@/lib/garage-db"
-import { createDepositPayout } from "@/lib/deposit-payout-db"
 import { isGarageSlotBookable } from "@/lib/garage-availability"
 
 export const runtime = "nodejs"
@@ -110,6 +109,34 @@ export async function POST(req: Request) {
     if (body.garageId) await ensureGarageTables()
     const cancelToken = generateCancelToken()
 
+    // Si le même client (user connecté, ou même email/phone) a une réservation
+    // "pending" récente sur ce créneau, on la supprime pour permettre un nouveau
+    // checkout (TTL de 10 min géré par le cleanup). Évite les blocages après
+    // abandon d'un paiement.
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000)
+    if (user?.id) {
+      await prisma.reservation.deleteMany({
+        where: {
+          status: "pending",
+          userId: user.id,
+          startAt: new Date(body.startAt),
+          endAt: new Date(body.endAt),
+          createdAt: { gte: tenMinAgo },
+        },
+      })
+    } else {
+      await prisma.reservation.deleteMany({
+        where: {
+          status: "pending",
+          phone: body.phone,
+          ...(body.email ? { email: body.email } : {}),
+          startAt: new Date(body.startAt),
+          endAt: new Date(body.endAt),
+          createdAt: { gte: tenMinAgo },
+        },
+      })
+    }
+
     const reservation = await prisma.reservation.create({
       data: {
         type: body.type,
@@ -130,10 +157,6 @@ export async function POST(req: Request) {
         garageId: body.garageId ?? undefined,
       },
     })
-
-    if (body.garageId) {
-      await createDepositPayout(body.garageId, reservation.id, amount)
-    }
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,

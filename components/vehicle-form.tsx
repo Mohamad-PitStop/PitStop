@@ -869,6 +869,15 @@ export function VehicleForm({
         }
         sessionStorage.removeItem("pendingFormData")
       }
+      // Fallback : créditer immédiatement via l'API (indépendant du webhook).
+      // Idempotent : pas de double crédit si le webhook arrive ensuite.
+      fetch("/api/credits/confirm-purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentIntentId }),
+      })
+        .then(() => refreshCreditsBalance())
+        .catch(() => null)
       refreshCreditsBalance()
       const delaysMs = [2500, 6000, 12000, 20000]
       const timers = delaysMs.map((ms) => setTimeout(refreshCreditsBalance, ms))

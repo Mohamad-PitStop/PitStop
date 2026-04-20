@@ -1,16 +1,121 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { useTranslation } from "@/lib/i18n/locale-context"
 import { useDiagnosticEntryHrefFromSession } from "@/components/landing-diagnostic-links"
+import { cn } from "@/lib/utils"
+
+type Example = {
+  vehicle: string
+  engine: string
+  symptom: string
+  cause: string
+  severity: string
+  severityDot: string
+}
+
+function buildExamples(locale: string): Example[] {
+  if (locale === "en") {
+    return [
+      {
+        vehicle: "Peugeot 208 · 2019 · Petrol",
+        engine: "1.2 PureTech 82 hp",
+        symptom: "“Engine warning light on, hesitant cold start.”",
+        cause: "Ignition coil · cylinder 2",
+        severity: "Moderate",
+        severityDot: "bg-amber-400",
+      },
+      {
+        vehicle: "Renault Clio IV · 2017 · Diesel",
+        engine: "1.5 dCi 90 hp",
+        symptom: "“EDC gearbox slipping on acceleration.”",
+        cause: "Solenoid A · mechatronic",
+        severity: "High",
+        severityDot: "bg-red-400",
+      },
+      {
+        vehicle: "Volkswagen Golf 7 · 2015 · Petrol",
+        engine: "1.4 TSI 122 hp",
+        symptom: "“Loss of power uphill, occasional judder.”",
+        cause: "Coil + spark plug · cylinder 4",
+        severity: "Moderate",
+        severityDot: "bg-amber-400",
+      },
+    ]
+  }
+  if (locale === "nl") {
+    return [
+      {
+        vehicle: "Peugeot 208 · 2019 · Benzine",
+        engine: "1.2 PureTech 82 pk",
+        symptom: "“Motorlampje aan, aarzelende koude start.”",
+        cause: "Bobine · cilinder 2",
+        severity: "Gemiddeld",
+        severityDot: "bg-amber-400",
+      },
+      {
+        vehicle: "Renault Clio IV · 2017 · Diesel",
+        engine: "1.5 dCi 90 pk",
+        symptom: "“EDC-bak slipt bij optrekken.”",
+        cause: "Solenoïde A · mechatronic",
+        severity: "Hoog",
+        severityDot: "bg-red-400",
+      },
+      {
+        vehicle: "Volkswagen Golf 7 · 2015 · Benzine",
+        engine: "1.4 TSI 122 pk",
+        symptom: "“Krachtverlies op een helling, af en toe schokken.”",
+        cause: "Bobine + bougie · cilinder 4",
+        severity: "Gemiddeld",
+        severityDot: "bg-amber-400",
+      },
+    ]
+  }
+  return [
+    {
+      vehicle: "Peugeot 208 · 2019 · Essence",
+      engine: "1.2 PureTech 82 ch",
+      symptom: "« Voyant moteur allumé, démarrage hésitant à froid. »",
+      cause: "Bobine d'allumage · cylindre 2",
+      severity: "Modérée",
+      severityDot: "bg-amber-400",
+    },
+    {
+      vehicle: "Renault Clio IV · 2017 · Diesel",
+      engine: "1.5 dCi 90 ch",
+      symptom: "« Boîte EDC qui patine à l'accélération. »",
+      cause: "Solénoïde A · mécatronique",
+      severity: "Élevée",
+      severityDot: "bg-red-400",
+    },
+    {
+      vehicle: "Volkswagen Golf 7 · 2015 · Essence",
+      engine: "1.4 TSI 122 ch",
+      symptom: "« Perte de puissance en côte, à-coups occasionnels. »",
+      cause: "Bobine + bougie · cylindre 4",
+      severity: "Modérée",
+      severityDot: "bg-amber-400",
+    },
+  ]
+}
 
 export function LandingDiagnosticExample() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const diagnosticHref = useDiagnosticEntryHrefFromSession()
+  const examples = buildExamples(locale)
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((i) => (i + 1) % examples.length)
+    }, 8000)
+    return () => clearInterval(timer)
+  }, [examples.length])
 
   return (
     <div className="flex w-full max-w-[500px] flex-col gap-4">
-      {/* Card 1 — Example report */}
+      {/* Card 1 — Example report (carousel) */}
       <div
         className="rounded-2xl border border-border bg-card shadow-[0_24px_64px_rgba(0,0,0,0.4)]"
         aria-label={t("home.v2.exLabel")}
@@ -20,38 +125,45 @@ export function LandingDiagnosticExample() {
             {t("home.v2.exLabel")}
           </div>
           <div className="flex gap-1.5" aria-hidden>
-            <span className="h-2 w-2 rounded-full bg-primary/60" />
-            <span className="h-2 w-2 rounded-full bg-border" />
-            <span className="h-2 w-2 rounded-full bg-border" />
+            {examples.map((_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-500",
+                  i === index ? "w-5 bg-primary" : "w-2 bg-border"
+                )}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="px-6 py-5">
-          <div className="mb-1 text-[13px] font-semibold text-foreground">
-            {t("home.v2.exVehicle")}
-          </div>
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-            <span className="uppercase tracking-[0.08em] opacity-80">
-              {t("home.v2.exEngineLabel")}
-            </span>
-            <span>·</span>
-            <span>{t("home.v2.exEngineValue")}</span>
-          </div>
-          <p className="mb-4 text-[13px] leading-[1.6] text-muted-foreground">
-            {t("home.v2.exSymptom")}
-          </p>
-
-          <div className="grid grid-cols-2 gap-3">
-            <ReportCell
-              label={t("home.v2.exCauseLabel")}
-              value={t("home.v2.exCauseValue")}
-            />
-            <ReportCell
-              label={t("home.v2.exSeverityLabel")}
-              value={t("home.v2.exSeverityValue")}
-              dotClassName="bg-amber-400"
-            />
+        <div className="relative px-6 py-5">
+          {/* Stack all slides; animate opacity + translate */}
+          <div className="relative">
+            {/* Invisible sizer to hold the tallest layout */}
+            <div className="invisible">
+              <ReportSlide example={examples[0]} t={t} />
+            </div>
+            {examples.map((ex, i) => {
+              const isActive = i === index
+              const isPrev = (i + 1) % examples.length === index
+              return (
+                <div
+                  key={i}
+                  aria-hidden={!isActive}
+                  className={cn(
+                    "absolute inset-0 transition-all duration-500 ease-out",
+                    isActive
+                      ? "translate-x-0 opacity-100"
+                      : isPrev
+                        ? "-translate-x-6 opacity-0"
+                        : "translate-x-6 opacity-0"
+                  )}
+                >
+                  <ReportSlide example={ex} t={t} />
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -139,6 +251,38 @@ export function LandingDiagnosticExample() {
         </div>
       </div>
     </div>
+  )
+}
+
+function ReportSlide({
+  example,
+  t,
+}: {
+  example: Example
+  t: (key: string) => string
+}) {
+  return (
+    <>
+      <div className="mb-1 text-[13px] font-semibold text-foreground">{example.vehicle}</div>
+      <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+        <span className="uppercase tracking-[0.08em] opacity-80">
+          {t("home.v2.exEngineLabel")}
+        </span>
+        <span>·</span>
+        <span>{example.engine}</span>
+      </div>
+      <p className="mb-4 text-[13px] leading-[1.6] text-muted-foreground">{example.symptom}</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        <ReportCell label={t("home.v2.exCauseLabel")} value={example.cause} />
+        <ReportCell
+          label={t("home.v2.exSeverityLabel")}
+          value={example.severity}
+          dotClassName={example.severityDot}
+        />
+      </div>
+    </>
   )
 }
 

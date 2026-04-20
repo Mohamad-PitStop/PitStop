@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Car, Calendar, Gauge, Search, RotateCcw, Eye } from "lucide-react"
+import { Car, Calendar, Gauge, Search, RotateCcw, Eye, AlertTriangle } from "lucide-react"
 import { getDiagnosticEntryHref } from "@/lib/diagnostic-entry-href"
 import { buildLoginUrl } from "@/lib/login-redirect"
 import { formatCarburantOptionLabel } from "@/lib/format-carburant-label"
@@ -27,6 +27,7 @@ type Diagnostic = {
   probleme: string
   followUps: string | null
   status: DiagnosticStatus
+  disputableReservationId: string | null
 }
 
 function truncate(text: string, max = 120) {
@@ -306,6 +307,20 @@ export default function MesDiagnosticsPage() {
                           <RotateCcw className="h-3 w-3" />
                         )}
                         {resumingId === d.id ? t("mesDiagnostics.loading") : t("mesDiagnostics.resume")}
+                      </Button>
+                    )}
+                    {d.disputableReservationId && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 h-7 text-xs border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/litige/${d.disputableReservationId}`)
+                        }}
+                      >
+                        <AlertTriangle className="h-3 w-3" />
+                        Signaler un litige
                       </Button>
                     )}
                   </div>

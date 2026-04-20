@@ -88,11 +88,23 @@ export default function CreditsPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const paymentIntentId = params.get("payment_intent")
 
     // Nouveau flux (PaymentIntent redirect) ou ancien flux (success=1)
     if (params.get("redirect_status") === "succeeded" || params.get("success") === "1") {
       setSuccess(true)
       window.history.replaceState({}, "", "/credits")
+      // Fallback : créditer immédiatement via l'API (indépendant du webhook).
+      // Idempotent : même si le webhook arrive ensuite, pas de double crédit.
+      if (paymentIntentId) {
+        fetch("/api/credits/confirm-purchase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paymentIntentId }),
+        })
+          .then(() => refreshUser())
+          .catch(() => null)
+      }
     }
 
     refreshUser()

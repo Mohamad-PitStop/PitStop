@@ -85,12 +85,17 @@ export async function GET(req: Request) {
     const rangeStart = allSlots[0].start
     const rangeEnd = allSlots[allSlots.length - 1].end
 
+    const pendingCutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString()
     const [reservations, blockedSlots] = await Promise.all([
       prisma.$queryRawUnsafe<{ startAt: string; endAt: string }[]>(
         `SELECT "startAt", "endAt" FROM "Reservation"
-         WHERE "status" IN ('paid', 'confirmed')
-           AND "garageId" IS NULL
+         WHERE "garageId" IS NULL
+           AND (
+             "status" IN ('paid', 'confirmed')
+             OR ("status" = 'pending' AND "createdAt" >= ?)
+           )
            AND "startAt" < ? AND "endAt" > ?`,
+        pendingCutoff,
         rangeEnd,
         rangeStart
       ),

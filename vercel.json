@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/send-rating-emails",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-pending-reservations",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

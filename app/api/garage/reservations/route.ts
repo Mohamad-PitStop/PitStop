@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireGaragiste } from "@/lib/garage-auth"
 import { prisma } from "@/lib/prisma"
 import { getPayoutByReservation } from "@/lib/deposit-payout-db"
+import { findGarageById } from "@/lib/garage-db"
 
 export const runtime = "nodejs"
 
@@ -25,7 +26,9 @@ type ReservationRow = {
 export async function GET(req: Request) {
   const auth = await requireGaragiste(req)
   if (!auth) return NextResponse.json({ ok: false, error: "Non autorisé" }, { status: 403 })
-  const { garageId } = auth
+  const { user, garageId } = auth
+  const garage = await findGarageById(garageId)
+  const isOwner = garage ? garage.managerUserId === user.id : false
 
   try {
     const url = new URL(req.url)
@@ -53,15 +56,17 @@ export async function GET(req: Request) {
 
     const reservations = await prisma.$queryRawUnsafe<ReservationRow[]>(query, ...params)
 
-    // Attach payout info to each reservation
+    // Attach payout info to each reservation (owner only)
     const enriched = await Promise.all(
       reservations.map(async (r) => {
+        if (!isOwner) {
+          return { ...r, payoutStatus: null, payoutAmountCents: null }
+        }
         const payout = await getPayoutByReservation(r.id)
         return {
           ...r,
-          payout: payout
-            ? { status: payout.status, amountCents: payout.amountCents }
-            : null,
+          payoutStatus: payout ? payout.status : null,
+          payoutAmountCents: payout ? payout.amountCents : null,
         }
       })
     )
