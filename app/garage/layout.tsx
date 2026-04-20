@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
+import { createPortal } from "react-dom"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { useTranslation } from "@/lib/i18n/locale-context"
@@ -8,6 +9,15 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import {
   LayoutDashboard, Calendar, ClipboardList, Users, Settings, Wallet, Download, LogOut, Menu, X,
 } from "lucide-react"
+
+// La sidebar est rendue dans document.body pour échapper au wrapper
+// PageTransition (qui a `transform:translateZ(0)` et casserait `position:fixed`).
+function BodyPortal({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted || typeof document === "undefined") return null
+  return createPortal(children, document.body)
+}
 
 type User = { id: string; name: string; email: string; role: string; garageId: string | null }
 
@@ -57,7 +67,8 @@ export default function GarageLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen md:pl-64">
-      {/* Sidebar - desktop */}
+      {/* Sidebar - desktop (rendue dans document.body via portail) */}
+      <BodyPortal>
       <aside className="fixed inset-y-0 left-0 z-30 hidden h-screen w-64 flex-col border-r border-border bg-card md:flex">
         <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
           <Link href="/garage/dashboard" className="text-lg font-bold text-primary">PitStop</Link>
@@ -97,6 +108,7 @@ export default function GarageLayout({ children }: { children: React.ReactNode }
           </button>
         </div>
       </aside>
+      </BodyPortal>
 
       {/* Mobile header + sidebar */}
       <div className="flex min-h-screen flex-col">
