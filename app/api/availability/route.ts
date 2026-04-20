@@ -44,7 +44,9 @@ export async function GET(req: Request) {
           { status: 401 }
         )
       }
-      const { slots, timeZone: tz } = await getGarageAvailability(user.garageId, parsed.date)
+      const { slots, timeZone: tz } = await getGarageAvailability(user.garageId, parsed.date, {
+        allowUnapproved: true,
+      })
       return Response.json({ ok: true, timeZone: tz, slots })
     }
 

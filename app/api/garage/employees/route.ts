@@ -8,7 +8,7 @@ export const runtime = "nodejs"
 export async function GET(req: Request) {
   const auth = await requireGaragiste(req)
   if (!auth) return NextResponse.json({ ok: false, error: "Non autorisé" }, { status: 403 })
-  const { garageId } = auth
+  const { user, garageId } = auth
 
   try {
     const [employees, garage] = await Promise.all([
@@ -20,6 +20,7 @@ export async function GET(req: Request) {
       ok: true,
       employees,
       garageCode: garage?.garageCode ?? null,
+      isOwner: garage ? garage.managerUserId === user.id : false,
     })
   } catch (err) {
     console.error("Garage employees GET error:", err)

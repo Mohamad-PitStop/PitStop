@@ -15,10 +15,14 @@ const TIME_ZONE = "Europe/Brussels"
  */
 export async function getGarageAvailability(
   garageId: string,
-  dateStr: string // YYYY-MM-DD
+  dateStr: string, // YYYY-MM-DD
+  opts?: { allowUnapproved?: boolean }
 ): Promise<{ slots: Slot[]; timeZone: string }> {
   const garage = await findGarageById(garageId)
-  if (!garage || garage.status !== "approved") {
+  if (!garage) {
+    return { slots: [], timeZone: TIME_ZONE }
+  }
+  if (!opts?.allowUnapproved && garage.status !== "approved") {
     return { slots: [], timeZone: TIME_ZONE }
   }
 
@@ -79,9 +83,12 @@ export async function getGarageAvailability(
   const allBusy = [...blockedBusy, ...reservedBusy]
   let available = subtractBusy(allSlots, allBusy)
 
-  // Filtrer les créneaux passés (minimum 12h à l'avance, comme le global)
-  const minTime = Date.now() + 12 * 60 * 60 * 1000
-  available = available.filter((s) => new Date(s.start).getTime() >= minTime)
+  // Filtrer les créneaux passés (minimum 12h à l'avance pour la réservation publique).
+  // Pour la vue propre du garage, on affiche toute la journée sans contrainte d'avance.
+  if (!opts?.allowUnapproved) {
+    const minTime = Date.now() + 12 * 60 * 60 * 1000
+    available = available.filter((s) => new Date(s.start).getTime() >= minTime)
+  }
 
   return { slots: available, timeZone: TIME_ZONE }
 }

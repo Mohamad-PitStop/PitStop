@@ -1,9 +1,40 @@
 import { NextResponse } from "next/server"
 import { requireGaragiste } from "@/lib/garage-auth"
-import { requestHoursChange } from "@/lib/garage-hours-db"
+import { requestHoursChange, listHoursRequestsForGarage } from "@/lib/garage-hours-db"
 import { findGarageById } from "@/lib/garage-db"
 
 export const runtime = "nodejs"
+
+export async function GET(req: Request) {
+  const auth = await requireGaragiste(req)
+  if (!auth) return NextResponse.json({ ok: false, error: "Non autorisé" }, { status: 403 })
+  const { garageId } = auth
+
+  try {
+    const requests = await listHoursRequestsForGarage(garageId)
+    const pending = requests.find((r) => r.status === "pending") ?? null
+    return NextResponse.json({
+      ok: true,
+      pending: pending
+        ? {
+            id: pending.id,
+            createdAt: pending.createdAt,
+            proposedHours: pending.proposedHours,
+          }
+        : null,
+      history: requests.map((r) => ({
+        id: r.id,
+        createdAt: r.createdAt,
+        status: r.status,
+        adminNote: r.adminNote,
+        processedAt: r.processedAt,
+      })),
+    })
+  } catch (err) {
+    console.error("Hours change GET error:", err)
+    return NextResponse.json({ ok: false, error: "Erreur serveur." }, { status: 500 })
+  }
+}
 
 export async function POST(req: Request) {
   const auth = await requireGaragiste(req)

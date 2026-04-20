@@ -37,7 +37,6 @@ export default function GarageSettingsPage() {
   }, [])
 
   useEffect(() => {
-    // Load garage info from dashboard
     fetch("/api/garage/dashboard")
       .then((r) => r.json())
       .then((data) => {
@@ -48,21 +47,27 @@ export default function GarageSettingsPage() {
           setGarageInfo({ companyName: data.garage.companyName, garageCode: data.garage.garageCode })
         }
       })
-    // Load pending hours requests
+      .catch(() => {})
     fetch("/api/garage/hours-change")
       .then((r) => r.json())
+      .then((data) => {
+        if (data.ok) setChangePending(Boolean(data.pending))
+      })
       .catch(() => {})
     loadClosures()
   }, [loadClosures])
 
   const handleSubmitHours = async () => {
-    await fetch("/api/garage/hours-change", {
+    const res = await fetch("/api/garage/hours-change", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ proposedHours }),
     })
-    setEditing(false)
-    setChangeSubmitted(true)
+    if (res.ok) {
+      setEditing(false)
+      setChangeSubmitted(true)
+      setChangePending(true)
+    }
   }
 
   const handleAddClosure = async () => {
