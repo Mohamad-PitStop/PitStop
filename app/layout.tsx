@@ -26,7 +26,10 @@ const inter = Inter({
   preload: true,
 });
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://pitstop-diagnostic.live').replace(/\/$/, '')
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'PitStop - Estimez vos réparations auto',
   description: 'Obtenez une estimation fiable et transparente pour vos réparations automobiles. Comparez les prix DIY et garage.',
   generator: 'v0.app',

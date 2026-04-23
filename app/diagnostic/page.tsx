@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Diagnostic auto IA — PitStop",
   description:
     "Décrivez le problème de votre véhicule et obtenez en quelques secondes une estimation des coûts de réparation, un guide DIY et l'accès à des garages partenaires en Belgique.",
+  alternates: { canonical: "/diagnostic" },
 }
 
 export default async function DiagnosticPage() {

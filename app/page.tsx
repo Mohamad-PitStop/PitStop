@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "PitStop : Diagnostic et estimation auto",
   description:
     "Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.",
+  alternates: { canonical: "/" },
 }
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://pitstop-diagnostic.live").replace(/\/$/, "")

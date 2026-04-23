@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: "Connexion — PitStop",
   description:
     "Connectez-vous à votre compte PitStop pour accéder à votre historique de diagnostics, vos crédits et vos rendez-vous.",
+  alternates: { canonical: "/connexion" },
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
