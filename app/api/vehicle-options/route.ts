@@ -22,7 +22,9 @@ const OptionsSchema = z.object({
   options: z.array(z.string()),
 })
 
-const SYSTEM_TEXT = `Tu es une base de données automobile experte couvrant tous les véhicules vendus en Europe.
+const SYSTEM_TEXT = `Tu es une base de données automobile exhaustive, multi-marchés (France, Europe, Amérique du Nord, autres marchés internationaux).
+Tu connais TOUS les véhicules de toutes les générations, passés et présents, y compris les modèles discontinués, les éditions limitées, les variantes spécifiques à un marché et les motorisations rares ou optionnelles.
+Règle d'or : ne jamais tronquer une liste. Mieux vaut inclure une option rare ou marginale que d'en omettre une.
 Réponds UNIQUEMENT en JSON valide, sans texte autour, sans markdown, sans backticks.`
 
 
@@ -102,31 +104,39 @@ function buildUserPrompt(body: z.infer<typeof BodySchema>, step: InferredStep): 
 
   switch (step) {
     case "modeles":
-      return `Liste ABSOLUMENT TOUS les modèles de ${m} vendus en Europe, passé et présent, sans exception. Inclus :
-- Toutes les séries numérotées (ex pour BMW : Série 1, Série 2, Série 3, Série 4, Série 5, Série 6, Série 7, Série 8)
-- Tous les SUV et crossovers (ex pour BMW : X1, X2, X3, X4, X5, X6, X7, XM)
-- Toutes les versions M (ex pour BMW : M2, M3, M4, M5, M8)
-- Tous les modèles électriques et hybrides (ex pour BMW : i3, i4, i5, i7, iX, iX1, iX3)
-- Tous les modèles Z et Gran (ex pour BMW : Z3, Z4, Gran Turismo, Gran Coupé)
-- Tous les modèles discontinués
-- Tous les modèles de niche et éditions limitées vendus en Europe
-Ne regroupe pas les modèles, liste chaque modèle séparément.
-Ne tronque pas la liste sous aucun prétexte.
+      return `Liste ABSOLUMENT TOUS les modèles de ${m}, passé et présent, sans exception, tous marchés confondus (France, Europe, Amérique du Nord, autres). Inclus :
+- Toutes les séries numérotées et générations successives (ex pour BMW : Série 1, Série 2, Série 3, Série 4, Série 5, Série 6, Série 7, Série 8)
+- Tous les SUV, crossovers et 4x4 (ex pour BMW : X1, X2, X3, X4, X5, X6, X7, XM)
+- Toutes les versions sportives / M / AMG / RS / ST / N / GTI / Type R (ex pour BMW : M2, M3, M4, M5, M8)
+- Tous les modèles électriques, hybrides, hybrides rechargeables et hydrogène (ex pour BMW : i3, i4, i5, i7, iX, iX1, iX2, iX3)
+- Tous les coupés, cabriolets, roadsters, breaks, monospaces, fourgons et utilitaires légers
+- Tous les modèles discontinués, anciens, oubliés, ou retirés du marché
+- Toutes les éditions limitées et modèles de niche, même rares
+- Tous les noms commerciaux différents selon les marchés (ex : Yaris/Vitz, Auris/Corolla, etc.) — liste chaque dénomination utilisée en France/Europe
+Ne regroupe pas les modèles, liste chaque modèle séparément (une entrée par dénomination).
+Ne tronque JAMAIS la liste sous aucun prétexte. Si tu hésites entre inclure ou exclure, INCLUS.
 Réponds avec : { "options": ["modele1", "modele2", ...] }`
     case "variantes":
-      return `Pour ${m} ${mo} vendu en Europe, liste toutes les variantes distinctes (ex: 3 portes, 5 portes, break, coupé, cabriolet, etc.).
-Si ce modèle n'a pas de variantes distinctes, retourne un tableau vide.
+      return `Pour ${m} ${mo}, liste TOUTES les variantes de carrosserie distinctes ayant existé sur l'ensemble des générations (ex : 3 portes, 5 portes, berline, break, SW, Touring, Avant, Sportback, coupé, cabriolet, roadster, fastback, liftback, monospace, long châssis, etc.).
+Inclus toutes les variantes même rares ou propres à une seule génération.
+Si ce modèle n'a jamais eu qu'une seule carrosserie, retourne un tableau vide.
 Réponds avec : { "options": ["variante1", "variante2", ...] }`
     case "annees":
-      return `Pour ${m} ${mo}${v ? ` ${v}` : ""} vendu en Europe, liste toutes les années de production disponibles.
-Réponds avec : { "options": ["2015", "2016", ...] }`
+      return `Pour ${m} ${mo}${v ? ` ${v}` : ""}, liste TOUTES les années de production, de la toute première année de la première génération à la dernière année commercialisée (ou l'année en cours si encore produit).
+Couvre TOUTES les générations successives en une plage continue : ne saute aucune année, même celle d'un changement de génération.
+Inclus les années de pré-série / restylages / fins de carrière.
+Réponds avec : { "options": ["2024", "2023", ...] }`
     case "carburants":
-      return `Pour ${m} ${mo}${v ? ` ${v}` : ""} ${a} vendu en Europe, liste les carburants disponibles pour cette configuration exacte (ex: essence, diesel, hybride, électrique, GPL, etc.).
-Réponds avec : { "options": ["essence", "diesel", ...] }`
+      return `Pour ${m} ${mo}${v ? ` ${v}` : ""} année ${a}, liste TOUS les carburants ayant été commercialisés cette année-là pour ce modèle, sur tous les marchés et tous les niveaux de finition.
+Inclus systématiquement (si applicable) : essence, diesel, hybride, hybride rechargeable (PHEV), électrique, GPL, GNV / CNG, E85 / éthanol, hydrogène, micro-hybride / mild hybrid.
+Sois EXHAUSTIF : si une motorisation a existé même en option, en série limitée, ou sur un marché spécifique, INCLUS-la.
+Ne renvoie jamais une seule option si plusieurs ont coexisté la même année.
+Réponds avec : { "options": ["Essence", "Diesel", ...] }`
     case "transmissions":
-      return `Pour ${m} ${mo}${v ? ` ${v}` : ""} ${a} ${c} vendu en Europe, liste TOUTES les transmissions qui ont existé pour cette configuration, en incluant toutes les boîtes commercialisées selon les marchés européens (ex: manuelle 5 ou 6 vitesses, automatique, DCT, DSG, TCT, EDC, PDK, robotisée, CVT, etc.).
-Sois exhaustif : ne retourne jamais une seule option si plusieurs ont existé, même si l'une d'elles était minoritaire ou optionnelle.
-Réponds avec : { "options": ["manuelle", "automatique"] }`
+      return `Pour ${m} ${mo}${v ? ` ${v}` : ""} année ${a} en ${c}, liste TOUTES les transmissions qui ont existé pour cette configuration, sur tous les marchés et toutes les finitions (ex : manuelle 5 vitesses, manuelle 6 vitesses, automatique classique, DCT, DSG, TCT, EDC, PDK, S tronic, ZF 8HP, robotisée, CVT, e-CVT, mono-rapport pour électriques, etc.).
+Inclus systématiquement chaque type ayant été disponible, même en option, sur un seul niveau de finition, ou sur un marché spécifique.
+Ne renvoie jamais une seule option si plusieurs ont coexisté.
+Réponds avec : { "options": ["Manuelle 6 vitesses", "Automatique DSG 7 rapports", ...] }`
     default:
       return ""
   }

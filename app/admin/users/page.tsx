@@ -25,6 +25,7 @@ import {
   Gift,
 } from "lucide-react"
 import Link from "next/link"
+import { formatBrusselsDate } from "@/lib/format-brussels-date"
 
 type UserRole = "admin" | "tester" | "user_friend" | "user"
 
@@ -89,9 +90,7 @@ const ASSIGNABLE_ROLES: { value: UserRole; label: string }[] = [
 ]
 
 function formatDate(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("fr-BE", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(iso))
-  } catch { return iso }
+  return formatBrusselsDate(iso)
 }
 
 export default function AdminUsersPage() {
@@ -101,11 +100,11 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
-  // User search
-  const [searchEmail, setSearchEmail] = useState("")
+  // User search (recherche partielle nom OU e-mail)
+  const [searchQuery, setSearchQuery] = useState("")
   const [searching, setSearching] = useState(false)
-  const [searchResult, setSearchResult] = useState<User | null | "not_found">(null)
-  const [roleChanging, setRoleChanging] = useState(false)
+  const [searchResults, setSearchResults] = useState<User[] | null>(null)
+  const [roleChangingId, setRoleChangingId] = useState<string | null>(null)
 
   // Pending form
   const [newEmail, setNewEmail] = useState("")
@@ -197,31 +196,31 @@ export default function AdminUsersPage() {
   }, [])
 
   async function searchUser() {
-    const email = searchEmail.trim().toLowerCase()
-    if (!email) return
+    const q = searchQuery.trim()
+    if (!q) return
     setSearching(true)
-    setSearchResult(null)
+    setSearchResults(null)
     try {
-      const res = await fetch(`/api/admin/users?email=${encodeURIComponent(email)}`)
+      const res = await fetch(`/api/admin/users?q=${encodeURIComponent(q)}`)
       const data = await res.json().catch(() => null)
-      setSearchResult(data?.user ?? "not_found")
+      setSearchResults(Array.isArray(data?.users) ? data.users : [])
     } catch {
-      setSearchResult("not_found")
+      setSearchResults([])
     } finally {
       setSearching(false)
     }
   }
 
   async function setRole(userId: string, role: UserRole) {
-    setRoleChanging(true)
+    setRoleChangingId(userId)
     await fetch("/api/admin/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, role }),
     })
-    // Refresh search result and counts
+    // Refresh counts + résultats de recherche en cours.
     await Promise.all([fetchData(), searchUser()])
-    setRoleChanging(false)
+    setRoleChangingId(null)
   }
 
   async function addAssignment() {
@@ -631,10 +630,10 @@ export default function AdminUsersPage() {
           <CardContent className="pt-4 pb-4 space-y-4">
             <div className="flex gap-2">
               <Input
-                type="email"
-                placeholder="Adresse e-mail du compte"
-                value={searchEmail}
-                onChange={(e) => { setSearchEmail(e.target.value); setSearchResult(null) }}
+                type="text"
+                placeholder="Nom ou adresse e-mail (recherche partielle)"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setSearchResults(null) }}
                 onKeyDown={(e) => { if (e.key === "Enter") searchUser() }}
                 className="h-9 text-sm flex-1"
               />
@@ -642,7 +641,7 @@ export default function AdminUsersPage() {
                 size="sm"
                 className="h-9 gap-1.5 shrink-0"
                 onClick={searchUser}
-                disabled={searching || !searchEmail.trim()}
+                disabled={searching || !searchQuery.trim()}
               >
                 {searching ? (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -658,54 +657,80 @@ export default function AdminUsersPage() {
               </Button>
             </div>
 
-            {searchResult === "not_found" && (
-              <p className="text-sm text-muted-foreground">Aucun compte trouvé pour cette adresse e-mail.</p>
+            {searchResults !== null && searchResults.length === 0 && (
+              <p className="text-sm text-muted-foreground">Aucun compte ne correspond à cette recherche.</p>
             )}
 
-            {searchResult && searchResult !== "not_found" && (() => {
-              const u = searchResult
-              const isMe = u.id === currentUserId
-              return (
-                <div className="rounded-lg border border-border/60 bg-secondary/10 p-4 flex items-center gap-4 flex-wrap">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-foreground">{u.name}</span>
-                      {isMe && <span className="text-xs text-amber-400">(vous)</span>}
-                      <Badge variant="outline" className={`text-xs ${ROLE_BADGE_CLASS[u.role]}`}>
-                        {ROLE_LABELS[u.role]}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                      <span className="text-xs text-muted-foreground">{u.email}</span>
-                      {u.createdAt && (
-                        <span className="text-xs text-muted-foreground shrink-0">· Inscrit le {formatDate(u.createdAt)}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {!isMe && u.role !== "admin" && (
-                    <div className="flex items-center gap-2 shrink-0">
-                      <select
-                        disabled={roleChanging}
-                        value={u.role}
-                        onChange={(e) => setRole(u.id, e.target.value as UserRole)}
-                        className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50 [&>option]:bg-[#0a1628]"
+            {searchResults !== null && searchResults.length > 0 && (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  {searchResults.length} résultat{searchResults.length > 1 ? "s" : ""}
+                  {searchResults.length === 25 ? " (limité à 25, affinez la recherche pour en voir d'autres)" : ""}
+                </p>
+                <div className="space-y-2">
+                  {searchResults.map((u) => {
+                    const isMe = u.id === currentUserId
+                    return (
+                      <div
+                        key={u.id}
+                        className="rounded-lg border border-border/60 bg-secondary/10 p-4 flex items-center gap-4 flex-wrap cursor-pointer transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        role="link"
+                        tabIndex={0}
+                        aria-label={`Voir le profil et l'historique de ${u.name}`}
+                        onClick={() => router.push(`/admin/users/${encodeURIComponent(u.id)}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            router.push(`/admin/users/${encodeURIComponent(u.id)}`)
+                          }
+                        }}
                       >
-                        {ASSIGNABLE_ROLES.map((r) => (
-                          <option key={r.value} value={r.value}>{r.label}</option>
-                        ))}
-                      </select>
-                      {roleChanging && (
-                        <svg className="animate-spin h-4 w-4 text-muted-foreground" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                      )}
-                    </div>
-                  )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-foreground">{u.name}</span>
+                            {isMe && <span className="text-xs text-amber-400">(vous)</span>}
+                            <Badge variant="outline" className={`text-xs ${ROLE_BADGE_CLASS[u.role]}`}>
+                              {ROLE_LABELS[u.role]}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                            <span className="text-xs text-muted-foreground">{u.email}</span>
+                            {u.createdAt && (
+                              <span className="text-xs text-muted-foreground shrink-0">· Inscrit le {formatDate(u.createdAt)}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {!isMe && u.role !== "admin" && (
+                          <div
+                            className="flex items-center gap-2 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <select
+                              disabled={roleChangingId === u.id}
+                              value={u.role}
+                              onChange={(e) => setRole(u.id, e.target.value as UserRole)}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50 [&>option]:bg-[#0a1628]"
+                            >
+                              {ASSIGNABLE_ROLES.map((r) => (
+                                <option key={r.value} value={r.value}>{r.label}</option>
+                              ))}
+                            </select>
+                            {roleChangingId === u.id && (
+                              <svg className="animate-spin h-4 w-4 text-muted-foreground" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })()}
+              </>
+            )}
           </CardContent>
         </Card>
       </section>

@@ -248,6 +248,12 @@ function isNoInterventionDiagnostic(d: z.infer<typeof DiagnosticSchema>): boolea
 const MechanicReportSchema = z.object({
   engineCode: z.string().nullable(),
   gearboxReference: z.string().nullable(),
+  /**
+   * true si l'identification précise du moteur n'était pas nécessaire pour ce
+   * diagnostic (ex : carrosserie, freinage, pneus, suspension, électricité simple,
+   * lavage). Permet d'expliciter au garagiste pourquoi engineCode est null.
+   */
+  engineIdentificationNotRequired: z.boolean().default(false),
   suspectedFaultCodes: z.array(z.object({
     code: z.string(),
     description: z.string(),
@@ -282,6 +288,7 @@ async function generateMechanicReport(params: {
       ? `You are a senior automotive technician. For the given vehicle and suspected issue, produce a TECHNICAL report meant for the mechanic receiving the client.
 Fill ONLY fields you are reasonably confident about. If unknown, return null or [].
 - engineCode: the EXACT engine code (e.g. "M47D20", "EA288", "K9K 832"). ABSOLUTE RULE: NEVER invent or guess. Return this field ONLY if the web search results below explicitly identify a single unambiguous code for this exact vehicle (model, year, fuel, power). If multiple variants remain plausible, if the search did not return the code for this specific configuration, or if you are not 100% certain, you MUST return null. A null value is always preferred over an uncertain guess.
+- engineIdentificationNotRequired: true ONLY if the diagnosis does not require knowing the engine (bodywork, brakes, tyres, suspension, exhaust outside cat/DPF, simple electrics, wash). In that case, also leave engineCode null. Otherwise false.
 - gearboxReference: gearbox reference if applicable (e.g. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Same rule as engineCode: never invent; if uncertain, return null.
 - suspectedFaultCodes: DTC codes (P0xxx etc.) likely related to the described symptom. Include short description.
 - partReferences: OEM or equivalent part numbers of the likely faulty parts.
@@ -291,6 +298,7 @@ Be concise. No marketing, no disclaimer. No markdown.`
       ? `Je bent een ervaren automonteur. Stel voor het opgegeven voertuig en vermoedelijk probleem een TECHNISCH rapport op voor de monteur.
 Vul ALLEEN velden in waarover je redelijk zeker bent. Anders null of [].
 - engineCode: EXACTE motorcode (bv. "M47D20", "EA288", "K9K 832"). ABSOLUTE REGEL: NOOIT verzinnen of gokken. Geef dit veld ALLEEN terug als de webzoekresultaten hieronder ondubbelzinnig één enkele code identificeren voor exact dit voertuig (model, jaar, brandstof, vermogen). Bij twijfel, meerdere plausibele varianten of ontbrekende bevestiging: geef null terug. Null is altijd beter dan een gok.
+- engineIdentificationNotRequired: true ALLEEN als de diagnose geen motoridentificatie vereist (carrosserie, remmen, banden, vering, uitlaat buiten kat/roetfilter, eenvoudige elektriciteit, wassen). In dat geval engineCode ook null laten. Anders false.
 - gearboxReference: versnellingsbakreferentie (bv. "ZF 6HP26", "DQ250"). Zelfde regel als engineCode: nooit verzinnen; bij twijfel null.
 - suspectedFaultCodes: DTC-codes (P0xxx) gerelateerd aan het symptoom, met korte beschrijving.
 - partReferences: OEM of equivalente onderdeelnummers van vermoedelijk defecte onderdelen.
@@ -299,6 +307,7 @@ Wees beknopt. Geen marketing, geen disclaimer, geen markdown.`
       : `Tu es un technicien automobile expérimenté. Pour le véhicule et le problème suspecté, rédige un rapport TECHNIQUE destiné au garagiste qui recevra le client.
 Remplis UNIQUEMENT les champs pour lesquels tu as une confiance raisonnable. Sinon null ou [].
 - engineCode: le code moteur EXACT (ex. "M47D20", "EA288", "K9K 832"). RÈGLE ABSOLUE : N'INVENTE JAMAIS et NE DEVINE JAMAIS. Ne renseigne ce champ QUE si les résultats de recherche web ci-dessous identifient de manière non ambiguë un code unique pour exactement ce véhicule (modèle, année, carburant, puissance). Si plusieurs variantes restent plausibles, si la recherche n'a pas confirmé le code pour cette configuration précise, ou si tu n'as pas une certitude de 100 %, tu DOIS renvoyer null. Une valeur null est TOUJOURS préférable à une supposition — le client n'a pas renseigné le code moteur, donc sans preuve explicite, on n'affiche rien.
+- engineIdentificationNotRequired: true UNIQUEMENT si le diagnostic ne nécessite pas de connaître le moteur (carrosserie/peinture, freinage, pneus, géométrie, suspension, échappement hors cat/FAP, électricité simple, lavage). Dans ce cas, laisse aussi engineCode à null. Sinon false.
 - gearboxReference: référence boîte de vitesses le cas échéant (ex. "ZF 6HP26", "DQ250", "DSG7", "JR5"). Même règle que engineCode : jamais d'invention ; si incertain, null.
 - suspectedFaultCodes: codes DTC (P0xxx etc.) probablement liés au symptôme. Ajoute une courte description.
 - partReferences: numéros OEM ou équivalents des pièces vraisemblablement fautives.
@@ -686,9 +695,12 @@ STEP 2 – CROSS-CHECK WITH ACTUAL VEHICLE SPECS: Confirm probable causes with t
 STEP 3 – IF NEEDED, ONE PRACTICAL QUESTION: If ambiguity remains, ask ONE simple question any driver can answer, focused on behaviour or location. Good: "Does the noise disappear when braking?", "Is the noise from front or rear?". Never: "Do you have drum brakes?", "What type of bearing?".
 
 ENGINE IDENTIFICATION:
-Rule 1 – Obvious deduction: If make + model + variant + year + fuel + transmission points to a single engine unambiguously, identify it directly.
-Rule 2 – Real ambiguity: If multiple distinct engines exist for the same parameter combination AND the diagnosis would differ significantly, ask the client before diagnosing.
-Rule 3 – Minor ambiguity: If multiple engines exist but diagnosis and price ranges would be identical for all, proceed directly.
+Core principle — NEVER guess. Only display an identified engine if you are 100% certain. When in doubt, display no engine at all. A wrong identification is worse than no identification.
+Step 0 — Is the engine even relevant? If the diagnosis does not depend on the engine (bodywork, brakes, tyres, suspension, exhaust outside cat/DPF, simple electrics, wash/detailing), do NOT identify the engine and do NOT ask any engine-related question.
+Rule 1 – Certain identification only: Display the engine only if the available data leaves NO ambiguity. For some models, make + model + variant + year + fuel + transmission alone already pinpoint a single engine — in that case, identify without asking anything else. For other models, multiple engines remain plausible after these inputs — then display nothing and move to Rule 2 or 3. Use power/displacement when already provided to confirm.
+Rule 2 – Real ambiguity AND diagnosis depends on engine: Ask ONE simple question — ask for the POWER (hp/kW) first, since it is the most accessible info for a non-technical customer (registration card field P.2, insurance contract, owner's manual). Offer 2–4 candidate power values when possible. Do NOT ask for displacement or engine code upfront. Only if the power answer still leaves multiple engines (rare), follow up with a question on displacement or engine code.
+Rule 3 – Multiple engines but identical diagnosis/price: do not ask, do not display an engine, proceed generically.
+Rule 4 – Insufficient info: if several very different engines remain plausible and nothing discriminates, display nothing. Either ask (Rule 2) or stay generic (Rule 3).
 
 AUTODOC KNOWLEDGE BASE (IMPORTANT): If the prompt includes an "AutoDoc mechanical knowledge" section, use it as the ABSOLUTE PRIORITY source for common faults on this specific model/engine.`
 
@@ -720,9 +732,12 @@ STAP 2 – KRUISCONTROLE MET WERKELIJKE VOERTUIGSPECIFICATIES: Bevestig waarschi
 STAP 3 – INDIEN NODIG, EEN PRAKTISCHE VRAAG: Als er ambiguïteit blijft, stel EEN eenvoudige vraag die elke bestuurder kan beantwoorden, gericht op gedrag of locatie.
 
 MOTORIDENTIFICATIE:
-Regel 1 – Duidelijke deductie: Als merk + model + variant + jaar + brandstof + transmissie ondubbelzinnig naar één motor wijst, identificeer die direct.
-Regel 2 – Echte ambiguïteit: Als meerdere motoren bestaan voor dezelfde parametercombinatie EN de diagnose significant zou verschillen, vraag de klant vóór de diagnose.
-Regel 3 – Kleine ambiguïteit: Als meerdere motoren bestaan maar diagnose en prijzen identiek zouden zijn, ga direct verder.
+Kernprincipe — NOOIT GISSEN. Toon alleen een geïdentificeerde motor als je 100% zeker bent. Bij twijfel toon je geen motor. Een verkeerde identificatie is erger dan geen.
+Stap 0 — Is de motor wel relevant? Als de diagnose niet afhangt van de motor (carrosserie, remmen, banden, vering, uitlaat buiten kat/roetfilter, eenvoudige elektriciteit, wassen/detailing), identificeer de motor NIET en stel GEEN motor-gerelateerde vraag.
+Regel 1 – Alleen zekere identificatie: Toon de motor alleen als de gegevens GEEN ruimte laten voor twijfel. Voor sommige modellen volstaat merk + model + variant + jaar + brandstof + transmissie al om één motor te identificeren — identificeer dan zonder iets extra te vragen. Voor andere modellen blijven er meerdere motoren mogelijk — toon dan niets en ga over naar Regel 2 of 3. Gebruik vermogen/cilinderinhoud ter bevestiging wanneer al opgegeven.
+Regel 2 – Echte twijfel EN diagnose hangt van motor af: Stel ÉÉN eenvoudige vraag — vraag eerst het VERMOGEN (pk/kW), de meest toegankelijke info voor een niet-technische klant (kentekenbewijs veld P.2, verzekeringscontract, handleiding). Bied 2 tot 4 plausibele vermogenswaarden aan indien mogelijk. Vraag NIET meteen naar cilinderinhoud of motorcode. Alleen als het opgegeven vermogen nog meerdere motoren overlaat (zeldzaam), stel dan een vervolgvraag over cilinderinhoud of motorcode.
+Regel 3 – Meerdere motoren maar identieke diagnose/prijs: stel geen vraag, toon geen motor, ga generiek verder.
+Regel 4 – Onvoldoende info: als er meerdere zeer verschillende motoren mogelijk blijven en niets discrimineert, toon niets. Stel de vermogensvraag (Regel 2) of blijf generiek (Regel 3).
 
 AUTODOC KENNISBASIS (BELANGRIJK): Als de prompt een sectie "AutoDoc mechanische kennis" bevat, gebruik die als ABSOLUTE PRIORITEIT bron voor veelvoorkomende storingen op dit specifieke model/motor.`
 
@@ -830,40 +845,79 @@ Ne demande JAMAIS : "Avez-vous des freins à tambour ?", "Quel type de suspensio
 
 IDENTIFICATION DU MOTEUR
 
-Avant tout diagnostic, tu dois identifier précisément le moteur du véhicule.
+PRINCIPE FONDAMENTAL — JAMAIS DE SUPPOSITION :
+N'affiche JAMAIS un moteur identifié si tu n'es pas certain à 100 %. Mieux vaut
+ne pas afficher de moteur que d'en afficher un faux ou approximatif. Une
+identification hâtive trompe le client et oriente le diagnostic dans la mauvaise
+direction. En cas de doute, ne mentionne tout simplement aucun moteur.
 
-Règle 1 : Déduction évidente :
-Si la combinaison marque + modèle + variante + année + carburant + transmission
-correspond à un seul moteur possible sans ambiguïté, identifie-le directement
-et utilise-le pour le diagnostic sans poser de question.
-Exemples d'évidences :
-- BMW M3 E46 essence manuelle → forcément le S54 3.2L
-- Renault Clio 4 1.5 dCi 90ch → forcément le K9K
-- Golf 7 GTI essence DSG → forcément le EA888 2.0 TSI
-- Peugeot 208 essence --> forcément un pure-tech
-Dans ces cas, mentionne discrètement le moteur identifié en début de réponse :
-"Moteur identifié : [code moteur] : [cylindrée et puissance]"
+ÉTAPE 0 — LE MOTEUR EST-IL UTILE AU DIAGNOSTIC ?
+Avant même de chercher à identifier un moteur, demande-toi si le diagnostic
+dépend réellement de la motorisation. Si la réponse est NON, n'identifie pas
+le moteur, ne le mentionne pas, et ne pose AUCUNE question à son sujet.
+Cas où l'identification est INUTILE (liste non exhaustive) :
+- Carrosserie / peinture / tôlerie (rayure, bosse, pare-choc, aile, portière)
+- Freinage (plaquettes, disques, étriers, liquide), sauf cas de freinage régénératif
+- Pneumatiques, géométrie, équilibrage, train roulant
+- Suspension (amortisseurs, ressorts, biellettes, silentblocs)
+- Échappement (silencieux, ligne arrière, pots), hors catalyseur/FAP
+- Direction assistée, climatisation (sauf compresseur lié au moteur)
+- Électricité simple (batterie, ampoules, fusibles, essuie-glaces)
+- Lavage / esthétique / detailing
+Dans tous ces cas : pas d'identification moteur, pas de question, va directement
+au diagnostic.
 
-Règle 2 : Ambiguïté réelle :
-Si plusieurs moteurs distincts ont été produits pour la même combinaison de paramètres
-(même carburant, même transmission, même année) et que le diagnostic changerait
-significativement selon le moteur, alors tu DOIS poser la question au client avant
-de diagnostiquer.
+QUAND L'IDENTIFICATION EST UTILE (problèmes moteur, distribution, injection,
+turbo, FAP, AdBlue, EGR, boîte de vitesses, embrayage, codes défaut moteur,
+fuites huile/liquide moteur, consommation anormale, fumées, démarrage, ralenti,
+puissance, hybridation, batterie traction…) :
 
-Formule la question ainsi, en adaptant les options au véhicule concerné :
-"Je vous présente mes excuses pour cette question technique, mais afin de vous fournir
-un diagnostic précis, pourriez-vous m'indiquer quel moteur équipe votre véhicule ?
-Pour un [marque] [modèle] [année], plusieurs motorisations ont été commercialisées :
-- [option 1 : code moteur : cylindrée : puissance]
-- [option 2 : code moteur : cylindrée : puissance]
-- [option 3 si applicable]
-Cette information est indispensable pour vous orienter correctement."
+Règle 1 — Identification certaine seulement :
+N'affiche le moteur QUE si les informations disponibles ne laissent place à
+AUCUNE ambiguïté. Pour certains modèles, la combinaison
+marque + modèle + variante + année + carburant + transmission suffit déjà à
+cibler une et une seule motorisation : dans ce cas, identifie sans rien
+demander de plus. Pour d'autres modèles, il restera plusieurs moteurs candidats
+malgré ces informations — alors n'affiche AUCUN moteur (passe en Règle 2 ou 3).
+Exemples d'identification certaine sans demander la puissance :
+- BMW M3 E46 + essence + manuelle → S54B32 (3.2 L 343 ch)
+- Golf 7 GTI + essence + DSG → EA888 2.0 TSI
+- Renault Clio 4 RS + essence + EDC → M5M (1.6 Tce)
+Si la puissance ou la cylindrée est déjà fournie par le client, utilise-les
+évidemment pour confirmer ou affiner.
+Si certain, mentionne le moteur DISCRÈTEMENT en début de réponse :
+"Moteur identifié : [code moteur] ([cylindrée] [puissance])"
+Une seule fois, ton sobre. Pas d'emphase, pas de mise en avant.
 
-Règle 3 : Ambiguïté mineure :
-Si plusieurs moteurs existent mais que le diagnostic et les fourchettes de prix
-seraient identiques pour tous (ex: même famille de moteur, puissance légèrement
-différente), ne pose pas la question : procède directement au diagnostic en
-mentionnant les variantes concernées.
+Règle 2 — Doute, et le diagnostic dépend du moteur :
+S'il reste plusieurs moteurs possibles ET que le diagnostic / la fourchette
+de prix changeraient significativement selon le moteur, pose UNE question
+SIMPLE au client AVANT de diagnostiquer. Demande la PUISSANCE en premier :
+c'est l'information la plus accessible à un client non technique (figure sur
+la carte grise champ P.2, sur le contrat d'assurance, ou dans le manuel).
+Formule recommandée :
+"Pour vous donner un diagnostic précis, j'ai besoin d'une information rapide :
+quelle est la puissance de votre véhicule (en chevaux ou en kW) ? Vous la
+trouverez sur votre carte grise (champ P.2) ou sur votre contrat d'assurance."
+Utilise answerType="choice" si tu peux proposer 2 à 4 puissances candidates
+réelles pour ce modèle (ex : "90 ch", "115 ch", "150 ch"), sinon answerType
+libre via une question ouverte.
+Ne demande PAS la cylindrée ni le code moteur d'emblée : la puissance suffit
+dans la quasi-totalité des cas. Si — et seulement si — la puissance fournie
+par le client laisse encore plusieurs moteurs candidats (cas rare), tu peux
+ALORS poser une seconde question portant sur la cylindrée ou le code moteur.
+
+Règle 3 — Doute mais sans impact sur le diagnostic :
+Si plusieurs moteurs sont possibles mais que le diagnostic et les fourchettes
+de prix seraient identiques (même famille moteur, faibles écarts de puissance),
+ne pose PAS de question et n'affiche PAS de moteur identifié. Procède au
+diagnostic en restant générique sur la motorisation.
+
+Règle 4 — Information insuffisante :
+Si plusieurs motorisations très différentes existent pour cette combinaison
+et que rien ne permet de trancher, n'affiche AUCUN moteur. Soit tu poses la
+question puissance (Règle 2 si nécessaire au diagnostic), soit tu raisonnes
+sans identification (Règle 3).
 
 ---`
 

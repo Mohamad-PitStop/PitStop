@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getUserFromAuthCookie, extractCookieValue } from "@/lib/auth-session"
 import { getDiagnosticRequestById, updateDiagnosticStatus, type DiagnosticStatus } from "@/lib/diagnostics-db"
 import { GUEST_ROW_COOKIE } from "@/lib/guest-diagnostic"
+import { requireOwnerAdmin } from "@/lib/admin-security"
 
 const ALLOWED_STATUSES: DiagnosticStatus[] = ["abandoned", "completed"]
 
@@ -25,7 +26,12 @@ export async function GET(
 
   if (user) {
     if (row.userId !== user.id) {
-      return NextResponse.json({ error: "Non trouvé" }, { status: 404 })
+      // Bypass propriétaire-admin : un seul admin du site, accès en lecture seule
+      // pour le support / la qualité des diagnostics.
+      const admin = await requireOwnerAdmin(req)
+      if (!admin) {
+        return NextResponse.json({ error: "Non trouvé" }, { status: 404 })
+      }
     }
   } else if (!guestOwnsRow(cookieHeader, id, row)) {
     return NextResponse.json({ error: "Non connecté" }, { status: 401 })

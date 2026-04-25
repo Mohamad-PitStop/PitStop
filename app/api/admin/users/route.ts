@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   getAllAccounts,
   findAccountByEmail,
+  searchAccounts,
   setUserRole,
   getAllPendingAssignments,
   upsertPendingAssignment,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/accounts-db"
 import { isSameOrigin } from "@/lib/request-security"
 import { requireOwnerAdmin } from "@/lib/admin-security"
+import { toIsoUtc } from "@/lib/format-brussels-date"
 
 const VALID_ROLES: UserRole[] = ["tester", "user_friend", "user"]
 
@@ -20,8 +22,24 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url)
   const email = url.searchParams.get("email")?.trim().toLowerCase()
+  const q = url.searchParams.get("q")?.trim()
 
-  // Search mode: return single user by email
+  // Search mode (partial): nom OU e-mail, jusqu'à 25 résultats.
+  if (q) {
+    const users = await searchAccounts(q, 25)
+    return NextResponse.json({
+      users: users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        diagnosticCredits: u.diagnosticCredits,
+        createdAt: toIsoUtc(u.createdAt),
+      })),
+    })
+  }
+
+  // Search mode (exact email) — conservé pour les appels existants.
   if (email) {
     const user = await findAccountByEmail(email)
     if (!user) return NextResponse.json({ user: null })
@@ -32,7 +50,7 @@ export async function GET(req: Request) {
         email: user.email,
         role: user.role,
         diagnosticCredits: user.diagnosticCredits,
-        createdAt: (user as any).createdAt ?? null,
+        createdAt: toIsoUtc((user as { createdAt?: unknown }).createdAt),
       },
     })
   }

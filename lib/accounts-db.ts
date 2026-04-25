@@ -375,6 +375,43 @@ export async function getAllAccounts(): Promise<Array<{ id: string; name: string
   return rows.map((r) => ({ ...r, role: toRole(r.role) }))
 }
 
+/**
+ * Recherche partielle d'utilisateurs par nom ou e-mail (LIKE insensible à la casse).
+ * Retourne au plus `limit` résultats triés par e-mail. Utilisé dans l'admin pour
+ * trouver un compte sans avoir à taper l'adresse exacte.
+ */
+export async function searchAccounts(
+  query: string,
+  limit = 25
+): Promise<Array<{ id: string; name: string; email: string; role: UserRole; diagnosticCredits: number; createdAt: string | null }>> {
+  await ensureAccountsTable()
+  const trimmed = query.trim()
+  if (!trimmed) return []
+  // Échappe les jokers SQL (% _ \) pour éviter qu'un caractère saisi soit
+  // interprété comme un wildcard et casse l'intention de la recherche.
+  const escaped = trimmed.replace(/[\\%_]/g, (m) => `\\${m}`)
+  const pattern = `%${escaped.toLowerCase()}%`
+  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 100)
+  const rows = await prisma.$queryRawUnsafe<Array<{
+    id: string
+    name: string
+    email: string
+    role: string
+    diagnosticCredits: number
+    createdAt: string | null
+  }>>(
+    `SELECT "id", "name", "email", "role", "diagnosticCredits", "createdAt"
+     FROM "UserAccount"
+     WHERE lower("email") LIKE ? ESCAPE '\\'
+        OR lower("name")  LIKE ? ESCAPE '\\'
+     ORDER BY "email" ASC
+     LIMIT ${safeLimit}`,
+    pattern,
+    pattern
+  )
+  return rows.map((r) => ({ ...r, role: toRole(r.role) }))
+}
+
 export async function setUserRole(userId: string, role: UserRole): Promise<void> {
   await ensureAccountsTable()
   await prisma.$executeRawUnsafe(`UPDATE "UserAccount" SET "role" = ? WHERE "id" = ?`, role, userId)

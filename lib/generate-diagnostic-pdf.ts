@@ -16,6 +16,7 @@ const LABELS = {
     mechanicEngineCode:    "Code moteur",
     mechanicGearboxRef:    "Référence boîte de vitesses",
     mechanicNotIdentified: "Non identifié",
+    mechanicEngineNotRequired: "Identification du moteur non nécessaire pour ce diagnostic.",
     mechanicFaultCodes:    "Codes erreur suspectés",
     mechanicPartRefs:      "Références pièces probables",
     mechanicNotes:         "Notes techniques",
@@ -50,6 +51,7 @@ const LABELS = {
     mechanicEngineCode:    "Engine code",
     mechanicGearboxRef:    "Gearbox reference",
     mechanicNotIdentified: "Not identified",
+    mechanicEngineNotRequired: "Engine identification was not required for this diagnosis.",
     mechanicFaultCodes:    "Suspected fault codes",
     mechanicPartRefs:      "Likely part references",
     mechanicNotes:         "Technical notes",
@@ -84,6 +86,7 @@ const LABELS = {
     mechanicEngineCode:    "Motorcode",
     mechanicGearboxRef:    "Versnellingsbakreferentie",
     mechanicNotIdentified: "Niet geïdentificeerd",
+    mechanicEngineNotRequired: "Motoridentificatie was niet nodig voor deze diagnose.",
     mechanicFaultCodes:    "Vermoedelijke foutcodes",
     mechanicPartRefs:      "Waarschijnlijke onderdeelreferenties",
     mechanicNotes:         "Technische notities",
@@ -774,13 +777,15 @@ export function generateDiagnosticPdf(
   // ═══════════════════════════════════════════════════════════════════════════
 
   const mr = diagnostic.mechanicReport
+  const engineNotRequired = !!mr?.engineIdentificationNotRequired
   const hasMr =
     !!mr &&
     ((mr.engineCode && mr.engineCode.trim().length > 0) ||
       (mr.gearboxReference && mr.gearboxReference.trim().length > 0) ||
       (mr.suspectedFaultCodes && mr.suspectedFaultCodes.length > 0) ||
       (mr.partReferences && mr.partReferences.length > 0) ||
-      (mr.technicalNotes && mr.technicalNotes.length > 0))
+      (mr.technicalNotes && mr.technicalNotes.length > 0) ||
+      engineNotRequired)
 
   if (hasMr && mr) {
     // Cette section est destinée au garagiste : on la démarre sur une nouvelle page
@@ -791,10 +796,36 @@ export function generateDiagnosticPdf(
     y = text(doc, L.mechanicIntro, y, { size: 9, italic: true, color: C.muted, lh: 4.4 })
     y += 3
 
-    // Bloc identité technique : deux colonnes (code moteur / référence boîte).
-    // Les valeurs sont tronquées visuellement si elles sont plus larges que la
-    // colonne pour éviter qu'elles ne chevauchent la colonne voisine.
-    if ((mr.engineCode && mr.engineCode.trim()) || (mr.gearboxReference && mr.gearboxReference.trim())) {
+    // Bloc identité technique : deux colonnes (code moteur / référence boîte),
+    // OU bandeau explicite si l'identification du moteur n'était pas nécessaire.
+    if (engineNotRequired && !(mr.engineCode && mr.engineCode.trim())) {
+      // Bandeau "non nécessaire" — explique au garagiste pourquoi engineCode est absent.
+      y = guard(doc, y, 14)
+      doc.setFillColor(...C.cardBg)
+      doc.roundedRect(ML, y - 2, CW, 12, 2, 2, "F")
+      doc.setFont("helvetica", "italic")
+      doc.setFontSize(9)
+      doc.setTextColor(...C.muted)
+      const lines = doc.splitTextToSize(L.mechanicEngineNotRequired, CW - 8) as string[]
+      doc.text(lines[0] ?? "", ML + 4, y + 6)
+      y += 16
+      // Si la référence boîte est tout de même présente, l'afficher seule.
+      if (mr.gearboxReference && mr.gearboxReference.trim()) {
+        y = guard(doc, y, 20)
+        doc.setFillColor(...C.cardBg)
+        doc.roundedRect(ML, y - 2, CW, 16, 2, 2, "F")
+        doc.setFont("helvetica", "bold")
+        doc.setFontSize(7.5)
+        doc.setTextColor(...C.muted)
+        doc.text(L.mechanicGearboxRef.toUpperCase(), ML + 4, y + 3)
+        doc.setFont("helvetica", "bold")
+        doc.setFontSize(11)
+        doc.setTextColor(...C.navy)
+        const gearLines = doc.splitTextToSize(mr.gearboxReference.trim(), CW - 8) as string[]
+        doc.text(gearLines[0] ?? "", ML + 4, y + 10)
+        y += 20
+      }
+    } else if ((mr.engineCode && mr.engineCode.trim()) || (mr.gearboxReference && mr.gearboxReference.trim())) {
       y = guard(doc, y, 20)
       doc.setFillColor(...C.cardBg)
       doc.roundedRect(ML, y - 2, CW, 16, 2, 2, "F")
