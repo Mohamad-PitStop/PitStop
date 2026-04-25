@@ -161,6 +161,7 @@ interface DiagnosticResult {
   mechanicReport?: {
     engineCode?: string | null
     gearboxReference?: string | null
+    engineIdentificationNotRequired?: boolean
     suspectedFaultCodes?: { code: string; description: string }[]
     partReferences?: { label: string; reference: string }[]
     technicalNotes?: string[]
