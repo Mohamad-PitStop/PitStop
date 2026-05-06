@@ -4,15 +4,17 @@ import { z } from "zod"
 import {
   createDiagnosticRequest,
   getDiagnosticRequestById,
+  updateDiagnosticMechanicReport,
   updateDiagnosticRequestFollowUps,
   updateDiagnosticResult,
 } from "@/lib/diagnostics-db"
+import { generateMechanicReport, shouldGenerateMechanicReport } from "@/lib/mechanic-report"
 import { getAutoDocContext } from "@/lib/autodoc-knowledge"
 import { getDtcContext } from "@/lib/dtc-lookup"
 import type { SystemModelMessage } from "@ai-sdk/provider-utils"
 import { getUserFromAuthCookie, extractCookieValue } from "@/lib/auth-session"
 import { deductCredit, addCredits } from "@/lib/accounts-db"
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
 import {
   GUEST_INTENT_COOKIE,
   GUEST_USED_COOKIE,
@@ -21,6 +23,66 @@ import {
   GUEST_INTENT_MAX_AGE,
   GUEST_USED_MAX_AGE,
 } from "@/lib/guest-diagnostic"
+
+/**
+ * 60s autorise : diagnostic principal (~5-15s) + raffinement éventuel (~5-15s)
+ * + pré-génération du rapport garagiste en arrière-plan via after() (~15-35s).
+ * after() reste borné par maxDuration sur Vercel.
+ */
+export const maxDuration = 60
+
+type MechanicReportPrewarmParams = {
+  diagId: string
+  locale: "fr" | "en" | "nl"
+  marque: string
+  modele: string
+  variante: string | null
+  annee: string
+  carburant: string | null
+  transmission: string | null
+  cylindree: string
+  puissance: string
+  typeBoiteAuto: string
+  probleme: string
+}
+
+/**
+ * Pré-génère le rapport garagiste en arrière-plan après que la réponse a été envoyée.
+ * Le résultat est stocké en DB pour que le téléchargement du PDF puisse le récupérer
+ * instantanément depuis le cache.
+ *
+ * Idempotent : `/api/diagnostic/[id]/mechanic-report` retombera en sync si jamais la
+ * pré-génération échoue ou n'a pas eu le temps de finir avant le clic PDF.
+ */
+function prewarmMechanicReport(
+  diagnostic: z.infer<typeof DiagnosticSchema>,
+  params: MechanicReportPrewarmParams,
+) {
+  if (!shouldGenerateMechanicReport(diagnostic)) return
+  after(async () => {
+    try {
+      const report = await generateMechanicReport({
+        locale: params.locale,
+        marque: params.marque,
+        modele: params.modele,
+        variante: params.variante,
+        annee: params.annee,
+        carburant: params.carburant,
+        transmission: params.transmission,
+        cylindree: params.cylindree,
+        puissance: params.puissance,
+        typeBoiteAuto: params.typeBoiteAuto,
+        probleme: params.probleme,
+        diagnostic,
+      })
+      if (report) {
+        await updateDiagnosticMechanicReport(params.diagId, JSON.stringify(report))
+      }
+    } catch (err) {
+      console.error("Mechanic report prewarm failed:", err)
+    }
+  })
+}
 
 function logAnthropicCacheStats(usage: LanguageModelUsage) {
   const data = usage.raw as
@@ -863,9 +925,19 @@ sans identification (Règle 3).
         creditRefunded = true
       }
       const calibrated1 = applyPriceCalibration(diagnostic1, String(marque), carburant, String(probleme))
-      // Le rapport garagiste (recherche web + structuration, ~15-35s) est généré
-      // à la demande lors du téléchargement du PDF, pas ici, pour ne pas bloquer
-      // l'affichage du diagnostic. Voir /api/diagnostic/[id]/mechanic-report.
+      // Le rapport garagiste (recherche web + structuration, ~15-35s) est pré-généré
+      // en arrière-plan via after() : la réponse du diagnostic part immédiatement,
+      // et au moment où l'utilisateur clique "Télécharger PDF" le rapport est en
+      // général déjà en cache DB. /api/diagnostic/[id]/mechanic-report retombe en
+      // sync si la pré-génération n'a pas eu le temps de finir.
+      if (diagId) {
+        prewarmMechanicReport(calibrated1, {
+          diagId, locale, marque: String(marque), modele: String(modele),
+          variante: variante ? String(variante) : null, annee: String(annee),
+          carburant: carburant ?? null, transmission: transmission ? String(transmission) : null,
+          cylindree, puissance, typeBoiteAuto, probleme: String(probleme),
+        })
+      }
       const res1 = buildDiagnosticResponse(calibrated1, diagId, creditRefunded)
       if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res1, diagId)
       return res1
@@ -898,6 +970,14 @@ sans identification (Règle 3).
       creditRefunded = true
     }
     const calibrated2 = applyPriceCalibration(finalDiagnostic, String(marque), carburant, String(probleme))
+    if (diagId) {
+      prewarmMechanicReport(calibrated2, {
+        diagId, locale, marque: String(marque), modele: String(modele),
+        variante: variante ? String(variante) : null, annee: String(annee),
+        carburant: carburant ?? null, transmission: transmission ? String(transmission) : null,
+        cylindree, puissance, typeBoiteAuto, probleme: String(probleme),
+      })
+    }
     const res2 = buildDiagnosticResponse(calibrated2, diagId, creditRefunded)
     if (guestFirstCall && diagId) applyGuestFirstSuccessCookies(res2, diagId)
     return res2
