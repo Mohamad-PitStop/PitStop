@@ -30,9 +30,64 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://pitstop-diagnosti
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'PitStop - Estimez vos réparations auto',
+  title: {
+    default: 'PitStop : diagnostic et estimation auto en Belgique',
+    template: '%s | PitStop',
+  },
   description: 'Obtenez une estimation fiable et transparente pour vos réparations automobiles. Comparez les prix DIY et garage.',
+  applicationName: 'PitStop',
   generator: 'v0.app',
+  keywords: [
+    'diagnostic auto',
+    'estimation réparation voiture',
+    'devis garage Belgique',
+    'panne automobile',
+    'voyant moteur',
+    'PitStop',
+  ],
+  authors: [{ name: 'PitStop' }],
+  creator: 'PitStop',
+  publisher: 'PitStop',
+  alternates: {
+    canonical: '/',
+    languages: {
+      'fr-BE': '/',
+      'en': '/',
+      'nl-BE': '/',
+      'x-default': '/',
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'fr_BE',
+    alternateLocale: ['en_US', 'nl_BE'],
+    url: SITE_URL,
+    siteName: 'PitStop',
+    title: 'PitStop : diagnostic et estimation auto en Belgique',
+    description: 'Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PitStop : diagnostic et estimation auto en Belgique',
+    description: 'Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
+  },
   icons: {
     icon: [
       { url: '/icon.png', type: 'image/png' },

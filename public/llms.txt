@@ -16,21 +16,21 @@ Belgian car owners who want an honest estimate before visiting a garage, and gar
 
 ## Key pages
 
-- https://pitstop.be/ — Homepage
-- https://pitstop.be/diagnostic — Launch a diagnostic
-- https://pitstop.be/garages — Find a partner garage
-- https://pitstop.be/vente — Pricing and credits
-- https://pitstop.be/inscription — Create an account
-- https://pitstop.be/inscription-garage — Register a garage
+- https://pitstop-diagnostic.live/ — Homepage
+- https://pitstop-diagnostic.live/diagnostic — Launch a diagnostic
+- https://pitstop-diagnostic.live/garages — Find a partner garage
+- https://pitstop-diagnostic.live/vente — Pricing and credits
+- https://pitstop-diagnostic.live/inscription — Create an account
+- https://pitstop-diagnostic.live/inscription-garage — Register a garage
 
 ## Legal & policies
 
-- https://pitstop.be/mentions-legales — Legal notices
-- https://pitstop.be/confidentialite — Privacy policy (GDPR)
-- https://pitstop.be/conditions-generales-vente — Terms of sale
-- https://pitstop.be/politique-ia — AI usage policy
-- https://pitstop.be/cgp-garages — Garage partner terms
-- https://pitstop.be/sla — Service level agreement
+- https://pitstop-diagnostic.live/mentions-legales — Legal notices
+- https://pitstop-diagnostic.live/confidentialite — Privacy policy (GDPR)
+- https://pitstop-diagnostic.live/conditions-generales-vente — Terms of sale
+- https://pitstop-diagnostic.live/politique-ia — AI usage policy
+- https://pitstop-diagnostic.live/cgp-garages — Garage partner terms
+- https://pitstop-diagnostic.live/sla — Service level agreement
 
 ## Languages
 

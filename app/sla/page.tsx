@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
+import { localizedAlternates } from "@/lib/seo-alternates"
 import { SlaView } from "@/components/legal/sla-view"
 
 export const metadata: Metadata = {
-  title: "SLA — PitStop",
+  title: "SLA",
   description: "Annexe SLA (Service Level Agreement) de la plateforme PitStop.",
-  alternates: { canonical: "/sla" },
+  alternates: localizedAlternates("/sla"),
 }
 
 export default function SlaPage() {

@@ -1,12 +1,13 @@
 import type { Metadata } from "next"
+import { localizedAlternates } from "@/lib/seo-alternates"
 import { Navbar } from "@/components/navbar"
 import { GaragesPageContent } from "@/components/garages-page-content"
 
 export const metadata: Metadata = {
-  title: "Garages partenaires — PitStop",
+  title: "Garages partenaires",
   description:
     "Trouvez un garage de confiance près de chez vous en Belgique. Prenez rendez-vous directement depuis votre diagnostic PitStop.",
-  alternates: { canonical: "/garages" },
+  alternates: localizedAlternates("/garages"),
 }
 
 export default function GaragesPage() {

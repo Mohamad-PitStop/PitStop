@@ -5,7 +5,7 @@ import { ResultsContent } from "@/components/results-content"
 import { ResultatLoadingFallback } from "@/components/resultat-loading-fallback"
 
 export const metadata: Metadata = {
-  title: "Résultat du diagnostic — PitStop",
+  title: "Résultat du diagnostic",
   robots: { index: false, follow: false },
 }
 

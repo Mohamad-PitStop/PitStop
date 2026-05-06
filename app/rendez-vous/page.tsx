@@ -3,7 +3,7 @@ import { Navbar } from "@/components/navbar"
 import { RendezVousPageContent } from "@/components/rendez-vous-page-content"
 
 export const metadata: Metadata = {
-  title: "Prendre rendez-vous — PitStop",
+  title: "Prendre rendez-vous",
   description:
     "Réservez en ligne chez un garage partenaire PitStop. Choisissez votre créneau, confirmez le dépôt de votre véhicule et recevez un rappel par e-mail.",
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Réinitialiser le mot de passe — PitStop",
+  title: "Réinitialiser le mot de passe",
   robots: { index: false, follow: false },
 }
 
