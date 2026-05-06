@@ -12,7 +12,7 @@ const COLORS = {
   primary: "#22C55E",
   white: "#FFFFFF",
   muted: "#94A3B8",
-  outline: "rgba(34, 197, 94, 0.18)",
+  outline: "rgba(255, 255, 255, 0.18)",
 }
 
 export default async function Image() {
@@ -31,34 +31,8 @@ export default async function Image() {
           background: COLORS.background,
           color: COLORS.white,
           fontFamily: "Inter, sans-serif",
-          position: "relative",
-          overflow: "hidden",
         }}
       >
-        {/* Halo radial qui rappelle l'ambiance de la home */}
-        <div
-          style={{
-            position: "absolute",
-            top: -200,
-            right: -200,
-            width: 720,
-            height: 720,
-            borderRadius: 9999,
-            background: "radial-gradient(closest-side, rgba(34,197,94,0.18), rgba(34,197,94,0))",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: -180,
-            left: -180,
-            width: 520,
-            height: 520,
-            borderRadius: 9999,
-            background: "radial-gradient(closest-side, rgba(34,197,94,0.10), rgba(34,197,94,0))",
-          }}
-        />
-
         {/* Logo + wordmark */}
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -107,7 +81,7 @@ export default async function Image() {
         >
           <div style={{ color: COLORS.white, fontWeight: 600 }}>pitstop-diagnostic.live</div>
           <div style={{ display: "flex", gap: 12 }}>
-            {["Diagnostic IA", "Garages partenaires", "Belgique"].map((label) => (
+            {["Garages partenaires", "Belgique"].map((label) => (
               <div
                 key={label}
                 style={{
