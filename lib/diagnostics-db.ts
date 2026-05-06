@@ -12,6 +12,7 @@ function getDb() {
 let userIdColumnEnsured = false
 let statusColumnEnsured = false
 let resultJsonColumnEnsured = false
+let mechanicReportColumnEnsured = false
 
 async function ensureUserIdColumn() {
   if (userIdColumnEnsured) return
@@ -48,6 +49,17 @@ async function ensureResultJsonColumn() {
   resultJsonColumnEnsured = true
 }
 
+async function ensureMechanicReportColumn() {
+  if (mechanicReportColumnEnsured) return
+  const db = getDb()
+  try {
+    await db.execute(`ALTER TABLE DiagnosticRequest ADD COLUMN mechanicReportJson TEXT`)
+  } catch {
+    // colonne déjà présente
+  }
+  mechanicReportColumnEnsured = true
+}
+
 export type DiagnosticStatus = "in_progress" | "completed" | "abandoned"
 
 export type DiagnosticRow = {
@@ -66,6 +78,7 @@ export type DiagnosticRow = {
   userId: string | null
   status: DiagnosticStatus
   resultJson: string | null
+  mechanicReportJson: string | null
 }
 
 export type DiagnosticInsertInput = {
@@ -147,14 +160,24 @@ export async function getDiagnosticRequestById(id: string): Promise<DiagnosticRo
   await ensureUserIdColumn()
   await ensureStatusColumn()
   await ensureResultJsonColumn()
+  await ensureMechanicReportColumn()
   const db = getDb()
   const result = await db.execute({
-    sql: `SELECT id, "createdAt", marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, "followUps", "promptText", userId, status, resultJson
+    sql: `SELECT id, "createdAt", marque, modele, variante, carburant, transmission, annee, kilometrage, probleme, "followUps", "promptText", userId, status, resultJson, mechanicReportJson
           FROM DiagnosticRequest WHERE id = ? LIMIT 1`,
     args: [id],
   })
   if (result.rows.length === 0) return null
   return mapRow(result.rows[0])
+}
+
+export async function updateDiagnosticMechanicReport(id: string, mechanicReportJson: string): Promise<void> {
+  await ensureMechanicReportColumn()
+  const db = getDb()
+  await db.execute({
+    sql: `UPDATE DiagnosticRequest SET mechanicReportJson = ? WHERE id = ?`,
+    args: [mechanicReportJson, id],
+  })
 }
 
 export async function updateDiagnosticRequestFollowUps(input: {
@@ -260,5 +283,6 @@ function mapRow(row: Record<string, unknown>): DiagnosticRow {
     userId: row.userId != null ? String(row.userId) : null,
     status: (row.status as DiagnosticStatus) ?? "in_progress",
     resultJson: row.resultJson != null ? String(row.resultJson) : null,
+    mechanicReportJson: row.mechanicReportJson != null ? String(row.mechanicReportJson) : null,
   }
 }
