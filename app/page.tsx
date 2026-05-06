@@ -8,7 +8,7 @@ import { JsonLd } from "@/components/json-ld"
 export const metadata: Metadata = {
   title: { absolute: "PitStop : diagnostic et estimation auto en Belgique" },
   description:
-    "Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.",
+    "Estimez vos réparations et la valeur de revente de votre véhicule en quelques secondes. 1er diagnostic offert, garages partenaires partout en Belgique.",
   alternates: {
     canonical: "/",
     languages: {
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PitStop : diagnostic et estimation auto en Belgique",
     description:
-      "Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.",
+      "Estimez vos réparations et la valeur de revente de votre véhicule en quelques secondes. 1er diagnostic offert, garages partenaires partout en Belgique.",
     url: "/",
   },
 }

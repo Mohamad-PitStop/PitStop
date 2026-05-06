@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     default: 'PitStop : diagnostic et estimation auto en Belgique',
     template: '%s | PitStop',
   },
-  description: 'Obtenez une estimation fiable et transparente pour vos réparations automobiles. Comparez les prix DIY et garage.',
+  description: 'Diagnostic auto par IA et estimation des coûts de réparation en Belgique. Comparez les prix DIY ou garage et prenez rendez-vous avec un partenaire de confiance.',
   applicationName: 'PitStop',
   generator: 'v0.app',
   keywords: [
@@ -64,12 +64,12 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: 'PitStop',
     title: 'PitStop : diagnostic et estimation auto en Belgique',
-    description: 'Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.',
+    description: 'Estimez vos réparations et la valeur de revente de votre véhicule en quelques secondes. 1er diagnostic offert, garages partenaires partout en Belgique.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'PitStop : diagnostic et estimation auto en Belgique',
-    description: 'Estimez vos réparations et la valeur de revente de votre véhicule. 1er diagnostic gratuit.',
+    description: 'Estimez vos réparations et la valeur de revente de votre véhicule en quelques secondes. 1er diagnostic offert, garages partenaires partout en Belgique.',
   },
   robots: {
     index: true,
