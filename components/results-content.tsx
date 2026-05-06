@@ -592,8 +592,44 @@ export function ResultsContent() {
     if (!diagnostic || !vehicleInfo) return
     setPdfLoading(true)
     try {
+      // Le rapport garagiste est généré à la demande pour ne pas ralentir
+      // l'affichage du diagnostic. Cache DB côté serveur : un re-téléchargement
+      // est instantané.
+      let mechanicReport = diagnostic.mechanicReport ?? null
+      const diagId = diagnostic.diagnosticRequestId
+      if (!mechanicReport && diagId) {
+        try {
+          let extras: { cylindree?: string; puissance?: string; typeBoiteAuto?: string } = {}
+          try {
+            const raw = sessionStorage.getItem("pendingFormData")
+            if (raw) {
+              const parsed = JSON.parse(raw) as Record<string, unknown>
+              extras = {
+                cylindree: typeof parsed.cylindree === "string" ? parsed.cylindree : "",
+                puissance: typeof parsed.puissance === "string" ? parsed.puissance : "",
+                typeBoiteAuto: typeof parsed.typeBoiteAuto === "string" ? parsed.typeBoiteAuto : "",
+              }
+            }
+          } catch {
+            // sessionStorage vidé : on continue sans ces champs (best effort)
+          }
+          const r = await fetch(`/api/diagnostic/${encodeURIComponent(diagId)}/mechanic-report`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ locale, ...extras }),
+          })
+          if (r.ok) {
+            const data = await r.json().catch(() => null)
+            mechanicReport = data?.mechanicReport ?? null
+          }
+        } catch (err) {
+          console.error("Mechanic report fetch failed (PDF will be generated without it):", err)
+        }
+      }
+      const enrichedDiagnostic = mechanicReport ? { ...diagnostic, mechanicReport } : diagnostic
       const { generateDiagnosticPdf } = await import("@/lib/generate-diagnostic-pdf")
-      generateDiagnosticPdf(diagnostic, vehicleInfo, locale)
+      generateDiagnosticPdf(enrichedDiagnostic, vehicleInfo, locale)
     } catch (err) {
       console.error("PDF generation error:", err)
     } finally {
