@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Connexion — PitStop",
+  title: "Connexion",
   description:
     "Connectez-vous à votre compte PitStop pour accéder à votre historique de diagnostics, vos crédits et vos rendez-vous.",
   alternates: { canonical: "/connexion" },
